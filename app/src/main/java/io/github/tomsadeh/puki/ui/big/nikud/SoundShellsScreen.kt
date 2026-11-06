@@ -14,7 +14,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -64,19 +63,18 @@ private fun withoutMarks(text: String) = text.filter { it.code !in 0x591..0x5C7 
  * Puki's bubble shows the tapped syllable large. After two misses the right board glows.
  */
 @Composable
-fun SoundShellsScreen(onBack: () -> Unit) {
+fun SoundShellsScreen(onBack: () -> Unit, onAgain: () -> Unit) {
     val vm: SoundShellsViewModel = viewModel()
     val meet: MeetMarkViewModel = viewModel()
     val state by vm.state.collectAsStateWithLifecycle()
     val sfx = LocalSfxPlayer.current
     val paused by rememberGamePaused()
-    var session by remember { mutableIntStateOf(0) }
     var seenCards by remember { mutableStateOf<Set<Int>?>(null) }
     var offered by rememberSaveable { mutableStateOf("") }  // the cards shown in this visit, as digits
 
     LaunchedEffect(Unit) {
         seenCards = meet.seenCards()
-        if (vm.state.value.phase == NikudPhase.COMPLETE) vm.restart() else vm.start()
+        vm.start()
     }
 
     // The card before the first question of a stage, once
@@ -92,7 +90,7 @@ fun SoundShellsScreen(onBack: () -> Unit) {
 
     PlayVoiceCue(state.cue.keys, state.cue.token.toLong())
 
-    val found = remember(session) { mutableStateListOf<String?>().apply { repeat(SoundShellsGame.ROUNDS) { add(null) } } }
+    val found = remember { mutableStateListOf<String?>().apply { repeat(SoundShellsGame.ROUNDS) { add(null) } } }
     LaunchedEffect(state.solved, state.roundIndex) {
         if (state.solved) state.foundBare?.let { if (state.roundIndex in found.indices) found[state.roundIndex] = withoutMarks(it) }
     }
@@ -127,7 +125,7 @@ fun SoundShellsScreen(onBack: () -> Unit) {
             bubble?.let { FeedbackBubble(it, Modifier.align(Alignment.BottomStart).padding(start = 176.dp, bottom = 64.dp), fontSize = 64.sp) }
             if (state.sessionComplete) {
                 ConfettiOverlay(show = true)
-                RoundCompleteSheet(starsEarned = state.starsEarned, onContinue = { session++; vm.restart() }, onHome = onBack)
+                RoundCompleteSheet(starsEarned = state.starsEarned, onContinue = onAgain, onHome = onBack)
             }
         }
     ) {

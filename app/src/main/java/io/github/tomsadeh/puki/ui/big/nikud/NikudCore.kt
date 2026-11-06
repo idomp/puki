@@ -1,8 +1,10 @@
 package io.github.tomsadeh.puki.ui.big.nikud
 
 import io.github.tomsadeh.puki.data.content.big.Nikud
-import io.github.tomsadeh.puki.learning.SlotBag
+import io.github.tomsadeh.puki.learning.RoundScheduler
+import io.github.tomsadeh.puki.learning.StoreQueue
 import io.github.tomsadeh.puki.ui.big.letters.TileMark
+import kotlinx.coroutines.CoroutineScope
 import kotlin.random.Random
 
 /*
@@ -36,13 +38,10 @@ enum class DistractorLevel {
 class PictureLayout(val options: List<Nikud.Word>, val correctIndex: Int)
 
 /** Chooses picture distractors (clear tier only, never twins of each other or of the target) and the answer's place. */
-class PictureChooser(private val random: Random, private val slots: SlotBag) {
-    private val before = HashMap<String, Pair<Int, Set<String>>>()
-
-    fun forget() = before.clear()
+class PictureChooser(private val random: Random, private val scheduler: RoundScheduler) {
 
     fun choose(target: Nikud.Word, level: DistractorLevel, count: Int = 3): PictureLayout {
-        val seen = before[target.id]
+        val seen = scheduler.presentation(target.id)
         val candidates = Nikud.clearWords.filter { it.id != target.id && !Nikud.areTwins(it, target) }
         val sameStart = { w: Nikud.Word -> w.firstConsonant == target.firstConsonant }
         val ordered = candidates.shuffled(random).sortedWith(
@@ -51,7 +50,7 @@ class PictureChooser(private val random: Random, private val slots: SlotBag) {
                     DistractorLevel.DIFFERENT_START -> if (sameStart(it)) 1 else 0
                     DistractorLevel.SAME_START -> if (sameStart(it)) 0 else 1
                 }
-            }.thenBy { it.id in (seen?.second ?: emptySet()) }  // asked again: other neighbours when there are any
+            }.thenBy { it.id in (seen?.distractors ?: emptySet()) }  // asked again: other neighbours when there are any
         )
         val allowed = if (level == DistractorLevel.DIFFERENT_START) ordered.filter { !sameStart(it) }.ifEmpty { ordered } else ordered
         val picked = mutableListOf<Nikud.Word>()
@@ -60,9 +59,9 @@ class PictureChooser(private val random: Random, private val slots: SlotBag) {
             if (picked.none { Nikud.areTwins(it, w) }) picked.add(w)
         }
         val others = picked.shuffled(random).toMutableList()
-        val slot = slots.draw(others.size + 1, avoid = seen?.first).coerceAtMost(others.size)
+        val slot = scheduler.slots.draw(others.size + 1, avoid = seen?.position).coerceAtMost(others.size)
         others.add(slot, target)
-        before[target.id] = slot to picked.map { it.id }.toSet()
+        scheduler.rememberPresentation(target.id, slot, picked.map { it.id }.toSet())
         return PictureLayout(others, slot)
     }
 }
@@ -71,6 +70,13 @@ class PictureChooser(private val random: Random, private val slots: SlotBag) {
 interface NikudCardStore {
     suspend fun seen(): Set<Int>
     suspend fun markSeen(card: Int)
+}
+
+/** A completed card stays remembered even when its screen leaves immediately. */
+class OrderedNikudCardStore(private val store: NikudCardStore, scope: CoroutineScope) {
+    private val queue = StoreQueue(scope)
+    suspend fun seen(): Set<Int> = queue.read { store.seen() }
+    fun markSeen(card: Int) = queue.write { store.markSeen(card) }
 }
 
 class InMemoryNikudCardStore(initial: Set<Int> = emptySet()) : NikudCardStore {

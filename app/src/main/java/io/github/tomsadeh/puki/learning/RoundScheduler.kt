@@ -16,19 +16,31 @@ data class ItemRecord(
     }
 }
 
-/** Everything the scheduler keeps for one game: the number of finished sessions and a record per item. */
+/** The last layout of a task, kept separately from its learning record. */
+data class PresentationRecord(val position: Int, val distractors: Set<String>)
+
+/** Learning, coverage and presentation history for one game. */
 data class SchedulerMemory(
     val session: Int = 0,
-    val records: Map<String, ItemRecord> = emptyMap()
+    val records: Map<String, ItemRecord> = emptyMap(),
+    val covered: Set<String> = emptySet(),
+    val lastItem: String? = null,
+    val presentations: Map<String, PresentationRecord> = emptyMap(),
+    val opening: String? = null
 ) {
     fun record(id: String): ItemRecord = records[id] ?: ItemRecord()
 
     /** Asked at least once and not shaky now. */
     fun isKnown(id: String): Boolean = record(id).let { it.seen > 0 && it.misses == 0 }
 
-    /** One line of text, ids as `[a-z0-9_]` only: `session;id,seen,last,misses;id,...`. */
+    /** Keeps the original learning records, followed by tagged history fields. */
     fun encode(): String =
-        (listOf(session.toString()) + records.map { (id, r) -> "$id,${r.seen},${r.lastSession},${r.misses}" })
+        (listOf(session.toString()) + records.map { (id, r) -> "$id,${r.seen},${r.lastSession},${r.misses}" } +
+            listOfNotNull(
+                covered.takeIf { it.isNotEmpty() }?.let { "@covered,${it.joinToString(",")}" },
+                lastItem?.let { "@last,$it" },
+                opening?.let { "@opening,$it" }
+            ) + presentations.map { (key, p) -> "@layout,$key,${p.position},${p.distractors.joinToString(",")}" })
             .joinToString(";")
 
     companion object {
@@ -42,10 +54,19 @@ data class SchedulerMemory(
                 val seen = f.getOrNull(1)?.toIntOrNull()
                 val last = f.getOrNull(2)?.toIntOrNull()
                 val misses = f.getOrNull(3)?.toIntOrNull()
-                if (f.size != 4 || f[0].isEmpty() || seen == null || last == null || misses == null) null
+                if (f.size != 4 || f[0].isEmpty() || f[0].startsWith('@') || seen == null || last == null || misses == null) null
                 else f[0] to ItemRecord(seen.coerceAtLeast(0), last.coerceAtLeast(0), misses.coerceIn(0, ItemRecord.MAX_MISSES))
             }.toMap()
-            return SchedulerMemory(session, records)
+            val covered = parts.firstOrNull { it.startsWith("@covered,") }?.split(',')?.drop(1)?.filter { it.isNotEmpty() }?.toSet().orEmpty()
+            val lastItem = parts.firstOrNull { it.startsWith("@last,") }?.substringAfter(',')?.takeIf { it.isNotEmpty() }
+            val presentations = parts.filter { it.startsWith("@layout,") }.mapNotNull {
+                val f = it.split(',')
+                val slot = f.getOrNull(2)?.toIntOrNull()
+                if (f.getOrNull(1).isNullOrEmpty() || slot == null || slot < 0) null
+                else f[1] to PresentationRecord(slot, f.drop(3).filter { id -> id.isNotEmpty() }.toSet())
+            }.toMap()
+            val opening = parts.firstOrNull { it.startsWith("@opening,") }?.substringAfter(',')?.takeIf { it.isNotEmpty() }
+            return SchedulerMemory(session, records, covered, lastItem, presentations, opening)
         }
     }
 }
@@ -90,10 +111,9 @@ class SlotBag(private val random: Random) {
 
 /**
  * Picks a session's items and the choices around them. Items are plain ids, so any game can use it
- * (letters now; numbers or nikud later).
+ * across the reading games.
  *
- *  - [begin] draws the session's items without replacement, favouring items never asked, not asked
- *    for a while, or missed in earlier sessions (see [SchedulerMemory]).
+ *  - [begin] covers the eligible pool across visits; shaky items may return sooner for review.
  *  - [miss] says the child got the current item wrong: it comes back 2-3 rounds later in the same
  *    session (if the session is long enough), and is favoured in later ones.
  *  - [advance] goes to the next round; [finish] gives the updated memory to save.
@@ -118,7 +138,11 @@ class RoundScheduler(
     private var missedThisRound = false
     private var index = 0
     private var begun = false
-    private val shown = HashMap<String, Pair<Int, Set<String>>>()  // key -> (slot, distractors) of the last showing
+    private val shown = memory.presentations.toMutableMap()
+    private val covered = memory.covered.toMutableSet()
+    private var lastItem = memory.lastItem
+    private var opening = memory.opening
+    private var eligible = emptyList<String>()
 
     /** The session number being played (1 = the very first). */
     val session: Int get() = memory.session + 1
@@ -145,30 +169,70 @@ class RoundScheduler(
         rounds: Int,
         pool: List<String>,
         groupOf: (String) -> String = { "" },
-        groupCaps: Map<String, Int> = emptyMap()
+        groupCaps: Map<String, Int> = emptyMap(),
+        spreadGroups: Boolean = false
     ): List<String> {
         require(pool.isNotEmpty() && rounds > 0)
         val ids = pool.distinct()
-        plan.clear(); retrySlots.clear(); retried.clear(); visited.clear(); missedItems.clear(); shown.clear()
-        missedThisRound = false
-        index = 0
-        begun = true
+        prepare(ids)
         val perGroup = HashMap<String, Int>()
         var remaining = ids.toMutableList()
-        var last: String? = null
+        val cycle = covered.toMutableSet()
+        var last: String? = lastItem
         while (plan.size < rounds) {
             if (remaining.isEmpty()) {  // the pool is used up: start another pass (not the same item twice in a row)
                 remaining = ids.filter { it != last || ids.size == 1 }.toMutableList()
             }
             val allowed = remaining.filter { id -> (groupCaps[groupOf(id)] ?: Int.MAX_VALUE) > (perGroup[groupOf(id)] ?: 0) }
-            val from = allowed.ifEmpty { remaining }
-            val pick = weighted(from)
+                .ifEmpty { remaining }
+            if (ids.all { it in cycle }) cycle.removeAll(ids.toSet())
+            val review = allowed.filter { memory.record(it).misses > 0 }
+            val practice = if (spreadGroups) {
+                val fewest = allowed.minOf { perGroup[groupOf(it)] ?: 0 }
+                allowed.filter { (perGroup[groupOf(it)] ?: 0) == fewest }
+            } else allowed
+            val unused = practice.filter { it !in cycle }.ifEmpty { practice }
+            val spread = if (spreadGroups) {
+                val counts = ids.filter { it in cycle }.groupingBy(groupOf).eachCount()
+                val fewest = unused.minOf { counts[groupOf(it)] ?: 0 }
+                unused.filter { (counts[groupOf(it)] ?: 0) == fewest }
+            } else unused
+            // (review waits for the second round, so a shaky item doesn't open every visit)
+            val from = if (plan.isEmpty()) spread else review.ifEmpty { spread }
+            val fresh = if (plan.isEmpty()) from.filter { it != opening }.ifEmpty { from } else from
+            val pick = weighted(fresh.filter { it != last }.ifEmpty { fresh })
             remaining.remove(pick)
+            cycle.add(pick)
             perGroup.merge(groupOf(pick), 1, Int::plus)
             plan.add(pick)
             last = pick
         }
+        expose()
         return plan.toList()
+    }
+
+    /** A short, balanced block supplied by a game (for example, two of each detective letter). */
+    fun beginPlan(items: List<String>) {
+        require(items.isNotEmpty())
+        prepare(items.distinct())
+        plan.addAll(items)
+        expose()
+    }
+
+    private fun prepare(ids: List<String>) {
+        plan.clear(); retrySlots.clear(); retried.clear(); visited.clear(); missedItems.clear()
+        missedThisRound = false
+        index = 0
+        begun = true
+        eligible = ids
+    }
+
+    private fun expose() {
+        val item = current ?: return
+        if (eligible.all { it in covered }) covered.removeAll(eligible.toSet())
+        covered.add(item)
+        lastItem = item
+        if (index == 0) opening = item
     }
 
     private fun weighted(from: List<String>): String {
@@ -192,9 +256,25 @@ class RoundScheduler(
         missedThisRound = true
         missedItems.add(item)
         if (item in retried) return null
+        // Reuse an existing occurrence when it already supplies the spaced review.
+        val existing = (index + 2..minOf(index + 3, plan.lastIndex)).firstOrNull { plan[it] == item }
+        if (existing != null) {
+            retrySlots.add(existing)
+            retried.add(item)
+            return existing
+        }
         val gap = if (random.nextBoolean()) 2 else 3
-        val slot = listOf(index + gap, index + 5 - gap).firstOrNull { it < plan.size && it !in retrySlots } ?: return null
-        plan[slot] = item  // (the item that was planned there waits for a later session)
+        val later = (index + 1 until plan.size).firstOrNull { plan[it] == item && it !in retrySlots }
+        val slot = listOf(index + gap, index + 5 - gap).firstOrNull {
+            if (it >= plan.size || it in retrySlots) false else {
+                val proposed = plan.toMutableList()
+                if (later != null) proposed[later] = proposed[it]
+                proposed[it] = item
+                proposed.getOrNull(it - 1) != item && proposed.getOrNull(it + 1) != item
+            }
+        } ?: return null
+        if (later != null) plan[later] = plan[slot]
+        plan[slot] = item  // displaced ordinary practice waits for another visit
         retrySlots.add(slot)
         retried.add(item)
         return slot
@@ -206,7 +286,19 @@ class RoundScheduler(
         visited.add(item)
         missedThisRound = false
         index++
+        expose()
         return current
+    }
+
+    /** What was shown, even on an abandoned visit; no extra mastery or misses are awarded. */
+    fun checkpoint(): SchedulerMemory = memory.copy(
+        covered = covered.toSet(), lastItem = lastItem, presentations = shown.toMap(), opening = opening
+    )
+
+    fun presentation(key: String): PresentationRecord? = shown[key]
+
+    fun rememberPresentation(key: String, position: Int, distractors: Set<String>) {
+        shown[key] = PresentationRecord(position, distractors)
     }
 
     /** The memory after this session (items asked so far count). Call once, when the session ends. */
@@ -217,7 +309,7 @@ class RoundScheduler(
             val shaky = if (id in missedItems) minOf(old.misses + 1, ItemRecord.MAX_MISSES) else maxOf(old.misses - 1, 0)
             records[id] = ItemRecord(old.seen + 1, session, shaky)
         }
-        return SchedulerMemory(session, records)
+        return checkpoint().copy(session = session, records = records)
     }
 
     /**
@@ -242,12 +334,12 @@ class RoundScheduler(
         val need = (count - 1 - taken.size).coerceAtLeast(0)
         val candidates = pool.distinct().filter { it != answer && it !in taken && distanceTo(it) >= minDistance }
         val picked = candidates.shuffled(random)
-            .sortedWith(compareBy<String> { it in (before?.second ?: emptySet()) }.thenByDescending(distanceTo))
+            .sortedWith(compareBy<String> { it in (before?.distractors ?: emptySet()) }.thenByDescending(distanceTo))
             .take(need)
         val others = (taken + picked).shuffled(random)
-        val slot = slots.draw(others.size + 1, avoid = before?.first?.takeIf { others.isNotEmpty() })
+        val slot = slots.draw(others.size + 1, avoid = before?.position?.takeIf { others.isNotEmpty() })
         val options = others.toMutableList().also { it.add(slot.coerceAtMost(it.size), answer) }
-        shown[key] = options.indexOf(answer) to (taken + picked).toSet()
+        rememberPresentation(key, options.indexOf(answer), (taken + picked).toSet())
         return Choices(answer, options)
     }
 }

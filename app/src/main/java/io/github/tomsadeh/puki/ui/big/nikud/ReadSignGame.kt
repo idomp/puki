@@ -54,7 +54,7 @@ class ReadSignGame(
     var state = ReadSignState()
         private set
 
-    private val chooser = PictureChooser(random, scheduler.slots)
+    private val chooser = PictureChooser(random, scheduler)
     private var tokens = 0
     private var level = 1
     private var word: Nikud.Word? = null
@@ -63,7 +63,6 @@ class ReadSignGame(
     private fun cue(keys: List<String>) = VoiceCue(keys, ++tokens)
 
     fun start() {
-        chooser.forget()
         val ids = Nikud.clearWords.map { it.id }
         level = if (ids.count { scheduler.memory.record(it).let { r -> r.seen >= 2 && r.misses == 0 } } >= LEVEL2_SOLID) 2 else 1
         val pool = Nikud.clearWords  // (a word with no same-start rival simply gets different-start distractors at level 2)

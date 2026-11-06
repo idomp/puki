@@ -217,4 +217,99 @@ class RoundSchedulerTest {
         assertEquals(a, b)
         assertEquals(scheduler(42).choices("i1", pool, 4, { 2 }), scheduler(42).choices("i1", pool, 4, { 2 }))
     }
+
+    @Test
+    fun coverageSurvivesSavingAndReconstructingEachVisit() = runBlocking {
+        for (seed in 0 until 100) {
+            val store = InMemorySchedulerStore()
+            val targets = mutableListOf<String>()
+            repeat(3) { visit ->
+                val s = scheduler(seed + visit, store.load("game"))
+                targets += play(s)
+                store.save("game", s.finish())
+            }
+            assertEquals("seed $seed: $targets", pool.toSet(), targets.take(22).toSet())
+        }
+    }
+
+    @Test
+    fun shortAbandonedVisitsCoverThePoolWithoutChangingMastery() = runBlocking {
+        val store = InMemorySchedulerStore()
+        val targets = mutableListOf<String>()
+        repeat(11) { visit ->
+            val s = scheduler(visit, store.load("game"))
+            s.begin(8, pool)
+            targets += s.current!!
+            s.miss()
+            s.advance()
+            targets += s.current!!
+            store.save("game", s.checkpoint())
+            val saved = store.load("game")
+            assertEquals(0, saved.session)
+            assertTrue(saved.records.isEmpty())
+        }
+        assertEquals(pool.toSet(), targets.toSet())
+        assertEquals(22, targets.distinct().size)
+    }
+
+    @Test
+    fun repeatedTasksChangeTheirPresentationAfterReloadEvenWithoutCompletion() {
+        for (count in listOf(3, 4)) for (seed in 0 until 50) {
+            val first = scheduler(seed)
+            first.begin(1, listOf("i1"))
+            val layout = first.choices("i1", pool, count, { 2 })
+            val memory = SchedulerMemory.decode(first.checkpoint().encode())
+            val next = scheduler(seed, memory)
+            next.begin(1, listOf("i1"))
+            val changed = next.choices("i1", pool, count, { 2 })
+            assertNotEquals(layout.correctIndex, changed.correctIndex)
+            assertTrue((layout.options.toSet() - "i1").intersect(changed.options.toSet() - "i1").isEmpty())
+            assertEquals(memory, SchedulerMemory.decode(memory.encode()))
+        }
+    }
+
+    @Test
+    fun anEntireCoverageCycleStillHasAFreshOpening() {
+        for (seed in 0 until 100) {
+            val first = scheduler(seed)
+            val before = play(first, rounds = 22)
+            val second = scheduler(seed, SchedulerMemory.decode(first.finish().encode()))
+            val after = play(second, rounds = 22)
+            assertNotEquals(before.first(), after.first())
+            assertNotEquals(before.last(), after.first())
+        }
+    }
+
+    @Test
+    fun aRetryDoesNotConsumeTheDisplacedPracticeItem() {
+        val s = scheduler(7)
+        val planned = s.begin(8, pool)
+        val retry = s.miss()!!
+        val displaced = planned[retry]
+        while (s.current != null) s.advance()
+        assertFalse(displaced in s.finish().covered)
+        assertTrue(planned[0] in s.finish().covered)
+    }
+
+    @Test
+    fun capsStillApplyWhenOnlyFinalsRemainUncovered() {
+        val finals = (1..5).map { "f$it" }
+        val memory = SchedulerMemory(covered = pool.toSet())
+        for (seed in 0 until 100) {
+            val s = scheduler(seed, memory)
+            val planned = s.begin(8, pool + finals, { if (it in finals) "final" else "base" }, mapOf("final" to 2))
+            assertEquals(2, planned.count { it in finals })
+        }
+    }
+
+    @Test
+    fun oldSavedStringsKeepEveryLearningRecord() {
+        val old = "7;alef,2,6,1;kaf_final,1,7,0;mem,3,5,2"
+        val decoded = SchedulerMemory.decode(old)
+        assertEquals(7, decoded.session)
+        assertEquals(mapOf("alef" to ItemRecord(2, 6, 1), "kaf_final" to ItemRecord(1, 7, 0), "mem" to ItemRecord(3, 5, 2)), decoded.records)
+        assertEquals(old, decoded.encode())
+        assertTrue(decoded.covered.isEmpty())
+        assertTrue(decoded.presentations.isEmpty())
+    }
 }

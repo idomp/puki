@@ -74,7 +74,7 @@ class JoinWordGame(
     var state = JoinState()
         private set
 
-    private val chooser = PictureChooser(random, scheduler.slots)
+    private val chooser = PictureChooser(random, scheduler)
     private var tokens = 0
     private var word: Nikud.Word? = null
     private var layout: PictureLayout? = null
@@ -83,7 +83,6 @@ class JoinWordGame(
     private fun cue(keys: List<String>) = VoiceCue(keys, ++tokens)
 
     fun start() {
-        chooser.forget()
         scheduler.begin(rounds, Nikud.words.map { it.id })
         show(first = true)
     }

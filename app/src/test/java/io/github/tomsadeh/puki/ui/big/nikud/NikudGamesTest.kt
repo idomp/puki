@@ -67,13 +67,17 @@ class SoundShellsGameTest {
     }
 
     @Test
-    fun bothMarksAreMetAndTakeTurns() {
-        val marks = mutableSetOf<Nikud.Mark>()
-        for (seed in 0 until 8) play(game(seed, Tally()), onRound = { s, _ -> marks += s.tiles.map { Nikud.syllable(it.id).mark } })
-        assertEquals(setOf(Nikud.Mark.PATAH, Nikud.Mark.KAMATS), marks)
-        val one = mutableListOf<Nikud.Mark>()
-        play(game(1, Tally()), onRound = { s, _ -> one += Nikud.syllable(s.tiles[0].id).mark })
-        assertEquals(4, one.count { it == Nikud.Mark.PATAH })
+    fun bothMarksAreBalancedInAShuffledOrder() {
+        val orders = mutableSetOf<List<Nikud.Mark>>()
+        for (seed in 0 until 100) {
+            val marks = mutableListOf<Nikud.Mark>()
+            play(game(seed, Tally()), onRound = { s, _ -> marks += Nikud.syllable(s.tiles[0].id).mark })
+            assertEquals(4, marks.count { it == Nikud.Mark.PATAH })
+            assertEquals(4, marks.count { it == Nikud.Mark.KAMATS })
+            orders += marks
+        }
+        assertTrue("more than the two alternating orders", orders.size > 2)
+        assertTrue(orders.any { order -> order.zipWithNext().any { (a, b) -> a == b } })
     }
 
     @Test
@@ -164,6 +168,39 @@ class SoundShellsGameTest {
             val c = (0 until 3).map { p -> pos.count { it == p } }
             assertTrue("$pos", c.max() - c.min() <= 1)
         }
+    }
+
+    @Test
+    fun stageTwoCoversAllSixteenItemsInTwoSavedVisitsWithBalancedMarks() {
+        for (seed in 0 until 50) {
+            var memory = SchedulerMemory(4, SoundShellsGame.STAGE1_ITEMS.associateWith { ItemRecord(2, 3, 0) })
+            val asked = mutableListOf<String>()
+            repeat(2) { visit ->
+                val tally = Tally()
+                val marks = mutableListOf<Nikud.Mark>()
+                play(game(seed + visit, tally, memory)) { state, target ->
+                    val syllable = Nikud.syllable(target)
+                    asked += SoundShellsGame.stage2Item(syllable.consonant.id, syllable.sound)
+                    marks += state.tiles.map { Nikud.syllable(it.id) }.first { it.sound == Nikud.Sound.A }.mark
+                }
+                assertEquals(4, marks.count { it == Nikud.Mark.PATAH })
+                assertEquals(4, marks.count { it == Nikud.Mark.KAMATS })
+                memory = SchedulerMemory.decode(tally.memory!!.encode())
+            }
+            assertEquals(SoundShellsGame.STAGE2_ITEMS.toSet(), asked.toSet())
+        }
+    }
+
+    @Test
+    fun stageTwoRequiresSixCleanItemsWithTwoCompletedSessions() {
+        val ids = SoundShellsGame.STAGE1_ITEMS
+        fun memory(solid: Int, seen: Int = 2, misses: Int = 0) = SchedulerMemory(
+            records = ids.take(solid).associateWith { ItemRecord(seen, 2, misses) }
+        )
+        assertEquals(1, game(1, Tally(), memory(5)).state.stage)
+        assertEquals(1, game(1, Tally(), memory(6, seen = 1)).state.stage)
+        assertEquals(1, game(1, Tally(), memory(6, misses = 1)).state.stage)
+        assertEquals(2, game(1, Tally(), memory(6)).state.stage)
     }
 }
 
@@ -282,14 +319,14 @@ class JoinWordGameTest {
     fun allTwelveWordsComeUpOverSessionsAndScenePicturesAreNeverDistractors() {
         var memory = SchedulerMemory()
         val asked = mutableSetOf<String>()
-        for (n in 0 until 12) {
+        for (n in 0 until 2) {
             val t = Tally()
             val g = game(n, t, memory)
             while (g.state.phase == JoinPhase.UNITS) {
                 asked += g.state.wordId
                 playRound(g) { s -> s.pictures.filter { it.id != s.wordId }.forEach { assertEquals(Nikud.Tier.CLEAR, Nikud.word(it.id).tier) } }
             }
-            memory = t.memory!!
+            memory = SchedulerMemory.decode(t.memory!!.encode())
             assertEquals(8, t.stars)
         }
         assertEquals(Nikud.words.map { it.id }.toSet(), asked)
@@ -312,6 +349,28 @@ class JoinWordGameTest {
             }
         }
         assertTrue(checked > 30)
+    }
+
+    @Test
+    fun reentryAndAgainCreateFreshJoiningSessions() {
+        val scheduler = RoundScheduler(random = Random(5))
+        val first = JoinWordGame(scheduler, Random(5), Tally().events).also { it.start() }
+        val opening = first.state.wordId
+        playRound(first)
+        val unfinished = SchedulerMemory.decode(scheduler.checkpoint().encode())
+        val tally = Tally()
+        val reentered = game(5, tally, unfinished)
+        assertEquals(JoinPhase.UNITS, reentered.state.phase)
+        assertEquals(0, reentered.state.roundIndex)
+        assertEquals(0, reentered.state.starsEarned)
+        assertNotEquals(opening, reentered.state.wordId)
+        assertTrue(unfinished.records.isEmpty())
+        while (reentered.state.phase == JoinPhase.UNITS) playRound(reentered)
+        val again = game(5, Tally(), SchedulerMemory.decode(tally.memory!!.encode()))
+        assertEquals(JoinPhase.UNITS, again.state.phase)
+        assertFalse(again.state.sessionComplete)
+        assertEquals(0, again.state.roundIndex)
+        assertEquals(0, again.state.starsEarned)
     }
 }
 
@@ -414,11 +473,11 @@ class ReadSignGameTest {
     fun overSessionsAllNineWordsAreRead() {
         var memory = SchedulerMemory()
         val read = mutableSetOf<String>()
-        for (n in 0 until 6) {
+        for (n in 0 until 2) {
             val t = Tally()
             val g = game(n, t, memory)
             while (g.state.phase == NikudPhase.ROUND) { val w = target(g); read += w.id; g.onAnswer(w.id); g.next() }
-            memory = t.memory!!
+            memory = SchedulerMemory.decode(t.memory!!.encode())
         }
         assertEquals(Nikud.clearWords.map { it.id }.toSet(), read)
     }
@@ -444,6 +503,32 @@ class ReadSignGameTest {
             val c = (0 until 3).map { p -> pos.count { it == p } }
             assertTrue("$pos", c.max() - c.min() <= 1)
         }
+    }
+
+    @Test
+    fun reentryAndAgainCreateFreshSilentReadingSessions() {
+        val scheduler = RoundScheduler(random = Random(3))
+        val first = ReadSignGame(scheduler, Random(3), Tally().events).also { it.start() }
+        val opening = first.state.signText
+        first.onAnswer(target(first).id)
+        first.next()
+        val unfinished = SchedulerMemory.decode(scheduler.checkpoint().encode())
+        val tally = Tally()
+        val reentered = game(3, tally, unfinished)
+        assertEquals(0, reentered.state.roundIndex)
+        assertEquals(0, reentered.state.starsEarned)
+        assertNotEquals(opening, reentered.state.signText)
+        assertEquals(listOf(Nikud.Voice.READ_SIGN), reentered.state.cue.keys)
+        while (reentered.state.phase == NikudPhase.ROUND) {
+            reentered.onAnswer(target(reentered).id)
+            reentered.next()
+        }
+        val again = game(3, Tally(), SchedulerMemory.decode(tally.memory!!.encode()))
+        assertEquals(NikudPhase.ROUND, again.state.phase)
+        assertFalse(again.state.sessionComplete)
+        assertEquals(0, again.state.roundIndex)
+        assertEquals(0, again.state.starsEarned)
+        assertEquals(listOf(Nikud.Voice.READ_SIGN), again.state.cue.keys)
     }
 }
 
