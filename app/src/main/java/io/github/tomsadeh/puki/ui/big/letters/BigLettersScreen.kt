@@ -1,5 +1,6 @@
 package io.github.tomsadeh.puki.ui.big.letters
 
+import io.github.tomsadeh.puki.ui.big.kit.ReadingIsland
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
@@ -43,7 +44,7 @@ private const val PARTNERS = "partners"
 @Composable
 fun BigLettersScreen(onBack: () -> Unit) {
     var game by rememberSaveable { mutableStateOf<String?>(null) }
-    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+    ReadingIsland {
         BackHandler(enabled = game != null) { game = null }
         val toDoors = { game = null }
         when (game) {

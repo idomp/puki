@@ -47,6 +47,14 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
+import androidx.compose.ui.text.ExperimentalTextApi
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
@@ -64,6 +72,28 @@ import io.github.tomsadeh.puki.ui.components.hintGlow
  * studied, and a listening corner (Puki in a captain's hat, with the replay button) that never moves.
  * Nothing being studied bobs, tilts or scatters; only presses squish.
  */
+
+/**
+ * The face for Hebrew in the big-kids reading games. Android's default Hebrew face puts the dagesh of
+ * ג outside the letter; this one keeps every dagesh inside, and the parent chose it for keeping the
+ * familiar print shapes (ש, מ) a child meets in kindergarten books.
+ */
+@OptIn(ExperimentalTextApi::class)
+val ReadingFont: FontFamily = if (READING_FACE == "rubik")
+    FontFamily(Font(R.font.rubik, FontWeight.Bold, variationSettings = FontVariation.Settings(FontVariation.weight(700))))
+else
+    FontFamily(Font(R.font.varela_round, FontWeight.Normal))
+private const val READING_FACE = "rubik"
+
+/** Wraps a reading island: right to left, and [ReadingFont] for every Text that doesn't pick its own face. */
+@Composable
+fun ReadingIsland(content: @Composable () -> Unit) {
+    CompositionLocalProvider(
+        LocalLayoutDirection provides LayoutDirection.Rtl,
+        LocalTextStyle provides LocalTextStyle.current.copy(fontFamily = ReadingFont),
+        content = content
+    )
+}
 
 object BigColors {
     val Ink = Color(0xFF33241A)

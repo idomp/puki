@@ -138,8 +138,8 @@ val bigIslands = listOf(
         route = Routes.BIG_NIKUD,
         color = Color(0xFF4DB6AC),
         drawableRes = R.drawable.ic_island_nikud,
-        fractionalX = 0.33f,
-        fractionalY = 0.52f
+        fractionalX = 0.34f,
+        fractionalY = 0.44f
     ),
     IslandDef(
         id = "math",
@@ -152,8 +152,8 @@ val bigIslands = listOf(
     ),
     allIslands.first { it.id == "music" }.copy(fractionalX = 0.82f, fractionalY = 0.42f),
     // The bottom row, right to left in the order the sea route visits it
-    allIslands.first { it.id == "echo" }.copy(fractionalX = 0.66f, fractionalY = 0.80f),
-    allIslands.first { it.id == "say" }.copy(fractionalX = 0.32f, fractionalY = 0.80f)
+    allIslands.first { it.id == "echo" }.copy(fractionalX = 0.70f, fractionalY = 0.80f),
+    allIslands.first { it.id == "say" }.copy(fractionalX = 0.40f, fractionalY = 0.81f)
 )
 
 /** The islands on the map for [group]. */

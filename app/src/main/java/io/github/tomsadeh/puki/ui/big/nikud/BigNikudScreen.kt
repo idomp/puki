@@ -1,5 +1,6 @@
 package io.github.tomsadeh.puki.ui.big.nikud
 
+import io.github.tomsadeh.puki.ui.big.kit.ReadingIsland
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -56,7 +57,7 @@ private const val MEET = "meet"
 @Composable
 fun BigNikudScreen(onBack: () -> Unit) {
     var game by rememberSaveable { mutableStateOf<String?>(null) }
-    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+    ReadingIsland {
         BackHandler(enabled = game != null) { game = null }
         val toDoors = { game = null }
         when (game) {
@@ -74,7 +75,8 @@ fun BigNikudScreen(onBack: () -> Unit) {
                         Door(BilingualText("קוראים שלט", "Read the sign"), Color(0xFF6CC24A), { game = READ }) { SignPicture() }
                     )
                 )
-                MeetMarkButton(Modifier.align(Alignment.BottomStart).padding(24.dp)) { game = MEET }
+                // Bottom far corner: clear of the door labels
+                MeetMarkButton(Modifier.align(Alignment.BottomEnd).padding(24.dp)) { game = MEET }
             }
         }
     }

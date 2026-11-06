@@ -36,10 +36,23 @@ VOICE_LINES = [
     ("voice_big_nikud_name_patah", "", "פַּתָּח"),
     ("voice_big_nikud_name_hiriq", "", "חִירִיק"),
     ("voice_big_nikud_word_pil", "", "פִּיל"),
-    ("voice_big_nikud_listen", "", ("", "תַּקְשִׁיב טוֹב.")),  # girl form: pending the parent's pick
-    ("voice_big_nikud_which_sound", "", ("", "אֵ֫יזֶה צְלִיל שָׁמַ֫עְתָּ?")),  # girl form: pending the parent's pick
-    ("voice_big_nikud_read_sign", "", ("", "תִּקְרָא וְתִבְחַר תְּמוּנָה.")),  # girl form: pending the parent's pick
-    ("voice_big_nikud_join", "", ("", "בּוֹא נְֽחַבֵּר אֶת הַצְּלִילִים.")),  # girl form: pending the parent's pick
+    ("voice_big_nikud_lamed_a", "", "לַ"),
+    ("voice_big_nikud_nun_a", "", "נַ"),
+    ("voice_big_nikud_yod_a", "", "יַ"),
+    ("voice_big_nikud_lamed_i", "", "לִ"),
+    ("voice_big_nikud_nun_i", "", "נִ"),
+    ("voice_big_nikud_shin_i", "", "שִׁ"),
+    ("voice_big_nikud_gimel_i", "", "גִּ"),
+    ("voice_big_nikud_dalet_i", "", "דִּ"),
+    ("voice_big_nikud_yod_i", "", "יִ"),
+    ("voice_big_nikud_pe_i", "", "פִּ"),
+    ("voice_island_nikud", "", "צְלִילִים וּמִלִּים."),
+    ("voice_big_nikud_listen", "", ("תַּקְשִׁ֫יבִי טוֹב.", "תַּקְשִׁיב טוֹב.")),
+    ("voice_big_nikud_which_sound", "", ("אֵ֫יזֶה צְלִיל שָׁמַ֫עַתְּ?", "אֵ֫יזֶה צְלִיל שָׁמַ֫עְתָּ?")),
+    ("voice_big_nikud_read_sign", "", ("תִּקְרְֽאִי וְתִבְחֲרִי תְּמוּנָה.", "תִּקְרָא וְתִבְחַר תְּמוּנָה.")),
+    ("voice_big_nikud_join", "", ("בּ֫וֹאִי נְֽחַבֵּר אֶת הַצְּלִילִים.", "בּוֹא נְֽחַבֵּר אֶת הַצְּלִילִים.")),
+    ("voice_big_nikud_pick_picture", "", ("עַכְשָׁו תִּבְחֲרִי תְּמוּנָה.", "עַכְשָׁו תִּבְחַר תְּמוּנָה.")),
+    ("voice_big_nikud_two_marks", "", "שְׁנֵי סִימָנִים, צְלִיל אֶחָד."),
 ]
 
 TAKES = {
@@ -77,4 +90,24 @@ TAKES = {
     "voice_big_nikud_which_sound_he_m": ("ʔˈejze tslˈil ʃamˈaʔta?", 0.7, 0),
     "voice_big_nikud_read_sign_he_m": ("tikʁˈa vetivχˈaʁ tmunˈa.", 0.7, 0),
     "voice_big_nikud_join_he_m": ("bˈo neχabˈeʁ ʔˈet hatslilˈim.", 0.7, 0),
+    # listening round 4 (2026-11-06)
+    "voice_big_nikud_lamed_a_he": ("lˈa", 0.8, 2),
+    "voice_big_nikud_nun_a_he": ("nˈa", 0.8, 2),
+    "voice_big_nikud_yod_a_he": ("jˈa", 0.8, 0),
+    "voice_big_nikud_lamed_i_he": ("lˈi", 0.8, 1),
+    "voice_big_nikud_nun_i_he": ("nˈi", 0.8, 1),
+    "voice_big_nikud_shin_i_he": ("ʃˈi", 0.8, 0),
+    "voice_big_nikud_gimel_i_he": ("ɡˈi", 0.8, 2),
+    "voice_big_nikud_dalet_i_he": ("dˈi", 0.8, 1),
+    "voice_big_nikud_yod_i_he": ("jˈi", 0.8, 0),
+    "voice_big_nikud_pe_i_he": ("pˈi", 0.8, 4),
+    "voice_island_nikud_he": ("tslilˈim umilˈim.", 0.7, 0),
+    "voice_big_nikud_listen_he_f": ("takʃˈivi tˈov.", 0.7, 0),
+    "voice_big_nikud_which_sound_he_f": ("ʔˈejze tslˈil ʃamˈaʔat?", 0.7, 0),
+    "voice_big_nikud_join_he_f": ("bˈoʔi neχabˈeʁ ʔˈet hatslilˈim.", 0.7, 0),
+    "voice_big_nikud_pick_picture_he_m": ("ʔaχʃˈav tivχˈaʁ tmunˈa.", 0.7, 0),
+    "voice_big_nikud_pick_picture_he_f": ("ʔaχʃˈav tivχaʁˈi tmunˈa.", 0.7, 0),
+    "voice_big_nikud_read_sign_he_f": ("tikʁeʔˈi vetivχaʁˈi tmunˈa.", 0.7, 1),
+    # round 5: שְׁנֵי without a vocal shva (the first take said "she-nei")
+    "voice_big_nikud_two_marks_he": ("ʃnˈej simanˈim, tslˈil ʔeχˈad.", 0.7, 0),
 }

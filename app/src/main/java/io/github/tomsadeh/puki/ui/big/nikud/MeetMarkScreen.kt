@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.tomsadeh.puki.ui.big.kit.BeachBackdrop
+import io.github.tomsadeh.puki.ui.big.kit.ListeningCorner
 import io.github.tomsadeh.puki.ui.big.kit.BigColors
 import io.github.tomsadeh.puki.ui.big.kit.PlayVoiceCue
 import io.github.tomsadeh.puki.ui.big.kit.SpeakerIcon
@@ -72,12 +73,14 @@ fun MeetMarkScreen(
             BeachBackdrop()
             Box(Modifier.padding(16.dp)) { BackButton(onBack) }
             if (opened && state.card != 0 && state.faces.isNotEmpty()) {
+                // Puki's listening corner on the reading side, as in every big-kids game; the board in the
+                // middle of the beach; the go button on the far side, where the reading goes next
                 Row(
-                    Modifier.fillMaxSize().padding(horizontal = 24.dp).padding(top = 56.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    Modifier.fillMaxSize().padding(start = 12.dp, end = 24.dp, top = 88.dp, bottom = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    DoubleBoard(state, vm)
+                    ListeningCorner(onReplay = vm::onSpeakerTap, pulse = false)
+                    Box(Modifier.weight(1f), contentAlignment = Alignment.Center) { DoubleBoard(state, vm) }
                     GoButton(112.dp, onClick = vm::onDone)
                 }
             }
