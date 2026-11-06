@@ -68,7 +68,8 @@ import io.github.tomsadeh.puki.data.models.BilingualText
 import io.github.tomsadeh.puki.data.models.Gender
 import io.github.tomsadeh.puki.data.models.Language
 import io.github.tomsadeh.puki.theme.CloudWhite
-import io.github.tomsadeh.puki.ui.hub.allIslands
+import io.github.tomsadeh.puki.ui.hub.islandsFor
+import io.github.tomsadeh.puki.data.models.AgeGroup
 import androidx.compose.ui.graphics.Color
 import io.github.tomsadeh.puki.theme.EarthBrown
 import io.github.tomsadeh.puki.theme.GrassGreen
@@ -237,7 +238,34 @@ fun SettingsScreen(
                     )
                 }
 
+                // Whose map: the toddler islands, or the games for kindergarten's last year
+                Text(
+                    BilingualText("גיל", "Age").resolve(language),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = EarthBrown
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    listOf(
+                        AgeGroup.LITTLE to BilingualText("קטנים (2–4)", "Little (2–4)"),
+                        AgeGroup.BIG to BilingualText("גדולים (5–6)", "Big (5–6)")
+                    ).forEach { (group, label) ->
+                        val chosen = settings.ageGroup == group
+                        Text(
+                            (if (chosen) "✓ " else "") + label.resolve(language),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = if (chosen) CloudWhite else EarthBrown,
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(if (chosen) GrassGreen else Color(0xFFEFEBE9))
+                                .clickable { settingsViewModel.setAgeGroup(group) }
+                                .padding(horizontal = 10.dp, vertical = 8.dp)
+                        )
+                    }
+                }
+
                 // Which games are on the map: fewer islands, fewer choices at two
+                val mapIslands = islandsFor(settings.ageGroup)
                 Text(
                     BilingualText("משחקים במפה", "Games on the map").resolve(language),
                     style = MaterialTheme.typography.titleLarge,
@@ -249,11 +277,11 @@ fun SettingsScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     color = EarthBrown
                 )
-                allIslands.chunked(3).forEach { row ->
+                mapIslands.chunked(3).forEach { row ->
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                         row.forEach { island ->
                             val shown = island.id !in settings.hiddenIslands
-                            val lastOne = shown && allIslands.count { it.id !in settings.hiddenIslands } == 1
+                            val lastOne = shown && mapIslands.count { it.id !in settings.hiddenIslands } == 1
                             Text(
                                 (if (shown) "✓ " else "") + island.name.resolve(language),
                                 style = MaterialTheme.typography.bodyLarge,

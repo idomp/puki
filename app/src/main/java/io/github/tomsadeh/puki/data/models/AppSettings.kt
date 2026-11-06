@@ -26,8 +26,15 @@ data class AppSettings(
     /** After a game's question, Puki listens a few seconds for the answer said out loud. */
     val answersOutLoud: Boolean = true,
     /** Islands a parent took off the map (fewer choices at two), by id. */
-    val hiddenIslands: Set<String> = emptySet()
+    val hiddenIslands: Set<String> = emptySet(),
+    /** Whose map the hub shows: the toddler islands, or the games for the last year of kindergarten. */
+    val ageGroup: AgeGroup = AgeGroup.BIG
 )
+
+/** The fork's two maps. LITTLE is the original game (ages 2-4); BIG is letters, reading and sums (5-6). */
+enum class AgeGroup {
+    LITTLE, BIG
+}
 
 enum class Language {
     HEBREW, ENGLISH

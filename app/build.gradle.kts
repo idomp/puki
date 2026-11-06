@@ -29,7 +29,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "io.github.tomsadeh.puki"
+        applicationId = "io.github.idomp.puki"  // the fork: installs beside the original, never over it
         minSdk = 26
         targetSdk = 36
         versionCode = pukiVersion.split(".").let { (a, b, c) -> a.toInt() * 10000 + b.toInt() * 100 + c.toInt() }
@@ -86,7 +86,8 @@ android {
     productFlavors {
         create("github") {
             dimension = "store"
-            buildConfigField("boolean", "SELF_UPDATE", "true")
+            // The fork: the updater points at TomSadeh/puki's releases, so it stays off
+            buildConfigField("boolean", "SELF_UPDATE", "false")
         }
         create("play") {
             dimension = "store"

@@ -11,6 +11,7 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import io.github.tomsadeh.puki.data.models.AgeGroup
 import io.github.tomsadeh.puki.data.models.AppSettings
 import io.github.tomsadeh.puki.data.models.BrainLanguages
 import io.github.tomsadeh.puki.data.models.Gender
@@ -43,6 +44,7 @@ class SettingsRepository(private val context: Context) {
         val LAST_SEEN = longPreferencesKey("play_last_seen")
         val TIME_UP = booleanPreferencesKey("time_up")
         val HIDDEN_ISLANDS = stringSetPreferencesKey("hidden_islands")
+        val AGE_GROUP = stringPreferencesKey("age_group")
     }
 
     val settings: Flow<AppSettings> = context.settingsDataStore.data.map { prefs ->
@@ -63,8 +65,13 @@ class SettingsRepository(private val context: Context) {
             brainLanguages = prefs[Keys.BRAIN_LANGUAGES]?.let { runCatching { BrainLanguages.valueOf(it) }.getOrNull() },
             answersOutLoud = prefs[Keys.ANSWERS_OUT_LOUD] ?: true,
             rememberBetween = prefs[Keys.REMEMBER_BETWEEN] ?: false,
-            hiddenIslands = prefs[Keys.HIDDEN_ISLANDS] ?: emptySet()
+            hiddenIslands = prefs[Keys.HIDDEN_ISLANDS] ?: emptySet(),
+            ageGroup = prefs[Keys.AGE_GROUP]?.let { runCatching { AgeGroup.valueOf(it) }.getOrNull() } ?: AgeGroup.BIG
         )
+    }
+
+    suspend fun updateAgeGroup(group: AgeGroup) {
+        context.settingsDataStore.edit { it[Keys.AGE_GROUP] = group.name }
     }
 
     suspend fun updateLanguage(language: Language) {

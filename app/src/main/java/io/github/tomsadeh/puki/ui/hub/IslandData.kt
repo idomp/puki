@@ -3,6 +3,7 @@ package io.github.tomsadeh.puki.ui.hub
 import androidx.annotation.DrawableRes
 import androidx.compose.ui.graphics.Color
 import io.github.tomsadeh.puki.R
+import io.github.tomsadeh.puki.data.models.AgeGroup
 import io.github.tomsadeh.puki.data.models.BilingualText
 import io.github.tomsadeh.puki.navigation.Routes
 import io.github.tomsadeh.puki.theme.CoralPink
@@ -118,3 +119,36 @@ val allIslands = listOf(
         fractionalY = 0.80f
     )
 )
+
+/** The fork's map for the last year of kindergarten (AgeGroup.BIG): its own games, and a few toys from the little map. */
+val bigIslands = listOf(
+    IslandDef(
+        id = "letters",
+        name = BilingualText("אותיות", "Letters"),
+        route = Routes.BIG_LETTERS,
+        color = Color(0xFF7986CB),
+        drawableRes = R.drawable.ic_island_words,
+        drawableResEn = R.drawable.ic_island_words_en,
+        fractionalX = 0.20f,
+        fractionalY = 0.46f
+    ),
+    IslandDef(
+        id = "math",
+        name = BilingualText("חשבון", "Sums"),
+        route = Routes.BIG_MATH,
+        color = SunYellow,
+        drawableRes = R.drawable.ic_island_counting,
+        fractionalX = 0.50f,
+        fractionalY = 0.50f
+    ),
+    allIslands.first { it.id == "music" }.copy(fractionalX = 0.80f, fractionalY = 0.42f),
+    // The bottom row, right to left in the order the sea route visits it
+    allIslands.first { it.id == "echo" }.copy(fractionalX = 0.66f, fractionalY = 0.80f),
+    allIslands.first { it.id == "say" }.copy(fractionalX = 0.32f, fractionalY = 0.80f)
+)
+
+/** The islands on the map for [group]. */
+fun islandsFor(group: AgeGroup): List<IslandDef> = when (group) {
+    AgeGroup.LITTLE -> allIslands
+    AgeGroup.BIG -> bigIslands
+}

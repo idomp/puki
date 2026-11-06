@@ -516,6 +516,13 @@ PHONEMES = {
     "voice_truck_clean_he": "hamasaʔˈit nekijˈa!",
 }
 
+# The fork's big-kids games keep their lines in scripts/voice_packs/
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import voice_packs  # noqa: E402
+
+voice_lines += voice_packs.VOICE_LINES
+PHONEMES.update(voice_packs.PHONEMES)
+
 NIKUD = re.compile(r"[\u0591-\u05C7]")
 
 

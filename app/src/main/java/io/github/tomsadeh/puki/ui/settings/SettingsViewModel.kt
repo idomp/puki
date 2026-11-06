@@ -93,6 +93,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    fun setAgeGroup(group: io.github.tomsadeh.puki.data.models.AgeGroup) {
+        viewModelScope.launch { settingsRepository.updateAgeGroup(group) }
+    }
+
     fun setIslandShown(id: String, shown: Boolean, hidden: Set<String>) {
         viewModelScope.launch { settingsRepository.updateHiddenIslands(if (shown) hidden - id else hidden + id) }
     }

@@ -117,7 +117,8 @@ fun HubScreen(
             val height = maxHeight
             // The islands a parent left on the map (all of them unless some were hidden in settings)
             val hidden = LocalAppSettings.current.hiddenIslands
-            val islands = allIslands.filter { it.id !in hidden }.ifEmpty { allIslands }
+            val map = islandsFor(LocalAppSettings.current.ageGroup)
+            val islands = map.filter { it.id !in hidden }.ifEmpty { map }
 
             // Left a while with nothing touched, Puki calls out an island, which hops (a few times, no more)
             LaunchedEffect(islands) {
@@ -167,7 +168,7 @@ fun HubScreen(
             // order the route visits it), so absolute: a plain offset would mirror it in Hebrew.
             // Islands nearer the horizon are drawn a little smaller, for depth
             islands.forEach { island ->
-                val index = allIslands.indexOf(island)  // (each keeps its own palm side)
+                val index = map.indexOf(island)  // (each keeps its own palm side)
                 val depthScale = (0.82f + 0.35f * ((island.fractionalY - 0.42f) / 0.38f).coerceIn(0f, 1f)) * screenScale
                 IslandButton(
                     island = island,
