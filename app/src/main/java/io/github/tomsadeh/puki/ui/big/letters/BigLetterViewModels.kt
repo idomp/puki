@@ -7,6 +7,7 @@ import io.github.tomsadeh.puki.PukiApplication
 import io.github.tomsadeh.puki.learning.DataStoreSchedulerStore
 import io.github.tomsadeh.puki.learning.RoundScheduler
 import io.github.tomsadeh.puki.learning.SchedulerMemory
+import io.github.tomsadeh.puki.learning.SchedulerVisit
 import io.github.tomsadeh.puki.ui.common.GameSession
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,7 +19,7 @@ import kotlin.random.Random
  * Wraps one letters game for a screen. The screen calls [start] once, observes [state], and sends
  * [onAnswer] / [replay] / [next]. It plays [LetterGameState.cue]
  * whenever its token changes, always in Hebrew. The ViewModel keeps the stars (GameSession) and saves
- * learning on completion and exposure when the visit's owner is released.
+ * learning on completion and exposure before each new presentation is published.
  */
 abstract class BigLetterGameViewModel(
     application: Application,
@@ -33,16 +34,14 @@ abstract class BigLetterGameViewModel(
 
     private var game: LetterGame? = null
     private var starting = false
-    private var scheduler: RoundScheduler? = null
-    private var completedMemory: SchedulerMemory? = null
+    private var visit: SchedulerVisit? = null
 
     private val events = RoundEvents(
         onStar = { session.star() },
         onSlip = { session.slip() },
         onFinish = { rounds, memory ->
             session.finish(rounds)
-            completedMemory = memory
-            store.save(memoryKey, memory)
+            visit?.complete(memory)
         }
     )
 
@@ -61,22 +60,19 @@ abstract class BigLetterGameViewModel(
             val memory = runCatching { store.load(memoryKey) }.getOrDefault(SchedulerMemory())
             val random = Random.Default
             val nextScheduler = RoundScheduler(memory, random)
-            scheduler = nextScheduler
-            completedMemory = null
+            val nextVisit = SchedulerVisit(nextScheduler, memoryKey, store)
+            visit = nextVisit
             val g = createGame(nextScheduler, random, events)
             game = g
-            startGame(g)
-            _state.value = g.state
+            _state.value = nextVisit.update {
+                startGame(g)
+                g.state
+            }
             starting = false
         }
     }
 
-    private fun saveVisit() {
-        val memory = completedMemory ?: scheduler?.checkpoint() ?: return
-        store.save(memoryKey, memory)
-    }
-
-    override fun onCleared() { saveVisit() }
+    override fun onCleared() { visit?.save() }
 
     fun onAnswer(letterId: String) = act { it.onAnswer(letterId) }
     fun replay() = act { it.replay() }
@@ -84,8 +80,10 @@ abstract class BigLetterGameViewModel(
 
     private fun act(action: (LetterGame) -> Unit) {
         val g = game ?: return
-        action(g)
-        _state.value = g.state
+        _state.value = visit?.update {
+            action(g)
+            g.state
+        } ?: return
     }
 }
 

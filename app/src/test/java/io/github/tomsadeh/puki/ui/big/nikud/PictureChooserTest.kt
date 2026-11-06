@@ -12,9 +12,32 @@ import kotlin.random.Random
 
 class PictureChooserTest {
     @Test
+    fun picturesThatCanAnswerTheSameWordNeverShareARound() {
+        val excluded = listOf("kaf" to "yad", "yam" to "sira", "gag" to "gan",
+            "gal" to "yam", "gan" to "gina")
+        for ((a, b) in excluded) {
+            assertTrue("$a / $b", Nikud.areTwins(Nikud.word(a), Nikud.word(b)))
+            assertTrue("$b / $a", Nikud.areTwins(Nikud.word(b), Nikud.word(a)))
+        }
+        for (seed in 0 until 50) for (level in DistractorLevel.values()) {
+            for (target in Nikud.words.filter { it.pictureId != null }) {
+                val random = Random(seed)
+                val layout = PictureChooser(random, RoundScheduler(random = random))
+                    .choose(target, level, pool = Nikud.words)
+                assertEquals(target, layout.options[layout.correctIndex])
+                assertEquals(3, layout.options.size)
+                val ids = layout.options.map { it.id }.toSet()
+                for ((a, b) in excluded) {
+                    assertFalse("seed $seed, $level, ${target.id}: $ids", a in ids && b in ids)
+                }
+            }
+        }
+    }
+
+    @Test
     fun expandedFamiliesNeedReadingBeyondTheFirstConsonant() {
         val families = listOf(listOf("sal", "sir", "sira"), listOf("pil", "para", "panas"),
-            listOf("gag", "gal", "gan", "gamal"))
+            listOf("gag", "gal", "gamal"))
         for (ids in families) {
             assertEquals(1, ids.map { Nikud.word(it).firstConsonant }.toSet().size)
             for (a in ids) for (b in ids) if (a != b) assertFalse(Nikud.areTwins(Nikud.word(a), Nikud.word(b)))
