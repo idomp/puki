@@ -44,38 +44,49 @@ internal fun PicnicScreen(viewModel: PicnicViewModel, onBack: () -> Unit, onRest
     CompositionLocalProvider(LocalDragDropState provides drag) {
         MathRoundUi(state, state.round?.target ?: 0, state.feedback, viewModel::replay, viewModel::next, onBack, onRestart,
             pictureHint = true) { hint ->
-            Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-                Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                        val round = state.round
-                        if (round != null && round.request != PicnicRequest.EXACT) {
-                            AppleMat(round.shownAmount, Modifier.fillMaxWidth().height(156.dp))
-                        }
-                        // A replenishing pile: each apple has its own 100dp touch area.
-                        Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                            repeat(2) { index ->
-                                key(state.session.roundIndex, state.basketCount, paused, state.roundComplete) {
-                                    if (!paused && !state.roundComplete && state.basketCount < state.basketLimit) {
-                                        DragTarget("apple_$index", modifier = Modifier.size(100.dp), tapToZone = "basket",
-                                            onDragEnd = { zone ->
-                                                if (zone == "basket" && !viewModel.state.value.roundComplete) {
-                                                    viewModel.addItem()
-                                                    sfx.play(Sfx.DROP)
+            Row(Modifier.fillMaxSize().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(24.dp), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    val round = state.round
+                    if (round != null && round.request != PicnicRequest.EXACT) {
+                        AppleMat(round.shownAmount, Modifier.fillMaxWidth().height(120.dp))
+                    }
+                    // Two countable rows, replenished after each drop so overfilling is possible.
+                    val pileCount = minOf(10, (round?.target ?: 0) + 3)
+                    val columns = (pileCount + 1) / 2
+                    BoxWithConstraints(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        val appleSize = minOf(100.dp, maxWidth / columns)
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            repeat(2) { row ->
+                                Row {
+                                    repeat(minOf(columns, pileCount - row * columns)) { column ->
+                                        val index = row * columns + column
+                                        key(index, state.session.roundIndex, state.basketCount, paused, state.roundComplete) {
+                                            if (!paused && !state.roundComplete && state.basketCount < state.basketLimit) {
+                                                DragTarget("apple_$index", modifier = Modifier.size(appleSize), tapToZone = "basket",
+                                                    onDragEnd = { zone ->
+                                                        if (zone == "basket" && !viewModel.state.value.roundComplete) {
+                                                            viewModel.addItem()
+                                                            sfx.play(Sfx.DROP)
+                                                        }
+                                                    }, landed = { it == "basket" }) {
+                                                    Apple(Modifier.size(appleSize))
                                                 }
-                                            }, landed = { it == "basket" }) {
-                                            Apple(Modifier.size(100.dp))
+                                            } else Apple(Modifier.size(appleSize))
                                         }
-                                    } else Apple(Modifier.size(100.dp))
+                                    }
                                 }
                             }
                         }
-                        ReadyButton(enabled = !paused && !state.roundComplete, onReady = viewModel::ready)
                     }
-                    DropZone("basket", Modifier.width(400.dp).fillMaxHeight()) {
+                }
+                Column(Modifier.width(260.dp), horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    DropZone("basket", Modifier.size(260.dp, 200.dp)) {
                         BasketApples(state.basketCount, state.basketLimit, state.roundComplete, hint,
                             onRemove = { if (!paused && !state.roundComplete) { viewModel.removeItem(); sfx.play(Sfx.POP) } },
                             modifier = Modifier.fillMaxSize())
                     }
+                    ReadyButton(enabled = !paused && !state.roundComplete, onReady = viewModel::ready)
                 }
             }
         }
@@ -103,7 +114,7 @@ private fun ReadyButton(enabled: Boolean, onReady: () -> Unit) {
 
 @Composable
 private fun BasketApples(count: Int, limit: Int, complete: Boolean, hint: Boolean, onRemove: () -> Unit, modifier: Modifier) {
-    Box(modifier.drawWithCache {
+    BoxWithConstraints(modifier.clickable(enabled = !complete && count > 0, onClick = onRemove).drawWithCache {
         val rim = size.height * 0.12f
         val basket = Path().apply {
             moveTo(2.dp.toPx(), rim); lineTo(size.width - 2.dp.toPx(), rim)
@@ -121,13 +132,15 @@ private fun BasketApples(count: Int, limit: Int, complete: Boolean, hint: Boolea
             drawArc(BigColors.Post, 180f, 180f, false, Offset(size.width * 0.3f, 0f), Size(size.width * 0.4f, rim * 2), style = Stroke(8.dp.toPx()))
         }
     }, contentAlignment = Alignment.BottomCenter) {
-        Column(Modifier.padding(bottom = 4.dp)) {
-            repeat((limit + 3) / 4) { row ->
+        val rows = (limit + 3) / 4
+        val cell = minOf(56.dp, (maxWidth - 40.dp) / 4, (maxHeight - 44.dp) / rows)
+        Column(Modifier.padding(bottom = 12.dp)) {
+            repeat(rows) { row ->
                 Row {
                     repeat(4) { column ->
                         val index = row * 4 + column
-                        Box(Modifier.size(100.dp), contentAlignment = Alignment.Center) {
-                            if (index < count) Apple(Modifier.fillMaxSize().clickable(enabled = !complete, onClick = onRemove))
+                        Box(Modifier.size(cell), contentAlignment = Alignment.Center) {
+                            if (index < count) Apple(Modifier.fillMaxSize())
                         }
                     }
                 }

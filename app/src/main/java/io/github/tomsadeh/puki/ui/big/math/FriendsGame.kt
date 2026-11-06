@@ -37,6 +37,8 @@ class FriendsGame(random: Random, progress: MathProgressStore) :
 
     override fun startRound() {
         val round = selectRound()
+        // Warmup stories use at most three birds, but still offer the mockup's four boards.
+        val choiceMaximum = if (session.stage == MathStage.JOIN_5) session.stage.maximum else roundMaximum()
         val question = if (round.direction == MathOperation.PLUS) MathContent.howMany else MathContent.howManyLeft
         val voices = mapOf(
             StoryPhase.SHOW_START to listOf(MathContent.birdStarts[round.startCount]),
@@ -47,7 +49,7 @@ class FriendsGame(random: Random, progress: MathProgressStore) :
         )
         state = FriendsState(
             round = round, phaseVoices = voices,
-            choices = mathChoices(round.result, roundMaximum(), session.stage.allowsZero, random),
+            choices = mathChoices(round.result, choiceMaximum, session.stage.allowsZero, random),
             session = session, voice = cue(voices.getValue(StoryPhase.SHOW_START))
         )
     }

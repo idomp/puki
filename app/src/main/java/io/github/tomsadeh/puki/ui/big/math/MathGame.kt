@@ -96,5 +96,9 @@ abstract class MathGame<S : MathState>(
 internal fun mathChoices(answer: Int, maximum: Int, allowsZero: Boolean, random: Random): List<Int> {
     val minimum = if (allowsZero) 0 else 1
     require(answer in minimum..maximum)
-    return ((minimum..maximum).filter { it != answer }.shuffled(random).take(3) + answer).shuffled(random)
+    val count = minOf(4, maximum - minimum + 1)
+    // Keep the answer near the middle; clamp the whole window at either stage boundary.
+    val before = if (count == 4) random.nextInt(1, 3) else count / 2
+    val first = (answer - before).coerceIn(minimum, maximum - count + 1)
+    return (first until first + count).toList()
 }
