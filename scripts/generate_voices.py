@@ -600,12 +600,13 @@ def main():
     for i, (stem, text) in enumerate(jobs, 1):
         # Seed per file so re-running gives the same take
         np.random.seed(zlib.crc32(stem.encode()))
+        speed = voice_packs.speed_for(stem, SPEED)
         if stem in PHONEMES:
             text = PHONEMES[stem]
-            samples, sr = tts.synthesize(text, lang=args.lang, total_step=STEPS, speed=SPEED, text_is_phonemes=True)
+            samples, sr = tts.synthesize(text, lang=args.lang, total_step=STEPS, speed=speed, text_is_phonemes=True)
         else:
             text = strip_nikud(text)
-            samples, sr = tts.synthesize(text, lang=args.lang, total_step=STEPS, speed=SPEED)
+            samples, sr = tts.synthesize(text, lang=args.lang, total_step=STEPS, speed=speed)
         # A short tail so the last syllable isn't cut off by the player
         samples = np.concatenate([samples, np.zeros(int(sr * 0.15), dtype=np.float32)])
         sf.write(os.path.join(args.out, f"{stem}.ogg"), samples, sr, format="OGG", subtype="VORBIS")

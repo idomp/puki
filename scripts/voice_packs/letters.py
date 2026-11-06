@@ -61,7 +61,7 @@ PHONEMES = {
     "voice_big_letters_final_kaf_he": "zˈot haʔˈot kˈaf sofˈit.",
     "voice_big_letters_final_mem_he": "zˈot haʔˈot mˈem sofˈit.",
     "voice_big_letters_final_nun_he": "zˈot haʔˈot nˈun sofˈit.",
-    "voice_big_letters_final_pe_he": "zˈot haʔˈot pˈe sofˈit.",
+    "voice_big_letters_final_pe_he": "zˈot haʔˈot fˈe sofˈit.",
     "voice_big_letters_final_tsadi_he": "zˈot haʔˈot tsˈadi sofˈit.",
 
     "voice_big_letters_find_it_he_f": "timtsˈi ʔotˈa!",
@@ -70,7 +70,7 @@ PHONEMES = {
     "voice_big_letters_hint_he_m": "tistakˈel, hˈine hˈi!",
 
     "voice_big_letters_cmp_dalet_resh_he": "ledˈalet jˈeʃ pinˈa, leʁˈeʃ jˈeʃ kˈeʃet.",
-    "voice_big_letters_cmp_he_het_he": "leχˈet ʃtˈej ʁaɡlˈajim meχubˈaʁot, ulehˈe jˈeʃ ʁˈeɡel ktanˈa ʃenifʁˈeda.",
+    "voice_big_letters_cmp_he_het_he": "leχˈet ʃtˈej ʁaɡlˈajim meχubˈaʁot, ulehˈe jˈeʃ ʁˈeɡel ktanˈa ʃenifʁedˈa.",
     "voice_big_letters_cmp_bet_kaf_he": "lebˈet jˈeʃ pinˈa lemˈata, ulekˈaf jˈeʃ kˈeʃet ʔaɡulˈa.",
     "voice_big_letters_cmp_vav_yod_he": "levˈav jˈeʃ kav ʔaʁˈoχ, ulijˈud ʁˈak psˈik katˈan.",
     "voice_big_letters_cmp_gimel_nun_he": "leɡˈimel jˈeʃ ʁˈeɡel ktanˈa beʔalaχsˈon, ulenˈun ʁitspˈa jeʃaʁˈa.",
