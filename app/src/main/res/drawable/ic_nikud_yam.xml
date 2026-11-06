@@ -1,0 +1,24 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="100dp" android:height="100dp"
+    android:viewportWidth="100" android:viewportHeight="100">
+    <path android:fillColor="#1F5E99" android:fillAlpha="0.12"
+        android:pathData="M6,90 A44,5 0,1 1,94 90 A44,5 0,1 1,6 90 Z"/>
+    <!-- A broad, level horizon and quiet horizontal ripples. -->
+    <path android:fillColor="#DDF3FF"
+        android:pathData="M7,20 Q50,6 93,20 L93,44 L7,44 Z"/>
+    <path android:fillColor="#FFD54F" android:strokeColor="#E7AD28" android:strokeWidth="2"
+        android:pathData="M64,27 A9,9 0,1 1,82 27 A9,9 0,1 1,64 27 Z"/>
+    <path android:fillColor="#4FA8F0" android:strokeColor="#2F86C5" android:strokeWidth="2.5" android:strokeLineJoin="round"
+        android:pathData="M6,43 L94,43 L94,83 Q94,89 87,89 L13,89 Q6,89 6,83 Z"/>
+    <path android:fillColor="#5CC0EC"
+        android:pathData="M8,66 Q30,62 51,67 Q72,71 92,66 L92,83 Q92,87 86,87 L14,87 Q8,87 8,83 Z"/>
+    <!-- A small distant sailboat supplies scale without dominating the sea. -->
+    <path android:fillColor="#FFFFFF" android:strokeColor="#6B9EBD" android:strokeWidth="1.2" android:strokeLineJoin="round"
+        android:pathData="M37,31 L37,51 L23,51 Z"/>
+    <path android:fillColor="#FFCA28"
+        android:pathData="M40,38 L49,51 L40,51 Z"/>
+    <path android:fillColor="#8D6E63"
+        android:pathData="M22,54 L51,54 L46,60 L28,60 Z"/>
+    <path android:fillColor="#00000000" android:strokeColor="#FFFFFF" android:strokeAlpha="0.75" android:strokeWidth="2.7" android:strokeLineCap="round"
+        android:pathData="M14,68 L32,68 M60,56 L80,56 M39,77 L58,77 M70,82 L85,82"/>
+</vector>

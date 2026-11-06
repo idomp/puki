@@ -1,0 +1,28 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="100dp" android:height="100dp"
+    android:viewportWidth="100" android:viewportHeight="100">
+    <path android:fillColor="#5D4037" android:fillAlpha="0.12"
+        android:pathData="M7,93 A43,4 0,1 1,93 93 A43,4 0,1 1,7 93 Z"/>
+    <!-- Two walls meet at the central vertical seam; the floor recedes into it. -->
+    <path android:fillColor="#DDF0FA" android:strokeColor="#7FAFCB" android:strokeWidth="2.3" android:strokeLineJoin="round"
+        android:pathData="M9,20 L50,11 L50,61 L9,77 Z"/>
+    <path android:fillColor="#B4D8ED" android:strokeColor="#7FAFCB" android:strokeWidth="2.3" android:strokeLineJoin="round"
+        android:pathData="M50,11 L91,20 L91,77 L50,61 Z"/>
+    <path android:fillColor="#F0D5A7" android:strokeColor="#C6A06A" android:strokeWidth="2" android:strokeLineJoin="round"
+        android:pathData="M9,77 L50,61 L91,77 L91,91 L9,91 Z"/>
+    <path android:fillColor="#FFFFFF" android:fillAlpha="0.55"
+        android:pathData="M12,23 L44,16 L44,20 L12,27 Z"/>
+    <path android:fillColor="#00000000" android:strokeColor="#FFFFFF" android:strokeAlpha="0.65" android:strokeWidth="3"
+        android:pathData="M11,73 L50,58 L89,73"/>
+    <!-- Gold arc marks the angle on the floor, in front of the ball. -->
+    <path android:fillColor="#00000000" android:strokeColor="#D69C20" android:strokeWidth="6" android:strokeLineCap="round"
+        android:pathData="M27,73 Q50,91 73,73"/>
+    <path android:fillColor="#00000000" android:strokeColor="#FFD54F" android:strokeWidth="3" android:strokeLineCap="round"
+        android:pathData="M27,72 Q50,90 73,72"/>
+    <path android:fillColor="#5D4037" android:fillAlpha="0.15"
+        android:pathData="M37,74 A13,3 0,1 1,63 74 A13,3 0,1 1,37 74 Z"/>
+    <path android:fillColor="#EF6653" android:strokeColor="#BF493B" android:strokeWidth="2.2"
+        android:pathData="M39,64 A11,11 0,1 1,61 64 A11,11 0,1 1,39 64 Z"/>
+    <path android:fillColor="#00000000" android:strokeColor="#FFF3D6" android:strokeWidth="2.3"
+        android:pathData="M40,60 Q50,68 60,60 M50,53 Q43,65 52,75"/>
+</vector>

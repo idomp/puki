@@ -1,0 +1,23 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="100dp" android:height="100dp"
+    android:viewportWidth="100" android:viewportHeight="100">
+    <path android:fillColor="#5D4037" android:fillAlpha="0.12"
+        android:pathData="M8,84 A42,5 0,1 1,92 84 A42,5 0,1 1,8 84 Z"/>
+    <!-- Only the roof: chimney, ridge, tile slopes and a narrow eave. -->
+    <path android:fillColor="#B58670" android:strokeColor="#795548" android:strokeWidth="2.5" android:strokeLineJoin="round"
+        android:pathData="M61,20 L74,20 L74,49 L61,45 Z"/>
+    <path android:fillColor="#D1A68C" android:strokeColor="#795548" android:strokeWidth="2.2" android:strokeLineJoin="round"
+        android:pathData="M58,17 L77,17 L77,24 L58,24 Z"/>
+    <path android:fillColor="#00000000" android:strokeColor="#8D6251" android:strokeWidth="1.5"
+        android:pathData="M62,31 L73,31 M62,39 L73,39 M67,24 L67,31 M69,31 L69,39"/>
+    <path android:fillColor="#EF6653" android:strokeColor="#B83228" android:strokeWidth="3" android:strokeLineJoin="round"
+        android:pathData="M8,74 L37,34 L70,34 L93,74 L93,79 L8,79 Z"/>
+    <path android:fillColor="#D74736"
+        android:pathData="M8,74 L37,34 L34,74 Z"/>
+    <path android:fillColor="#B83228"
+        android:pathData="M9,74 L92,74 L92,78 L9,78 Z"/>
+    <path android:fillColor="#00000000" android:strokeColor="#B83228" android:strokeWidth="1.8" android:strokeLineJoin="round"
+        android:pathData="M37,35 L34,74 M27,48 L78,48 M17,61 L85,61 M49,35 L50,48 M61,35 L65,48 M43,48 L43,61 M57,48 L59,61 M71,48 L76,61 M49,61 L50,73 M66,61 L69,73 M29,48 L20,61 M29,61 L24,73"/>
+    <path android:fillColor="#FFFFFF" android:fillAlpha="0.4"
+        android:pathData="M38,37 L67,37 L69,41 L38,41 Z"/>
+</vector>

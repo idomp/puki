@@ -1,0 +1,24 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="100dp" android:height="100dp"
+    android:viewportWidth="100" android:viewportHeight="100">
+    <path android:fillColor="#5D4037" android:fillAlpha="0.12"
+        android:pathData="M10,89 A40,5 0,1 1,90 89 A40,5 0,1 1,10 89 Z"/>
+    <group android:rotation="-6" android:pivotX="50" android:pivotY="50">
+        <!-- Alternating parchment panels make the folds visible at shell size. -->
+        <path android:fillColor="#F7E3B2" android:strokeColor="#B8895A" android:strokeWidth="2.8" android:strokeLineJoin="round"
+            android:pathData="M12,23 L37,16 L63,23 L88,16 L88,77 L63,84 L37,77 L12,84 Z"/>
+        <path android:fillColor="#E8CA8B"
+            android:pathData="M37,16 L63,23 L63,84 L37,77 Z"/>
+        <path android:fillColor="#FFF3D6"
+            android:pathData="M15,26 L34,21 L34,26 L15,31 Z"/>
+        <path android:fillColor="#00000000" android:strokeColor="#C9A25E" android:strokeWidth="1.8"
+            android:pathData="M37,17 L37,77 M63,24 L63,83"/>
+        <path android:fillColor="#81C784" android:strokeColor="#5B9B56" android:strokeWidth="1.4" android:strokeLineJoin="round"
+            android:pathData="M20,42 Q22,32 29,35 L35,40 L31,47 L24,49 Z M68,64 L75,58 L82,63 L80,71 L71,73 Z"/>
+        <!-- Explicit short segments: VectorDrawable has no stroke-dasharray. -->
+        <path android:fillColor="#00000000" android:strokeColor="#9B6949" android:strokeWidth="3" android:strokeLineCap="round"
+            android:pathData="M23,67 L27,68 M34,68 L38,66 M44,63 L47,60 M51,54 L54,51 M59,46 L62,43"/>
+        <path android:fillColor="#00000000" android:strokeColor="#C62828" android:strokeWidth="4.5" android:strokeLineCap="round"
+            android:pathData="M69,31 L81,43 M81,31 L69,43"/>
+    </group>
+</vector>
