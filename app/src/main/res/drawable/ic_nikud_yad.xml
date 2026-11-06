@@ -1,0 +1,16 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="100dp" android:height="100dp"
+    android:viewportWidth="100" android:viewportHeight="100">
+    <path android:fillColor="#5D4037" android:fillAlpha="0.12"
+        android:pathData="M27,93 A25,4 0,1 1,77 93 A25,4 0,1 1,27 93 Z"/>
+    <!-- One continuous silhouette: thumb on the left, four spread fingers. -->
+    <path android:fillColor="#F6C9A0" android:strokeColor="#C68C62" android:strokeWidth="2.5" android:strokeLineJoin="round"
+        android:pathData="M35,91 L35,82 C25,77 21,69 17,61 L8,47 Q5,42 9,39 Q13,36 17,41 L28,54 L23,25 Q22,19 27,18 Q32,17 34,23 L39,45 L38,14 Q38,8 43,8 Q49,8 49,14 L51,43 L55,16 Q56,10 61,11 Q67,12 66,18 L63,46 L71,27 Q73,22 78,24 Q83,26 80,32 L73,55 L73,66 Q73,77 64,83 L64,91 Q50,94 35,91 Z"/>
+    <path android:fillColor="#D99A6C" android:fillAlpha="0.45"
+        android:pathData="M64,51 Q70,65 62,76 L57,82 L57,92 L64,91 L64,83 Q73,77 73,66 L73,55 L80,32 Q82,28 79,25 L69,51 Z"/>
+    <!-- Palm creases distinguish an outward-facing palm. -->
+    <path android:fillColor="#00000000" android:strokeColor="#C68C62" android:strokeWidth="2.2" android:strokeLineCap="round"
+        android:pathData="M30,56 Q41,57 39,72 M40,53 Q50,49 61,53 M44,72 Q52,75 58,71"/>
+    <path android:fillColor="#FFFFFF" android:fillAlpha="0.4"
+        android:pathData="M43,58 Q40,57 41,63 Q42,68 47,68 Q51,66 48,62 Q46,59 43,58 Z"/>
+</vector>

@@ -1,0 +1,28 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="100dp" android:height="100dp"
+    android:viewportWidth="100" android:viewportHeight="100">
+    <path android:fillColor="#5D4037" android:fillAlpha="0.12"
+        android:pathData="M7,91 A43,5 0,1 1,93 91 A43,5 0,1 1,7 91 Z"/>
+    <!-- A low soil bed, without trees or park scenery. -->
+    <path android:fillColor="#A97950" android:strokeColor="#795548" android:strokeWidth="2.5"
+        android:pathData="M9,73 Q11,65 50,65 Q89,65 91,73 L88,86 Q50,98 12,86 Z"/>
+    <path android:fillColor="#C5966D"
+        android:pathData="M12,73 Q50,62 88,73 Q75,82 50,81 Q24,81 12,73 Z"/>
+    <path android:fillColor="#00000000" android:strokeColor="#388E3C" android:strokeWidth="3.5" android:strokeLineCap="round"
+        android:pathData="M24,74 L24,44 M50,74 L50,30 M76,74 L76,45"/>
+    <path android:fillColor="#66BB6A" android:strokeColor="#388E3C" android:strokeWidth="1.5" android:strokeLineJoin="round"
+        android:pathData="M24,65 Q12,65 12,56 Q23,55 24,65 Z M24,59 Q35,58 35,50 Q25,49 24,59 Z M50,57 Q37,56 38,46 Q50,47 50,57 Z M50,65 Q63,64 63,54 Q51,55 50,65 Z M76,65 Q64,64 64,55 Q75,54 76,65 Z M76,58 Q88,56 88,48 Q77,48 76,58 Z"/>
+    <!-- Exactly three five-petal flowers. -->
+    <path android:fillColor="#EF6C83" android:strokeColor="#C44760" android:strokeWidth="1.8"
+        android:pathData="M19,34 C16,23 32,23 29,34 C40,30 43,44 32,45 C40,54 27,62 23,51 C17,60 6,50 16,44 C5,41 10,28 19,34 Z"/>
+    <path android:fillColor="#FFCA28" android:strokeColor="#E0A21B" android:strokeWidth="1.8"
+        android:pathData="M45,21 C42,10 58,10 55,21 C66,17 69,31 58,32 C66,41 53,49 49,38 C43,47 32,37 42,31 C31,28 36,15 45,21 Z"/>
+    <path android:fillColor="#B07CD8" android:strokeColor="#8750B2" android:strokeWidth="1.8"
+        android:pathData="M71,35 C68,24 84,24 81,35 C92,31 95,45 84,46 C92,55 79,63 75,52 C69,61 58,51 68,45 C57,42 62,29 71,35 Z"/>
+    <path android:fillColor="#FFF3B0"
+        android:pathData="M19,41 A5,5 0,1 1,29 41 A5,5 0,1 1,19 41 Z M45,28 A5,5 0,1 1,55 28 A5,5 0,1 1,45 28 Z M71,42 A5,5 0,1 1,81 42 A5,5 0,1 1,71 42 Z"/>
+    <path android:fillColor="#FFFFFF" android:fillAlpha="0.45"
+        android:pathData="M13,73 Q28,68 36,70 Q29,74 15,76 Z"/>
+    <path android:fillColor="#795548"
+        android:pathData="M24,85 L29,84 L31,86 L26,87 Z M63,85 L67,83 L70,85 L66,87 Z"/>
+</vector>

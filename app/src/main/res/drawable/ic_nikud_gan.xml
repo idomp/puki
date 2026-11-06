@@ -1,0 +1,34 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="100dp" android:height="100dp"
+    android:viewportWidth="100" android:viewportHeight="100">
+    <path android:fillColor="#5D4037" android:fillAlpha="0.12"
+        android:pathData="M5,91 A45,5 0,1 1,95 91 A45,5 0,1 1,5 91 Z"/>
+    <!-- A colourful classroom and its playground, rather than a flower garden. -->
+    <path android:fillColor="#FFDD80" android:strokeColor="#C69A46" android:strokeWidth="2.3" android:strokeLineJoin="round"
+        android:pathData="M12,35 L64,35 L64,85 L12,85 Z"/>
+    <path android:fillColor="#4FA8F0" android:strokeColor="#2F86C5" android:strokeWidth="2.5" android:strokeLineJoin="round"
+        android:pathData="M8,36 L17,24 L59,24 L68,36 Z"/>
+    <path android:fillColor="#FFFFFF" android:fillAlpha="0.4"
+        android:pathData="M15,32 L19,27 L55,27 L57,30 Z"/>
+    <path android:fillColor="#EF6C83" android:strokeColor="#C44760" android:strokeWidth="2"
+        android:pathData="M32,62 Q32,56 38,56 Q44,56 44,62 L44,85 L32,85 Z"/>
+    <path android:fillColor="#81D4FA" android:strokeColor="#FFFFFF" android:strokeWidth="2.5"
+        android:pathData="M18,57 L27,57 L27,70 L18,70 Z M49,57 L58,57 L58,70 L49,70 Z"/>
+    <path android:fillColor="#E53935"
+        android:pathData="M18,44 L26,44 L26,52 L18,52 Z"/>
+    <path android:fillColor="#66BB6A"
+        android:pathData="M34,48 A4.5,4.5 0,1 1,43 48 A4.5,4.5 0,1 1,34 48 Z"/>
+    <path android:fillColor="#B07CD8"
+        android:pathData="M49,52 L54,43 L59,52 Z"/>
+    <!-- Fence on the left; the large yellow slide is the main playground cue. -->
+    <path android:fillColor="#FFFFFF" android:strokeColor="#BAA080" android:strokeWidth="1.4" android:strokeLineJoin="round"
+        android:pathData="M8,89 L8,74 L11,70 L14,74 L14,89 Z M20,89 L20,74 L23,70 L26,74 L26,89 Z"/>
+    <path android:fillColor="#00000000" android:strokeColor="#BAA080" android:strokeWidth="2.5"
+        android:pathData="M6,79 L28,79 M6,85 L28,85"/>
+    <path android:fillColor="#00000000" android:strokeColor="#2F86C5" android:strokeWidth="3" android:strokeLineCap="round"
+        android:pathData="M58,87 L66,53 L76,53 L76,87 M62,70 L76,70 M60,79 L76,79 M65,61 L76,61"/>
+    <path android:fillColor="#FFCA28" android:strokeColor="#D99D20" android:strokeWidth="2.5" android:strokeLineJoin="round"
+        android:pathData="M68,54 L77,54 C78,66 80,77 94,81 L94,88 C74,86 70,71 68,54 Z"/>
+    <path android:fillColor="#00000000" android:strokeColor="#FFF3B0" android:strokeWidth="2" android:strokeLineCap="round"
+        android:pathData="M74,59 Q77,79 91,84"/>
+</vector>

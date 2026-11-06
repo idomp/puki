@@ -1,0 +1,26 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="100dp" android:height="100dp"
+    android:viewportWidth="100" android:viewportHeight="100">
+    <path android:fillColor="#5D4037" android:fillAlpha="0.12"
+        android:pathData="M7,84 A43,6 0,1 1,93 84 A43,6 0,1 1,7 84 Z"/>
+    <!-- One plate and one meal: a mound of rice with vegetables. -->
+    <path android:fillColor="#D5E9F3" android:strokeColor="#7DABBF" android:strokeWidth="2.5"
+        android:pathData="M6,60 A44,25 0,1 1,94 60 L94,64 A44,25 0,0 1,6 64 Z"/>
+    <path android:fillColor="#FFFFFF" android:strokeColor="#7DABBF" android:strokeWidth="2.5"
+        android:pathData="M6,59 A44,24 0,1 1,94 59 A44,24 0,1 1,6 59 Z"/>
+    <path android:fillColor="#EDF5F8" android:strokeColor="#C4DCE7" android:strokeWidth="1.5"
+        android:pathData="M16,59 A34,16 0,1 1,84 59 A34,16 0,1 1,16 59 Z"/>
+    <path android:fillColor="#FFF1CD" android:strokeColor="#D9BD83" android:strokeWidth="2.2"
+        android:pathData="M18,54 C20,42 27,29 39,29 C52,29 59,41 60,54 Q40,67 18,54 Z"/>
+    <path android:fillColor="#FFFFFF" android:fillAlpha="0.65"
+        android:pathData="M26,44 Q28,35 37,34 Q42,34 41,37 Q30,38 29,45 Z"/>
+    <path android:fillColor="#00000000" android:strokeColor="#D9BD83" android:strokeWidth="2" android:strokeLineCap="round"
+        android:pathData="M32,48 L34,45 M43,43 L45,45 M48,52 L51,51 M37,55 L40,53 M24,51 L26,53"/>
+    <!-- Broccoli and carrot pieces are deliberately large, even at 28dp. -->
+    <path android:fillColor="#66BB6A" android:strokeColor="#388E3C" android:strokeWidth="2" android:strokeLineJoin="round"
+        android:pathData="M67,53 L65,66 L74,66 L72,53 Q83,54 82,46 Q81,40 75,41 Q72,33 66,38 Q59,36 57,43 Q54,51 61,53 Z"/>
+    <path android:fillColor="#FF9B46" android:strokeColor="#D7792D" android:strokeWidth="1.8" android:strokeLineJoin="round"
+        android:pathData="M49,63 L58,59 L64,65 L54,70 Z M66,71 L76,68 L81,73 L71,77 Z"/>
+    <path android:fillColor="#83BF4F" android:strokeColor="#5B9636" android:strokeWidth="1.2"
+        android:pathData="M36,66 A3,3 0,1 1,42 66 A3,3 0,1 1,36 66 Z M44,72 A3,3 0,1 1,50 72 A3,3 0,1 1,44 72 Z"/>
+</vector>
