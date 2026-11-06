@@ -105,7 +105,9 @@ private fun BranchScene(round: FriendsRound, phase: StoryPhase, flight: Float, c
                                     if (!occupied || moving) drawCircle(Color.White.copy(alpha = 0.55f), radius = size.minDimension * 0.35f, style = Stroke(2.dp.toPx()))
                                 }
                             })
-                            if (occupied) Image(painterResource(R.drawable.ic_count_bird), null,
+                            // Colour belongs to the bird, so it survives both landing and departure.
+                            val bird = if (joining && !start) R.drawable.ic_math_bird_coral else R.drawable.ic_count_bird
+                            if (occupied) Image(painterResource(bird), null,
                                 Modifier.size(birdSize).graphicsLayer {
                                     if (moving) {
                                         val travel = if (joining) 1f - flight else flight

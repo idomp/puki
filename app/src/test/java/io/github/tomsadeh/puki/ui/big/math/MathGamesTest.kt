@@ -14,10 +14,29 @@ class MathGamesTest {
     }
 
     private fun assertChoices(answer: Int, choices: List<Int>, maximum: Int, zero: Boolean) {
-        assertTrue(choices.size in 3..4)
+        val minimum = if (zero) 0 else 1
+        assertEquals(minOf(4, maximum - minimum + 1), choices.size)
         assertEquals(choices.size, choices.distinct().size)
         assertEquals(1, choices.count { it == answer })
-        assertTrue(choices.all { it in (if (zero) 0 else 1)..maximum })
+        assertTrue(choices.all { it in minimum..maximum })
+        assertEquals(choices.sorted(), choices)
+        assertTrue(choices.zipWithNext().all { (a, b) -> b == a + 1 })
+    }
+
+    @Test fun choicesAreConsecutiveAroundEveryAnswerIncludingStageBoundaries() {
+        for (maximum in 1..10) for (zero in listOf(false, true)) {
+            for (answer in (if (zero) 0 else 1)..maximum) for (seed in 0..39) {
+                val choices = mathChoices(answer, maximum, zero, Random(seed))
+                assertChoices(answer, choices, maximum, zero)
+                val minimum = if (zero) 0 else 1
+                if (answer in (minimum + 2)..(maximum - 2))
+                    assertTrue(choices.indexOf(answer) in 1..2)
+            }
+        }
+        assertEquals(listOf(0, 1, 2, 3), mathChoices(1, 5, true, Random(0)))
+        assertEquals(listOf(1, 2, 3, 4), mathChoices(1, 5, false, Random(0)))
+        assertEquals(listOf(2, 3, 4, 5), mathChoices(4, 5, false, Random(0)))
+        assertEquals(listOf(7, 8, 9, 10), mathChoices(10, 10, true, Random(0)))
     }
 
     private fun FriendsGame.question() { advancePhase(); advancePhase() }
