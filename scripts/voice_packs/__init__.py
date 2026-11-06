@@ -5,10 +5,13 @@ and PHONEMES (output stem -> IPA, as generate_voices.PHONEMES). generate_voices.
 A module may also define SPEEDS (output stem -> BlueTTS speed) for lines that need their own pace.
 """
 
-from . import letters, math
+from . import letters, math, nikud
 
-VOICE_LINES = letters.VOICE_LINES + math.VOICE_LINES
+VOICE_LINES = letters.VOICE_LINES + math.VOICE_LINES + nikud.VOICE_LINES
 PHONEMES = {**letters.PHONEMES, **math.PHONEMES}
+# Takes the parent picked by ear in a listening round: output stem -> (IPA, speed, seed). These are
+# synthesized exactly as in the round (seed = crc32(ipa) + seed), so the file is the one he approved.
+TAKES = {**getattr(letters, "TAKES", {}), **getattr(math, "TAKES", {}), **getattr(nikud, "TAKES", {})}
 
 # Slower than the toddler lines (0.9): the parent's listening test (2026-11-06) found 0.7 best for
 # sentences and letter names. Single syllables were clearest at 0.8, and very short clips can come

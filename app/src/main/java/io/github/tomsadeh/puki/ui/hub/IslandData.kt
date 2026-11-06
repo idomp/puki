@@ -129,8 +129,17 @@ val bigIslands = listOf(
         color = Color(0xFF7986CB),
         drawableRes = R.drawable.ic_island_words,
         drawableResEn = R.drawable.ic_island_words_en,
-        fractionalX = 0.20f,
+        fractionalX = 0.12f,
         fractionalY = 0.46f
+    ),
+    IslandDef(
+        id = "nikud",
+        name = BilingualText("צלילים ומילים", "Sounds and Words"),
+        route = Routes.BIG_NIKUD,
+        color = Color(0xFF4DB6AC),
+        drawableRes = R.drawable.ic_island_words,  // its own picture comes with the island's art
+        fractionalX = 0.33f,
+        fractionalY = 0.52f
     ),
     IslandDef(
         id = "math",
@@ -138,10 +147,10 @@ val bigIslands = listOf(
         route = Routes.BIG_MATH,
         color = SunYellow,
         drawableRes = R.drawable.ic_island_counting,
-        fractionalX = 0.50f,
-        fractionalY = 0.50f
+        fractionalX = 0.55f,
+        fractionalY = 0.44f
     ),
-    allIslands.first { it.id == "music" }.copy(fractionalX = 0.80f, fractionalY = 0.42f),
+    allIslands.first { it.id == "music" }.copy(fractionalX = 0.82f, fractionalY = 0.42f),
     // The bottom row, right to left in the order the sea route visits it
     allIslands.first { it.id == "echo" }.copy(fractionalX = 0.66f, fractionalY = 0.80f),
     allIslands.first { it.id == "say" }.copy(fractionalX = 0.32f, fractionalY = 0.80f)

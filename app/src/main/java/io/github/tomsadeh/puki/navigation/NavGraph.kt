@@ -23,6 +23,7 @@ import io.github.tomsadeh.puki.ui.music.MusicMeadowScreen
 import io.github.tomsadeh.puki.ui.words.WordGardenScreen
 import io.github.tomsadeh.puki.ui.big.letters.BigLettersScreen
 import io.github.tomsadeh.puki.ui.big.math.BigMathScreen
+import io.github.tomsadeh.puki.ui.big.nikud.BigNikudScreen
 import io.github.tomsadeh.puki.ui.echo.EchoScreen
 import io.github.tomsadeh.puki.ui.peekaboo.PeekabooScreen
 import io.github.tomsadeh.puki.ui.say.SayItScreen
@@ -63,6 +64,7 @@ object Routes {
     /** The fork's map for kindergarten's last year: letters (and later reading), and sums. */
     const val BIG_LETTERS = "letters"
     const val BIG_MATH = "math"
+    const val BIG_NIKUD = "nikud"
     const val SAY = "say"
     /** The parrot island: Puki's corner with his brain on, else Say it with Puki directly. */
     const val CORNER = "corner"
@@ -200,6 +202,9 @@ fun PukiNavGraph(navController: NavHostController) {
         }
         composable(Routes.BIG_MATH) {
             BigMathScreen(onBack = safeBack)
+        }
+        composable(Routes.BIG_NIKUD) {
+            BigNikudScreen(onBack = safeBack)
         }
         composable(Routes.SAY) {
             SayItScreen(onBack = safeBack, onPlayAgain = playAgain(Routes.SAY))

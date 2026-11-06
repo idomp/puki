@@ -601,7 +601,12 @@ def main():
         # Seed per file so re-running gives the same take
         np.random.seed(voice_packs.seed_for(stem, zlib.crc32(stem.encode())) % 2**32)
         speed = voice_packs.speed_for(stem, SPEED)
-        if stem in PHONEMES:
+        if stem in voice_packs.TAKES:
+            # A take picked by ear: the same IPA, speed and seed as in the listening round
+            text, speed, seed = voice_packs.TAKES[stem]
+            np.random.seed((zlib.crc32(text.encode()) + seed) % 2**32)
+            samples, sr = tts.synthesize(text, lang=args.lang, total_step=STEPS, speed=speed, text_is_phonemes=True)
+        elif stem in PHONEMES:
             text = PHONEMES[stem]
             samples, sr = tts.synthesize(text, lang=args.lang, total_step=STEPS, speed=speed, text_is_phonemes=True)
         else:

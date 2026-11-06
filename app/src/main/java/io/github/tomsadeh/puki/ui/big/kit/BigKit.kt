@@ -49,6 +49,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.tomsadeh.puki.R
@@ -113,37 +114,40 @@ fun BeachBackdrop(modifier: Modifier = Modifier, horizon: Float = 0.45f) {
 
 /** A shell on the progress string: gold and holding what was found, ringed for now, pale for later. */
 @Composable
-private fun Shell(found: String?, current: Boolean) {
-    val size = if (found != null || current) 40.dp else 26.dp
+private fun Shell(found: String?, current: Boolean, picture: Int? = null) {
+    val filled = found != null || picture != null
+    val size = if (filled || current) 40.dp else 26.dp
     Box(
         modifier = Modifier
             .size(size)
             .clip(CircleShape)
             .background(
                 when {
-                    found != null -> BigColors.Gold
+                    filled -> BigColors.Gold
                     current -> Color.White
                     else -> Color.White.copy(alpha = 0.65f)
                 }
             )
             .border(
-                width = if (found != null) 3.dp else if (current) 4.dp else 0.dp,
-                color = if (found != null) BigColors.GoldEdge else BigColors.Gold,
+                width = if (filled) 3.dp else if (current) 4.dp else 0.dp,
+                color = if (filled) BigColors.GoldEdge else BigColors.Gold,
                 shape = CircleShape
             ),
         contentAlignment = Alignment.Center
     ) {
-        if (found != null) Text(found, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, color = Color(0xFF6B4210))
+        if (picture != null) Image(painterResource(picture), contentDescription = null, modifier = Modifier.size(28.dp))
+        else if (found != null) Text(found, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, color = Color(0xFF6B4210))
     }
 }
 
 /**
  * The top of every big-kids round: back (start side), the shells (centre, the first round on the
  * reading side), and the stars. [found] holds what each finished round found (its glyph), null for
- * rounds still to play; [current] is the round being played.
+ * rounds still to play; [current] is the round being played. A round that found a picture (a word
+ * read) puts it in [pictures] instead: pointed text is never squeezed into a shell (its dots vanish).
  */
 @Composable
-fun BigTopBar(onBack: () -> Unit, found: List<String?>, current: Int, stars: Int, modifier: Modifier = Modifier) {
+fun BigTopBar(onBack: () -> Unit, found: List<String?>, current: Int, stars: Int, modifier: Modifier = Modifier, pictures: List<Int?> = emptyList()) {
     Row(
         modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -151,7 +155,10 @@ fun BigTopBar(onBack: () -> Unit, found: List<String?>, current: Int, stars: Int
     ) {
         BackButton(onBack)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            found.forEachIndexed { i, glyph -> Shell(glyph, current = i == current && glyph == null) }
+            found.forEachIndexed { i, glyph ->
+                val picture = pictures.getOrNull(i)
+                Shell(glyph, current = i == current && glyph == null && picture == null, picture = picture)
+            }
         }
         Row(
             modifier = Modifier.clip(CircleShape).background(Color.Black.copy(alpha = 0.14f)).padding(horizontal = 16.dp, vertical = 8.dp),
@@ -253,11 +260,17 @@ fun AnswerBoard(
     height: Dp = 176.dp,
     nameTag: String? = null,
     textScale: Float = 0.67f,
-    footer: (@Composable () -> Unit)? = null
+    footer: (@Composable () -> Unit)? = null,
+    /** A picture in place of the text (a word's meaning, in the reading games). */
+    picture: Int? = null,
+    /** An exact size for the text, where the height fraction doesn't fit (a pointed word on a wide board). */
+    fontSize: TextUnit? = null,
+    /** False for boards holding pointed text being read: no squish, the dots stay still under the finger. */
+    squish: Boolean = true
 ) {
     val press = remember { MutableInteractionSource() }
     val pressed by press.collectIsPressedAsState()
-    val scale by animateFloatAsState(if (pressed) 0.92f else 1f, spring(dampingRatio = 0.4f, stiffness = 300f), label = "board")
+    val scale by animateFloatAsState(if (pressed && squish) 0.92f else 1f, spring(dampingRatio = 0.4f, stiffness = 300f), label = "board")
     val sink by animateDpAsState(if (mark == BoardMark.WRONG) 12.dp else 0.dp, label = "sink")
     val wrong = mark == BoardMark.WRONG
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
@@ -283,14 +296,22 @@ fun AnswerBoard(
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text,
-                    fontSize = with(LocalDensity.current) { (height * textScale).toSp() },
-                    fontWeight = FontWeight.Bold,
-                    color = if (wrong) Color(0xFF9A8B7B) else BigColors.Ink,
-                    textAlign = TextAlign.Center,
-                    lineHeight = with(LocalDensity.current) { (height * textScale * 1.25f).toSp() }
-                )
+                if (picture != null) {
+                    Image(
+                        painterResource(picture), contentDescription = null,
+                        modifier = Modifier.size(minOf(width, height) * 0.62f).graphicsLayer { alpha = if (wrong) 0.5f else 1f }
+                    )
+                } else {
+                    val size = fontSize ?: with(LocalDensity.current) { (height * textScale).toSp() }
+                    Text(
+                        text,
+                        fontSize = size,
+                        fontWeight = FontWeight.Bold,
+                        color = if (wrong) Color(0xFF9A8B7B) else BigColors.Ink,
+                        textAlign = TextAlign.Center,
+                        lineHeight = size * 1.3f
+                    )
+                }
                 footer?.invoke()
             }
         }
@@ -320,7 +341,7 @@ fun AnswerBoard(
  * for is said, never written, so a child who starts to read can't match its first letter to a board.
  */
 @Composable
-fun FeedbackBubble(text: String, modifier: Modifier = Modifier) {
+fun FeedbackBubble(text: String, modifier: Modifier = Modifier, fontSize: TextUnit = 28.sp) {
     Row(
         modifier = modifier
             .shadow(4.dp, RoundedCornerShape(28.dp))
@@ -330,7 +351,8 @@ fun FeedbackBubble(text: String, modifier: Modifier = Modifier) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text(text, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = BigColors.Ink)
+        // Pointed syllables and words pass a larger size (48sp+): at 28sp their dots are hard to see
+        Text(text, fontSize = fontSize, fontWeight = FontWeight.Bold, color = BigColors.Ink, lineHeight = fontSize * 1.3f)
         Box(Modifier.size(44.dp).clip(CircleShape).background(BigColors.Coral), contentAlignment = Alignment.Center) {
             SpeakerIcon(28.dp)
         }
@@ -367,12 +389,13 @@ fun BigRoundFrame(
     modifier: Modifier = Modifier,
     backdrop: @Composable () -> Unit = { BeachBackdrop() },
     overlay: @Composable BoxScope.() -> Unit = {},
+    foundPictures: List<Int?> = emptyList(),
     content: @Composable BoxScope.() -> Unit
 ) {
     Box(modifier.fillMaxSize()) {
         backdrop()
         Column(Modifier.fillMaxSize()) {
-            BigTopBar(onBack, found, current, stars)
+            BigTopBar(onBack, found, current, stars, pictures = foundPictures)
             Row(Modifier.weight(1f).fillMaxWidth().padding(start = 12.dp, end = 12.dp, bottom = 8.dp)) {
                 // In Hebrew (RTL) the corner sits on the right, where Puki always is
                 ListeningCorner(onReplay, pulseReplay)
