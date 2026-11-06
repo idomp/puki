@@ -137,7 +137,7 @@ val bigIslands = listOf(
         name = BilingualText("צלילים ומילים", "Sounds and Words"),
         route = Routes.BIG_NIKUD,
         color = Color(0xFF4DB6AC),
-        drawableRes = R.drawable.ic_island_words,  // its own picture comes with the island's art
+        drawableRes = R.drawable.ic_island_nikud,
         fractionalX = 0.33f,
         fractionalY = 0.52f
     ),
