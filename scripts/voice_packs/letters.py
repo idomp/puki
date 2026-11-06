@@ -22,8 +22,8 @@ VOICE_LINES = [
     ("voice_big_letters_listen_intro", "",
      ("תקשיבי טוב, ותמצאי את האות!", "תקשיב טוב, ותמצא את האות!")),
     ("voice_big_letters_find_it", "", ("תמצאי אותה!", "תמצא אותה!")),
-    # after a wrong tap: "<tapped letter clip>. But we are looking for another letter. <target clip>"
-    ("voice_big_letters_looking_for", "", "אבל אנחנו מחפשים אות אחרת."),
+    # after a wrong tap: "<tapped letter clip>. We were looking for another letter, listen: <target clip>"
+    ("voice_big_letters_looking_for", "", ("חיפשנו אות אחרת. תקשיבי:", "חיפשנו אות אחרת. תקשיב:")),
     # after two misses, as the right tile glows
     ("voice_big_letters_hint", "", ("תסתכלי, הנה היא!", "תסתכל, הנה היא!")),
 

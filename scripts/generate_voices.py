@@ -599,7 +599,7 @@ def main():
     print(f"Generating {len(jobs)} files with BlueTTS voice '{args.voice}' -> {args.out}")
     for i, (stem, text) in enumerate(jobs, 1):
         # Seed per file so re-running gives the same take
-        np.random.seed(zlib.crc32(stem.encode()))
+        np.random.seed(voice_packs.seed_for(stem, zlib.crc32(stem.encode())) % 2**32)
         speed = voice_packs.speed_for(stem, SPEED)
         if stem in PHONEMES:
             text = PHONEMES[stem]

@@ -15,7 +15,14 @@ PHONEMES = {**letters.PHONEMES, **math.PHONEMES}
 # out unclear or silent at some speeds, so each of those is set by ear in its pack's SPEEDS.
 PACK_SPEED = 0.7
 SPEEDS = {**getattr(letters, "SPEEDS", {}), **getattr(math, "SPEEDS", {})}
+# A take that came out badly (a gap, a swallowed word) gets another one by changing its seed
+SEEDS = {**getattr(letters, "SEEDS", {}), **getattr(math, "SEEDS", {})}
 _PACK_KEYS = {name for name, _, _ in VOICE_LINES}
+
+
+def seed_for(stem, default):
+    """The noise seed for one output file: the default take, or another one set in SEEDS."""
+    return default + SEEDS[stem] if stem in SEEDS else default
 
 
 def speed_for(stem, default):
