@@ -64,9 +64,9 @@ class PicnicGame(random: Random, progress: MathProgressStore) :
             else -> candidates.random(random)
         }
         val prompt = when (round.request) {
-            PicnicRequest.EXACT -> listOf(MathContent.picnicTargets[round.target])
-            PicnicRequest.ONE_MORE -> listOf(MathContent.picnicShown[round.shownAmount], MathContent.oneMore)
-            PicnicRequest.ONE_LESS -> listOf(MathContent.picnicShown[round.shownAmount], MathContent.oneLess)
+            PicnicRequest.EXACT -> listOf(MathContent.picnicTargets[round.target], MathContent.pressReady)
+            PicnicRequest.ONE_MORE -> listOf(MathContent.picnicShown[round.shownAmount], MathContent.oneMore, MathContent.pressReady)
+            PicnicRequest.ONE_LESS -> listOf(MathContent.picnicShown[round.shownAmount], MathContent.oneLess, MathContent.pressReady)
         }
         state = PicnicState(round = round, basketLimit = maximum + 2, prompt = prompt,
             session = session, voice = cue(prompt))

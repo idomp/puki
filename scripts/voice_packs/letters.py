@@ -78,3 +78,10 @@ PHONEMES = {
     "voice_big_letters_cmp_nun_final_vav_he": "lenˈun sofˈit jˈeʃ ʁˈeɡel ʔaʁukˈa ʃejoʁˈedet mitˈaχat laʃuʁˈa, ulevˈav ʔˈejn.",
     "voice_big_letters_cmp_mem_final_samekh_he": "lemˈem sofˈit jˈeʃ pinˈot, ulesˈameχ ʔiɡˈul.",
 }
+
+# Set by ear (the parent's review, 2026-11-06): these two came out too fast at the packs' 0.7
+SPEEDS = {
+    "voice_big_letters_final_pe_he": 0.6,
+    "voice_big_letters_looking_for_he_f": 0.6,
+    "voice_big_letters_looking_for_he_m": 0.6,
+}

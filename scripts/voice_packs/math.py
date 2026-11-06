@@ -24,7 +24,7 @@ VOICE_LINES = [
     ("voice_big_math_birds_join_8", "Eight more birds arrive on the branch.", "אל הענף מגיעות עוד שמונה ציפורים."),
     ("voice_big_math_birds_join_9", "Nine more birds arrive on the branch.", "אל הענף מגיעות עוד תשע ציפורים."),
     ("voice_big_math_birds_join_10", "Ten more birds arrive on the branch.", "אל הענף מגיעות עוד עשר ציפורים."),
-    ("voice_big_math_birds_leave_0", "This time all the birds stay on the branch.", "הפעם כל הציפורים נשארות על הענף."),
+    ("voice_big_math_birds_leave_0", "All the birds stay on the branch.", "כל הציפורים נשארות על הענף."),
     ("voice_big_math_birds_leave_1", "One bird leaves the branch.", "ציפור אחת עוזבת את הענף."),
     ("voice_big_math_birds_leave_2", "Two birds fly away from the branch.", "שתי ציפורים עפות מהענף."),
     ("voice_big_math_birds_leave_3", "Three birds fly away from the branch.", "שלוש ציפורים עפות מהענף."),
@@ -35,17 +35,17 @@ VOICE_LINES = [
     ("voice_big_math_birds_leave_8", "Eight birds fly away from the branch.", "שמונה ציפורים עפות מהענף."),
     ("voice_big_math_birds_leave_9", "Nine birds fly away from the branch.", "תשע ציפורים עפות מהענף."),
     ("voice_big_math_birds_leave_10", "Ten birds fly away from the branch.", "עשר ציפורים עפות מהענף."),
-    ("voice_big_math_picnic_0", "This time leave no apples in the basket, then press ready.", ("הפעם השאירי את הסל בלי תפוחים, ואז תלחצי על מוכן.", "הפעם השאר את הסל בלי תפוחים, ואז תלחץ על מוכן.")),
-    ("voice_big_math_picnic_1", "Put one apple in the basket, then press ready.", ("שימי בסל תפוח אחד, ואז תלחצי על מוכן.", "שים בסל תפוח אחד, ואז תלחץ על מוכן.")),
-    ("voice_big_math_picnic_2", "Put two apples in the basket, then press ready.", ("שימי בסל שני תפוחים, ואז תלחצי על מוכן.", "שים בסל שני תפוחים, ואז תלחץ על מוכן.")),
-    ("voice_big_math_picnic_3", "Put three apples in the basket, then press ready.", ("שימי בסל שלושה תפוחים, ואז תלחצי על מוכן.", "שים בסל שלושה תפוחים, ואז תלחץ על מוכן.")),
-    ("voice_big_math_picnic_4", "Put four apples in the basket, then press ready.", ("שימי בסל ארבעה תפוחים, ואז תלחצי על מוכן.", "שים בסל ארבעה תפוחים, ואז תלחץ על מוכן.")),
-    ("voice_big_math_picnic_5", "Put five apples in the basket, then press ready.", ("שימי בסל חמישה תפוחים, ואז תלחצי על מוכן.", "שים בסל חמישה תפוחים, ואז תלחץ על מוכן.")),
-    ("voice_big_math_picnic_6", "Put six apples in the basket, then press ready.", ("שימי בסל שישה תפוחים, ואז תלחצי על מוכן.", "שים בסל שישה תפוחים, ואז תלחץ על מוכן.")),
-    ("voice_big_math_picnic_7", "Put seven apples in the basket, then press ready.", ("שימי בסל שבעה תפוחים, ואז תלחצי על מוכן.", "שים בסל שבעה תפוחים, ואז תלחץ על מוכן.")),
-    ("voice_big_math_picnic_8", "Put eight apples in the basket, then press ready.", ("שימי בסל שמונה תפוחים, ואז תלחצי על מוכן.", "שים בסל שמונה תפוחים, ואז תלחץ על מוכן.")),
-    ("voice_big_math_picnic_9", "Put nine apples in the basket, then press ready.", ("שימי בסל תשעה תפוחים, ואז תלחצי על מוכן.", "שים בסל תשעה תפוחים, ואז תלחץ על מוכן.")),
-    ("voice_big_math_picnic_10", "Put ten apples in the basket, then press ready.", ("שימי בסל עשרה תפוחים, ואז תלחצי על מוכן.", "שים בסל עשרה תפוחים, ואז תלחץ על מוכן.")),
+    ("voice_big_math_picnic_0", "The basket should stay empty.", "הסל צריך להישאר ריק."),
+    ("voice_big_math_picnic_1", "Put one apple in the basket.", ("תשימי בסל תפוח אחד.", "תשים בסל תפוח אחד.")),
+    ("voice_big_math_picnic_2", "Put two apples in the basket.", ("תשימי בסל שני תפוחים.", "תשים בסל שני תפוחים.")),
+    ("voice_big_math_picnic_3", "Put three apples in the basket.", ("תשימי בסל שלושה תפוחים.", "תשים בסל שלושה תפוחים.")),
+    ("voice_big_math_picnic_4", "Put four apples in the basket.", ("תשימי בסל ארבעה תפוחים.", "תשים בסל ארבעה תפוחים.")),
+    ("voice_big_math_picnic_5", "Put five apples in the basket.", ("תשימי בסל חמישה תפוחים.", "תשים בסל חמישה תפוחים.")),
+    ("voice_big_math_picnic_6", "Put six apples in the basket.", ("תשימי בסל שישה תפוחים.", "תשים בסל שישה תפוחים.")),
+    ("voice_big_math_picnic_7", "Put seven apples in the basket.", ("תשימי בסל שבעה תפוחים.", "תשים בסל שבעה תפוחים.")),
+    ("voice_big_math_picnic_8", "Put eight apples in the basket.", ("תשימי בסל שמונה תפוחים.", "תשים בסל שמונה תפוחים.")),
+    ("voice_big_math_picnic_9", "Put nine apples in the basket.", ("תשימי בסל תשעה תפוחים.", "תשים בסל תשעה תפוחים.")),
+    ("voice_big_math_picnic_10", "Put ten apples in the basket.", ("תשימי בסל עשרה תפוחים.", "תשים בסל עשרה תפוחים.")),
     ("voice_big_math_shown_0", "There are no apples on the mat.", "על המחצלת אין תפוחים."),
     ("voice_big_math_shown_1", "There is one apple on the mat.", "על המחצלת יש תפוח אחד."),
     ("voice_big_math_shown_2", "There are two apples on the mat.", "על המחצלת יש שני תפוחים."),
@@ -74,11 +74,12 @@ VOICE_LINES = [
     ("voice_big_math_how_many_left", "How many are left?", "כמה נשארו?"),
     ("voice_big_math_how_many_missing", "How many more fill the frame?", "כמה חסרים?"),
     ("voice_big_math_join_hint", "We can count all the birds together again.", "אפשר לספור שוב את כל הציפורים יחד."),
-    ("voice_big_math_leave_hint", "Let's count the birds still on the branch again.", ("בואי נספור שוב את הציפורים שנשארו על הענף.", "בוא נספור שוב את הציפורים שנשארו על הענף.")),
+    ("voice_big_math_leave_hint", "Let's count again how many birds are left on the branch.", ("בואי נספור שוב כמה ציפורים נשארו על הענף.", "בוא נספור שוב כמה ציפורים נשארו על הענף.")),
     ("voice_big_math_frame_hint", "Let's count the empty spaces in the frame.", ("בואי נספור את המקומות הריקים במסגרת.", "בוא נספור את המקומות הריקים במסגרת.")),
     ("voice_big_math_too_few", "The basket needs more apples. We can add some.", "עדיין חסרים תפוחים בסל. אפשר להוסיף עוד."),
     ("voice_big_math_too_many", "The basket has more apples than we need. We can take some out.", "בסל יש יותר תפוחים ממה שצריך. אפשר להוציא כמה."),
     ("voice_big_math_exact", "Exactly!", "בדיוק!"),
+    ("voice_big_math_press_ready", "Then press ready.", ("ואז תלחצי על מוכן.", "ואז תלחץ על מוכן.")),
     ("voice_big_math_one_more", "Put one apple more than on the mat in the basket.", ("תשימי בסל תפוח אחד יותר ממה שיש על המחצלת.", "תשים בסל תפוח אחד יותר ממה שיש על המחצלת.")),
     ("voice_big_math_one_less", "Put one apple fewer than on the mat in the basket.", ("תשימי בסל תפוח אחד פחות ממה שיש על המחצלת.", "תשים בסל תפוח אחד פחות ממה שיש על המחצלת.")),
 ]
@@ -90,15 +91,13 @@ PHONEMES = {
     "voice_big_math_birds_start_8_he": "ʔˈal haʔanˈaf jˈeʃ ʃmˈone tsipoʁˈim.",
     "voice_big_math_birds_join_8_he": "ʔˈel haʔanˈaf maɡiʔˈot ʔˈod ʃmˈone tsipoʁˈim.",
     "voice_big_math_birds_leave_8_he": "ʃmˈone tsipoʁˈim ʔafˈot mehaʔanˈaf.",
-    "voice_big_math_picnic_0_he_f": "hapˈaʔam haʃʔˈiʁi ʔˈet hasˈal blˈi tapuχˈim, veʔˈaz tilχatsˈi ʔˈal muχˈan.",
-    "voice_big_math_picnic_0_he_m": "hapˈaʔam haʃʔˈeʁ ʔˈet hasˈal blˈi tapuχˈim, veʔˈaz tilχˈats ʔˈal muχˈan.",
-    "voice_big_math_picnic_8_he_f": "sˈimi basˈal ʃmonˈa tapuχˈim, veʔˈaz tilχatsˈi ʔˈal muχˈan.",
-    "voice_big_math_picnic_8_he_m": "sˈim basˈal ʃmonˈa tapuχˈim, veʔˈaz tilχˈats ʔˈal muχˈan.",
+    "voice_big_math_picnic_8_he_f": "tasˈimi basˈal ʃmonˈa tapuχˈim.",
+    "voice_big_math_picnic_8_he_m": "tasˈim basˈal ʃmonˈa tapuχˈim.",
     "voice_big_math_shown_8_he": "ʔˈal hamaχtsˈelet jˈeʃ ʃmonˈa tapuχˈim.",
     "voice_big_math_frame_8_he": "bamisɡˈeʁet jˈeʃ ʃmonˈa ʔiɡulˈim.",
 }
 
-# Set by ear (the parent's review, 2026-11-06): the picnic instructions came out too fast at 0.7,
-# and one take of shown_3 had a long gap mid-sentence (a new seed gives a new take).
-SPEEDS = {f"voice_big_math_picnic_{n}_he_{g}": 0.63 for n in range(11) for g in "fm"}
-SEEDS = {"voice_big_math_shown_3_he": 1}
+# Set by ear (the parent's review, 2026-11-06): one take of shown_3 had a long gap mid-sentence and
+# one of how_many swallowed its end, so they get other takes. Slowing the long picnic lines made them
+# worse (gaps, a doubled ת), so those were split into two short clips instead.
+SEEDS = {"voice_big_math_shown_3_he": 1, "voice_big_math_how_many_he": 1}

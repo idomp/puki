@@ -43,7 +43,7 @@ object MathContent {
         line("voice_big_math_birds_join_10", "אל הענף מגיעות עוד עשר ציפורים.", "Ten more birds arrive on the branch.")
     )
     val birdDepartures = listOf(
-        line("voice_big_math_birds_leave_0", "הפעם כל הציפורים נשארות על הענף.", "This time all the birds stay on the branch."),
+        line("voice_big_math_birds_leave_0", "כל הציפורים נשארות על הענף.", "All the birds stay on the branch."),
         line("voice_big_math_birds_leave_1", "ציפור אחת עוזבת את הענף.", "One bird leaves the branch."),
         line("voice_big_math_birds_leave_2", "שתי ציפורים עפות מהענף.", "Two birds fly away from the branch."),
         line("voice_big_math_birds_leave_3", "שלוש ציפורים עפות מהענף.", "Three birds fly away from the branch."),
@@ -56,17 +56,17 @@ object MathContent {
         line("voice_big_math_birds_leave_10", "עשר ציפורים עפות מהענף.", "Ten birds fly away from the branch.")
     )
     val picnicTargets = listOf(
-        line("voice_big_math_picnic_0", "הפעם השאר את הסל בלי תפוחים, ואז תלחץ על מוכן.", "This time leave no apples in the basket, then press ready.", "הפעם השאירי את הסל בלי תפוחים, ואז תלחצי על מוכן."),
-        line("voice_big_math_picnic_1", "שים בסל תפוח אחד, ואז תלחץ על מוכן.", "Put one apple in the basket, then press ready.", "שימי בסל תפוח אחד, ואז תלחצי על מוכן."),
-        line("voice_big_math_picnic_2", "שים בסל שני תפוחים, ואז תלחץ על מוכן.", "Put two apples in the basket, then press ready.", "שימי בסל שני תפוחים, ואז תלחצי על מוכן."),
-        line("voice_big_math_picnic_3", "שים בסל שלושה תפוחים, ואז תלחץ על מוכן.", "Put three apples in the basket, then press ready.", "שימי בסל שלושה תפוחים, ואז תלחצי על מוכן."),
-        line("voice_big_math_picnic_4", "שים בסל ארבעה תפוחים, ואז תלחץ על מוכן.", "Put four apples in the basket, then press ready.", "שימי בסל ארבעה תפוחים, ואז תלחצי על מוכן."),
-        line("voice_big_math_picnic_5", "שים בסל חמישה תפוחים, ואז תלחץ על מוכן.", "Put five apples in the basket, then press ready.", "שימי בסל חמישה תפוחים, ואז תלחצי על מוכן."),
-        line("voice_big_math_picnic_6", "שים בסל שישה תפוחים, ואז תלחץ על מוכן.", "Put six apples in the basket, then press ready.", "שימי בסל שישה תפוחים, ואז תלחצי על מוכן."),
-        line("voice_big_math_picnic_7", "שים בסל שבעה תפוחים, ואז תלחץ על מוכן.", "Put seven apples in the basket, then press ready.", "שימי בסל שבעה תפוחים, ואז תלחצי על מוכן."),
-        line("voice_big_math_picnic_8", "שים בסל שמונה תפוחים, ואז תלחץ על מוכן.", "Put eight apples in the basket, then press ready.", "שימי בסל שמונה תפוחים, ואז תלחצי על מוכן."),
-        line("voice_big_math_picnic_9", "שים בסל תשעה תפוחים, ואז תלחץ על מוכן.", "Put nine apples in the basket, then press ready.", "שימי בסל תשעה תפוחים, ואז תלחצי על מוכן."),
-        line("voice_big_math_picnic_10", "שים בסל עשרה תפוחים, ואז תלחץ על מוכן.", "Put ten apples in the basket, then press ready.", "שימי בסל עשרה תפוחים, ואז תלחצי על מוכן.")
+        line("voice_big_math_picnic_0", "הסל צריך להישאר ריק.", "The basket should stay empty."),
+        line("voice_big_math_picnic_1", "תשים בסל תפוח אחד.", "Put one apple in the basket.", "תשימי בסל תפוח אחד."),
+        line("voice_big_math_picnic_2", "תשים בסל שני תפוחים.", "Put two apples in the basket.", "תשימי בסל שני תפוחים."),
+        line("voice_big_math_picnic_3", "תשים בסל שלושה תפוחים.", "Put three apples in the basket.", "תשימי בסל שלושה תפוחים."),
+        line("voice_big_math_picnic_4", "תשים בסל ארבעה תפוחים.", "Put four apples in the basket.", "תשימי בסל ארבעה תפוחים."),
+        line("voice_big_math_picnic_5", "תשים בסל חמישה תפוחים.", "Put five apples in the basket.", "תשימי בסל חמישה תפוחים."),
+        line("voice_big_math_picnic_6", "תשים בסל שישה תפוחים.", "Put six apples in the basket.", "תשימי בסל שישה תפוחים."),
+        line("voice_big_math_picnic_7", "תשים בסל שבעה תפוחים.", "Put seven apples in the basket.", "תשימי בסל שבעה תפוחים."),
+        line("voice_big_math_picnic_8", "תשים בסל שמונה תפוחים.", "Put eight apples in the basket.", "תשימי בסל שמונה תפוחים."),
+        line("voice_big_math_picnic_9", "תשים בסל תשעה תפוחים.", "Put nine apples in the basket.", "תשימי בסל תשעה תפוחים."),
+        line("voice_big_math_picnic_10", "תשים בסל עשרה תפוחים.", "Put ten apples in the basket.", "תשימי בסל עשרה תפוחים.")
     )
     val picnicShown = listOf(
         line("voice_big_math_shown_0", "על המחצלת אין תפוחים.", "There are no apples on the mat."),
@@ -100,15 +100,16 @@ object MathContent {
     val howManyLeft = line("voice_big_math_how_many_left", "כמה נשארו?", "How many are left?")
     val howManyMissing = line("voice_big_math_how_many_missing", "כמה חסרים?", "How many more fill the frame?")
     val joinHint = line("voice_big_math_join_hint", "אפשר לספור שוב את כל הציפורים יחד.", "We can count all the birds together again.")
-    val leaveHint = line("voice_big_math_leave_hint", "בוא נספור שוב את הציפורים שנשארו על הענף.", "Let's count the birds still on the branch again.", "בואי נספור שוב את הציפורים שנשארו על הענף.")
+    val leaveHint = line("voice_big_math_leave_hint", "בוא נספור שוב כמה ציפורים נשארו על הענף.", "Let's count again how many birds are left on the branch.", "בואי נספור שוב כמה ציפורים נשארו על הענף.")
     val frameHint = line("voice_big_math_frame_hint", "בוא נספור את המקומות הריקים במסגרת.", "Let's count the empty spaces in the frame.", "בואי נספור את המקומות הריקים במסגרת.")
     val tooFew = line("voice_big_math_too_few", "עדיין חסרים תפוחים בסל. אפשר להוסיף עוד.", "The basket needs more apples. We can add some.")
     val tooMany = line("voice_big_math_too_many", "בסל יש יותר תפוחים ממה שצריך. אפשר להוציא כמה.", "The basket has more apples than we need. We can take some out.")
     val exact = line("voice_big_math_exact", "בדיוק!", "Exactly!")
+    val pressReady = line("voice_big_math_press_ready", "ואז תלחץ על מוכן.", "Then press ready.", "ואז תלחצי על מוכן.")
     val oneMore = line("voice_big_math_one_more", "תשים בסל תפוח אחד יותר ממה שיש על המחצלת.", "Put one apple more than on the mat in the basket.", "תשימי בסל תפוח אחד יותר ממה שיש על המחצלת.")
     val oneLess = line("voice_big_math_one_less", "תשים בסל תפוח אחד פחות ממה שיש על המחצלת.", "Put one apple fewer than on the mat in the basket.", "תשימי בסל תפוח אחד פחות ממה שיש על המחצלת.")
 
     val allLines = birdStarts + birdArrivals + birdDepartures + picnicTargets + picnicShown + frameFilled +
         listOf(frameFive, frameTen, howMany, howManyLeft, howManyMissing, joinHint, leaveHint,
-            frameHint, tooFew, tooMany, exact, oneMore, oneLess)
+            frameHint, tooFew, tooMany, exact, pressReady, oneMore, oneLess)
 }

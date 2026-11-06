@@ -23,7 +23,7 @@ class MathVoiceContentTest {
         val existing = (1..10).map { "voice_number_$it" }.toSet()
         assertTrue("Keys absent from pack: ${keys - packKeys.toSet() - existing}", (keys - packKeys.toSet() - existing).isEmpty())
         assertEquals(MathContent.allLines.map { it.key }.toSet(), keys)
-        assertEquals(79, keys.size)
+        assertEquals(80, keys.size)
     }
 
     @Test fun completeSentencesAndGenderedVariantsMatchBilingualContentAndEnglishIsAvailable() {
