@@ -2,8 +2,12 @@ package io.github.tomsadeh.puki.ui.big.math
 
 /** Names are persisted; order defines the teaching progression. */
 enum class MathStage(val maximum: Int, val allowsZero: Boolean = false) {
-    JOIN_5(5), TAKE_5(5), MIXED_5(5), ZERO_5(5, true), MIXED_10(10, true)
+    JOIN_5(5), TAKE_5(5), MIXED_5(5), ZERO_5(5, true), MIXED_10(10, true),
+    PART_5(5, allowsZero = true), PART_10(10, allowsZero = true)
 }
+
+/** Friends and Frame keep MIXED_10 content until their own part-whole rounds exist. */
+internal val MathStage.countingStage: MathStage get() = if (this >= MathStage.PART_5) MathStage.MIXED_10 else this
 
 enum class MathGameId(val island: String) {
     FRIENDS("big_math_friends"), PICNIC("big_math_picnic"), FRAME("big_math_frame")
