@@ -283,12 +283,15 @@ fun SettingsScreen(
                                 (if (chosen) "✓ " else "") + label.resolve(language),
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = if (chosen) CloudWhite else EarthBrown,
+                                // (three to a row: one line each, even with the ✓)
+                                maxLines = 1,
+                                softWrap = false,
                                 modifier = Modifier
                                     .weight(1f)
                                     .clip(RoundedCornerShape(14.dp))
                                     .background(if (chosen) GrassGreen else Color(0xFFEFEBE9))
                                     .clickable { settingsViewModel.setContentPace(pace) }
-                                    .padding(horizontal = 10.dp, vertical = 8.dp)
+                                    .padding(horizontal = 6.dp, vertical = 8.dp)
                             )
                         }
                     }
