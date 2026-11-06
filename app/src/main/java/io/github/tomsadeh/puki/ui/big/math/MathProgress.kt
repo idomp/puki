@@ -20,6 +20,18 @@ class InMemoryMathProgressStore : MathProgressStore {
     override suspend fun save(game: MathGameId, stage: MathStage) { stages[game] = stage }
 }
 
+/** The last problems each game showed, oldest first, so the next visit can open with something else. */
+interface MathHistoryStore {
+    suspend fun load(game: MathGameId): List<String>
+    suspend fun save(game: MathGameId, recent: List<String>)
+}
+
+class InMemoryMathHistoryStore : MathHistoryStore {
+    private val recent = mutableMapOf<MathGameId, List<String>>()
+    override suspend fun load(game: MathGameId) = recent[game].orEmpty()
+    override suspend fun save(game: MathGameId, recent: List<String>) { this.recent[game] = recent }
+}
+
 /** One miss at most promotes; misses in a strict majority of rounds ease the next session. */
 fun nextMathStage(stage: MathStage, rounds: Int, misses: Int, missedRounds: Int): MathStage {
     require(rounds > 0 && misses >= 0 && missedRounds in 0..rounds && misses >= missedRounds)

@@ -47,17 +47,53 @@ interface MathState {
 abstract class MathGame<S : MathState>(
     val gameId: MathGameId,
     protected val random: Random,
-    private val progress: MathProgressStore
+    private val progress: MathProgressStore,
+    private val history: MathHistoryStore
 ) {
     abstract val state: S
     protected var session = MathSessionState()
         private set
     private var voiceToken = 0L
+    /** Earlier visits, oldest first; frozen at the start so this session's own plays never steer it. */
+    private var earlier = emptyList<String>()
+    private val played = mutableListOf<String>()
+    private var answerSlots = emptyList<Int>()
 
     suspend fun start() {
         if (!session.isLoading) return
+        earlier = history.load(gameId)
         session = session.copy(stage = progress.load(gameId), isLoading = false)
         startRound()
+    }
+
+    /**
+     * Picks this round's problem from an explicit pool. Nothing repeats until the pool is spent; then the
+     * oldest play comes back first, never twice in a row. Among the rest, problems the last visits showed
+     * are avoided as far as the pool allows. Every pick is saved at once, so a left-early visit counts.
+     */
+    protected suspend fun <T> draw(pool: List<T>, key: (T) -> String): T {
+        require(pool.isNotEmpty())
+        val unseen = pool.filter { key(it) !in played }
+        val candidates = if (unseen.isNotEmpty()) unseen else listOf(oldestPlay(pool, key))
+        val pick = RECENT_WINDOWS.firstNotNullOfOrNull { window ->
+            val avoid = earlier.takeLast(window).toSet()
+            candidates.filter { key(it) !in avoid }.takeIf { it.isNotEmpty() }
+        }.orEmpty().ifEmpty { candidates }.random(random)
+        played += key(pick)
+        history.save(gameId, (earlier + played).takeLast(RECENT_WINDOWS.first()))
+        return pick
+    }
+
+    private fun <T> oldestPlay(pool: List<T>, key: (T) -> String): T {
+        val last = played.last()
+        val others = pool.filter { key(it) != last }.ifEmpty { pool }
+        return others.minBy { played.lastIndexOf(key(it)) }
+    }
+
+    /** Where the right answer sits this round: each position once before any repeats, never twice in a row. */
+    protected fun answerSlot(): Int {
+        if (answerSlots.isEmpty()) answerSlots = balancedAnswerSlots(4, session.totalRounds, random)
+        return answerSlots[session.roundIndex]
     }
 
     protected fun cue(lines: List<MathLine>) = MathVoiceCue(lines, ++voiceToken)
@@ -89,16 +125,35 @@ abstract class MathGame<S : MathState>(
     }
 
     abstract fun replay()
-    protected abstract fun startRound()
+    protected abstract suspend fun startRound()
     protected abstract fun refreshSession()
 }
 
-internal fun mathChoices(answer: Int, maximum: Int, allowsZero: Boolean, random: Random): List<Int> {
+private val RECENT_WINDOWS = listOf(12, 6, 3, 1)
+
+/**
+ * The consecutive window around the answer, shown in a shuffled order with the answer at [answerSlot]
+ * (random when out of range). Callers keep the list as is, so it stays put through mistakes and replays.
+ */
+internal fun mathChoices(answer: Int, maximum: Int, allowsZero: Boolean, random: Random, answerSlot: Int = -1): List<Int> {
     val minimum = if (allowsZero) 0 else 1
     require(answer in minimum..maximum)
     val count = minOf(4, maximum - minimum + 1)
     // Keep the answer near the middle; clamp the whole window at either stage boundary.
     val before = if (count == 4) random.nextInt(1, 3) else count / 2
     val first = (answer - before).coerceIn(minimum, maximum - count + 1)
-    return (first until first + count).toList()
+    val others = (first until first + count).filter { it != answer }.shuffled(random)
+    val slot = if (answerSlot in 0 until count) answerSlot else random.nextInt(count)
+    return others.take(slot) + answer + others.drop(slot)
+}
+
+/** Answer positions for a session: shuffled rounds of every position, so counts differ by at most one. */
+internal fun balancedAnswerSlots(count: Int, rounds: Int, random: Random): List<Int> {
+    val plan = mutableListOf<Int>()
+    while (plan.size < rounds) {
+        var bag = (0 until count).shuffled(random)
+        if (plan.isNotEmpty() && count > 1 && bag.first() == plan.last()) bag = bag.drop(1) + bag.first()
+        plan += bag
+    }
+    return plan.take(rounds)
 }

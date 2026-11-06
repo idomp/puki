@@ -24,3 +24,16 @@ class DataStoreMathProgressStore(context: Context) : MathProgressStore {
         dataStore.edit { it[key(game)] = stage.name }
     }
 }
+
+/** Problem keys never contain commas, so one comma-joined string per game is enough. */
+class DataStoreMathHistoryStore(context: Context) : MathHistoryStore {
+    private val dataStore = context.applicationContext.bigMathDataStore
+    private fun key(game: MathGameId) = stringPreferencesKey("recent_${game.island}")
+
+    override suspend fun load(game: MathGameId): List<String> =
+        dataStore.data.first()[key(game)].orEmpty().split(',').filter { it.isNotEmpty() }
+
+    override suspend fun save(game: MathGameId, recent: List<String>) {
+        dataStore.edit { it[key(game)] = recent.joinToString(",") }
+    }
+}
