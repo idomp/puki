@@ -41,7 +41,7 @@ class LettersVoicePackTest {
         val used = kotlinKeysIn(
             "app/src/main/java/io/github/tomsadeh/puki/ui/big/letters",
             "app/src/main/java/io/github/tomsadeh/puki/data/content/big"
-        ).filter { !it.endsWith("_") && !it.startsWith("voice_big_math_") }.toSet()  // (data/content/big also holds the sums)
+        ).filter { !it.endsWith("_") && !it.startsWith("voice_big_math_") && !it.startsWith("voice_big_nikud_") }.toSet()  // (data/content/big also holds the sums and the nikud words)
         assertTrue(used.size > 40)
         assertEquals("missing from the pack", emptySet<String>(), used - known)
     }

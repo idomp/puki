@@ -1,0 +1,139 @@
+package io.github.tomsadeh.puki.data.content.big
+
+/**
+ * The content of the Sounds and Words island: two sounds (/a/ and /i/), eight consonants, the
+ * syllables they make, and twelve words split into reading units. Voice keys are written out in full
+ * so scripts/check_voices.py finds them. Pictures are referenced by id (the screen maps id -> drawable).
+ */
+object Nikud {
+    const val DAGESH = "ּ"
+    const val SHIN_DOT = "ׁ"
+    const val PATAH = "ַ"
+    const val KAMATS = "ָ"
+    const val HIRIQ = "ִ"
+
+    enum class Sound { A, I }
+
+    /** A vowel mark. Kamatz and patach are two marks with one sound (and one clip). */
+    enum class Mark(val vowel: String, val sound: Sound, val nameKey: String, val hebrewName: String) {
+        PATAH(Nikud.PATAH, Sound.A, "voice_big_nikud_name_patah", "פַּתָּח"),
+        KAMATS(Nikud.KAMATS, Sound.A, "voice_big_nikud_name_kamats", "קָמָץ"),
+        HIRIQ(Nikud.HIRIQ, Sound.I, "voice_big_nikud_name_hiriq", "חִירִיק")
+    }
+
+    /** A consonant of the island. [bare] is the letter as the shells keep it (with its shin dot or dagesh, no vowel). */
+    data class Consonant(val id: String, val bare: String)
+
+    val consonants: List<Consonant> = listOf(
+        Consonant("mem", "מ"),
+        Consonant("lamed", "ל"),
+        Consonant("nun", "נ"),
+        Consonant("shin", "ש$SHIN_DOT"),
+        Consonant("gimel", "ג$DAGESH"),
+        Consonant("dalet", "ד$DAGESH"),
+        Consonant("yod", "י"),
+        Consonant("pe", "פ$DAGESH")
+    )
+
+    fun consonant(id: String): Consonant = consonants.first { it.id == id }
+
+    /** One consonant with one mark. Its [id] is "<consonant>_<mark>" (mem_patah); the clip is by sound. */
+    data class Syllable(val consonant: Consonant, val mark: Mark) {
+        val id: String get() = "${consonant.id}_${mark.name.lowercase()}"
+        val text: String get() = consonant.bare + mark.vowel
+        val sound: Sound get() = mark.sound
+        val clipKey: String get() = syllableClip(consonant.id, mark.sound)
+    }
+
+    fun syllable(consonantId: String, mark: Mark) = Syllable(consonant(consonantId), mark)
+
+    /** "mem_patah" -> the syllable. */
+    fun syllable(id: String): Syllable {
+        val (c, m) = id.split('_')
+        return syllable(c, Mark.valueOf(m.uppercase()))
+    }
+
+    /** The recording of a consonant with a sound: 16 clips, kamatz and patach share the /a/ one. */
+    fun syllableClip(consonantId: String, sound: Sound): String = SYLLABLE_CLIPS.getValue("${consonantId}_${sound.name.lowercase()}")
+
+    val SYLLABLE_CLIPS: Map<String, String> = mapOf(
+        "mem_a" to "voice_big_nikud_mem_a", "mem_i" to "voice_big_nikud_mem_i",
+        "lamed_a" to "voice_big_nikud_lamed_a", "lamed_i" to "voice_big_nikud_lamed_i",
+        "nun_a" to "voice_big_nikud_nun_a", "nun_i" to "voice_big_nikud_nun_i",
+        "shin_a" to "voice_big_nikud_shin_a", "shin_i" to "voice_big_nikud_shin_i",
+        "gimel_a" to "voice_big_nikud_gimel_a", "gimel_i" to "voice_big_nikud_gimel_i",
+        "dalet_a" to "voice_big_nikud_dalet_a", "dalet_i" to "voice_big_nikud_dalet_i",
+        "yod_a" to "voice_big_nikud_yod_a", "yod_i" to "voice_big_nikud_yod_i",
+        "pe_a" to "voice_big_nikud_pe_a", "pe_i" to "voice_big_nikud_pe_i"
+    )
+
+    enum class UnitKind {
+        /** Consonant + vowel: has a clip. */
+        CV,
+        /** A closing consonant: silent, it only lights up. */
+        CLOSING
+    }
+
+    /** One board of a word. [consonant] and [sound] describe a CV unit (null for a closing one). */
+    data class ReadingUnit(val text: String, val kind: UnitKind, val clipKey: String?, val consonant: String?, val sound: Sound?)
+
+    private fun cv(consonantId: String, mark: Mark, dagesh: Boolean = false, suffix: String = ""): ReadingUnit {
+        val c = consonant(consonantId)
+        return ReadingUnit(c.bare + (if (dagesh) DAGESH else "") + mark.vowel + suffix, UnitKind.CV,
+            syllableClip(consonantId, mark.sound), consonantId, mark.sound)
+    }
+
+    private fun closing(letter: String) = ReadingUnit(letter, UnitKind.CLOSING, null, null, null)
+
+    enum class Tier {
+        /** A clear picture: any game, target or distractor. */
+        CLEAR,
+        /** A scene picture: only the target of "Puki joins a word". */
+        SCENE,
+        /** No picture step at all. */
+        NONE
+    }
+
+    /** A word: [units] joined give [text] exactly. [pictureId] is null only when [tier] is NONE. */
+    data class Word(val id: String, val units: List<ReadingUnit>, val pictureId: String?, val tier: Tier, val wordKey: String) {
+        val text: String get() = units.joinToString("") { it.text }
+        val firstConsonant: String get() = units.first().consonant!!
+        val firstClip: String get() = units.first().clipKey!!
+    }
+
+    val words: List<Word> = listOf(
+        Word("dag", listOf(cv("dalet", Mark.KAMATS), closing("ג")), "fish", Tier.CLEAR, "voice_big_nikud_word_dag"),
+        Word("pil", listOf(cv("pe", Mark.HIRIQ, suffix = "י"), closing("ל")), "elephant", Tier.CLEAR, "voice_big_nikud_word_pil"),
+        Word("yad", listOf(cv("yod", Mark.KAMATS), closing("ד")), "hand", Tier.CLEAR, "voice_big_nikud_word_yad"),
+        Word("mapa", listOf(cv("mem", Mark.PATAH), cv("pe", Mark.KAMATS, suffix = "ה")), "map", Tier.CLEAR, "voice_big_nikud_word_mapa"),
+        Word("gina", listOf(cv("gimel", Mark.HIRIQ), cv("nun", Mark.KAMATS, dagesh = true, suffix = "ה")), "garden", Tier.CLEAR, "voice_big_nikud_word_gina"),
+        Word("yam", listOf(cv("yod", Mark.KAMATS), closing("ם")), "sea", Tier.CLEAR, "voice_big_nikud_word_yam"),
+        Word("gal", listOf(cv("gimel", Mark.PATAH), closing("ל")), "wave", Tier.CLEAR, "voice_big_nikud_word_gal"),
+        Word("gan", listOf(cv("gimel", Mark.PATAH), closing("ן")), "kindergarten", Tier.CLEAR, "voice_big_nikud_word_gan"),
+        Word("gag", listOf(cv("gimel", Mark.PATAH), closing("ג")), "roof", Tier.CLEAR, "voice_big_nikud_word_gag"),
+        Word("mana", listOf(cv("mem", Mark.KAMATS), cv("nun", Mark.KAMATS, suffix = "ה")), "plate", Tier.SCENE, "voice_big_nikud_word_mana"),
+        Word("pina", listOf(cv("pe", Mark.HIRIQ), cv("nun", Mark.KAMATS, dagesh = true, suffix = "ה")), "corner", Tier.SCENE, "voice_big_nikud_word_pina"),
+        Word("mila", listOf(cv("mem", Mark.HIRIQ), cv("lamed", Mark.KAMATS, dagesh = true, suffix = "ה")), null, Tier.NONE, "voice_big_nikud_word_mila")
+    )
+
+    private val wordsById = words.associateBy { it.id }
+    fun word(id: String): Word = wordsById.getValue(id)
+
+    /** The words that may be a picture distractor or a "Read the sign" word. */
+    val clearWords: List<Word> = words.filter { it.tier == Tier.CLEAR }
+
+    /** Pictures that look alike enough to be confused (never in one round). */
+    val pictureTwins: Set<Set<String>> = setOf(setOf("wave", "sea"), setOf("kindergarten", "garden"))
+
+    fun areTwins(a: Word, b: Word): Boolean = a.pictureId != null && b.pictureId != null && setOf(a.pictureId, b.pictureId) in pictureTwins
+
+    /** Voice lines of the instructions, written out in full. */
+    object Voice {
+        const val LISTEN = "voice_big_nikud_listen"
+        const val WHICH_SOUND = "voice_big_nikud_which_sound"
+        const val JOIN = "voice_big_nikud_join"
+        const val PICK_PICTURE = "voice_big_nikud_pick_picture"
+        const val READ_SIGN = "voice_big_nikud_read_sign"
+        const val TWO_MARKS = "voice_big_nikud_two_marks"
+    }
+}
