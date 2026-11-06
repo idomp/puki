@@ -42,6 +42,8 @@ VOICE_LINES = [
     ("voice_big_letters_cmp_vav_zayin", "", "לזיין יש כובע למעלה, ולוו אין."),
     ("voice_big_letters_cmp_nun_final_vav", "", "לנון סופית יש רגל ארוכה שיורדת מתחת לשורה, ולוו אין."),
     ("voice_big_letters_cmp_mem_final_samekh", "", "למם סופית יש פינות, ולסמך עיגול."),
+    ("voice_big_letters_cmp_kaf_pe", "", "לפא יש לשון קטנה בפנים, ולכף אין."),
+    ("voice_big_letters_cmp_het_tav", "", "לתו יש רגל שפונה החוצה, ולחית שתי רגליים ישרות."),
 
     # --- Final-form partners ---
     ("voice_big_letters_partner_intro", "",
@@ -77,6 +79,12 @@ PHONEMES = {
     "voice_big_letters_cmp_vav_zayin_he": "lezˈajin jˈeʃ kˈova lemˈala, ulevˈav ʔˈejn.",
     "voice_big_letters_cmp_nun_final_vav_he": "lenˈun sofˈit jˈeʃ ʁˈeɡel ʔaʁukˈa ʃejoʁˈedet mitˈaχat laʃuʁˈa, ulevˈav ʔˈejn.",
     "voice_big_letters_cmp_mem_final_samekh_he": "lemˈem sofˈit jˈeʃ pinˈot, ulesˈameχ ʔiɡˈul.",
+}
+
+# Takes the parent picked by ear in a listening round (nikud round 6): stem -> (IPA, speed, seed)
+TAKES = {
+    "voice_big_letters_cmp_kaf_pe_he": ("lepˈe jˈeʃ laʃˈon ktanˈa bifnˈim, ulekˈaf ʔˈejn.", 0.7, 3),
+    "voice_big_letters_cmp_het_tav_he": ("letˈav jˈeʃ ʁˈeɡel ʃeponˈa haχˈutsa, uleχˈet ʃtˈej ʁaɡlˈajim jeʃaʁˈot.", 0.7, 0),
 }
 
 # Set by ear (the parent's review, 2026-11-06): these two came out too fast at the packs' 0.7

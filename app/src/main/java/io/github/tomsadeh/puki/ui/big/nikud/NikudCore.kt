@@ -40,9 +40,11 @@ class PictureLayout(val options: List<Nikud.Word>, val correctIndex: Int)
 /** Chooses picture distractors (clear tier only, never twins of each other or of the target) and the answer's place. */
 class PictureChooser(private val random: Random, private val scheduler: RoundScheduler) {
 
-    fun choose(target: Nikud.Word, level: DistractorLevel, count: Int = 3): PictureLayout {
+    fun choose(target: Nikud.Word, level: DistractorLevel, count: Int = 3,
+               pool: List<Nikud.Word> = Nikud.introductoryWords): PictureLayout {
         val seen = scheduler.presentation(target.id)
-        val candidates = Nikud.clearWords.filter { it.id != target.id && !Nikud.areTwins(it, target) }
+        val candidates = pool.filter { it.tier == Nikud.Tier.CLEAR && it.id !in Nikud.pendingAudio &&
+            it.id != target.id && !Nikud.areTwins(it, target) }
         val sameStart = { w: Nikud.Word -> w.firstConsonant == target.firstConsonant }
         val ordered = candidates.shuffled(random).sortedWith(
             compareBy<Nikud.Word> {

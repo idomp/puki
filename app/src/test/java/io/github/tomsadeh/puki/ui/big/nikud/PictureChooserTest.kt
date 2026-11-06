@@ -12,8 +12,29 @@ import kotlin.random.Random
 
 class PictureChooserTest {
     @Test
+    fun expandedFamiliesNeedReadingBeyondTheFirstConsonant() {
+        val families = listOf(listOf("sal", "sir", "sira"), listOf("pil", "para", "panas"),
+            listOf("gag", "gal", "gan", "gamal"))
+        for (ids in families) {
+            assertEquals(1, ids.map { Nikud.word(it).firstConsonant }.toSet().size)
+            for (a in ids) for (b in ids) if (a != b) assertFalse(Nikud.areTwins(Nikud.word(a), Nikud.word(b)))
+        }
+        for (seed in 0 until 30) for (id in listOf("sal", "sir", "sira")) {
+            val random = Random(seed)
+            val layout = PictureChooser(random, RoundScheduler(random = random))
+                .choose(Nikud.word(id), DistractorLevel.SAME_START, pool = Nikud.clearWords)
+            assertEquals(setOf("sal", "sir", "sira"), layout.options.map { it.id }.toSet())
+        }
+        val random = Random(3)
+        val chooser = PictureChooser(random, RoundScheduler(random = random))
+        val pe = chooser.choose(Nikud.word("panas"), DistractorLevel.SAME_START, pool = Nikud.words)
+        assertTrue(pe.options.any { it.id == "pil" })
+        assertFalse(pe.options.any { it.id in Nikud.pendingAudio })
+    }
+
+    @Test
     fun pictureLayoutsChangeAfterSavingAndReloading() {
-        for (seed in 0 until 30) for (word in Nikud.words.filter { it.pictureId != null }) {
+        for (seed in 0 until 30) for (word in Nikud.words.filter { it.pictureId != null && it.id !in Nikud.pendingAudio }) {
             val random = Random(seed)
             val firstScheduler = RoundScheduler(random = random)
             val first = PictureChooser(random, firstScheduler).choose(word, DistractorLevel.DIFFERENT_START)
@@ -38,7 +59,7 @@ class PictureChooserTest {
             repeat(4) {
                 val random = Random(seed)
                 val scheduler = RoundScheduler(memory, random)
-                val layout = PictureChooser(random, scheduler).choose(word, DistractorLevel.SAME_START)
+                val layout = PictureChooser(random, scheduler).choose(word, DistractorLevel.SAME_START, pool = Nikud.clearWords)
                 if (previousSlot != null) assertNotEquals(previousSlot, layout.correctIndex)
                 previousSlot = layout.correctIndex
                 val rivals = Nikud.clearWords.filter {

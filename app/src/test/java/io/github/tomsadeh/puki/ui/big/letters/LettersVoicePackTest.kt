@@ -101,7 +101,7 @@ class LettersVoicePackTest {
 
     @Test
     fun phonemesBelongToRealLinesAndFollowTheConventions() {
-        val stems = Regex(""""(voice_big_letters_[a-z0-9_]+)":\s*"([^"]+)"""").findAll(packText).map { it.groupValues[1] to it.groupValues[2] }.toList()
+        val stems = Regex(""""(voice_big_letters_[a-z0-9_]+)":\s*(?:\(\s*)?"([^"]+)"""").findAll(packText).map { it.groupValues[1] to it.groupValues[2] }.toList()
         assertTrue(stems.size > 15)
         val lineStems = packKeys.flatMap { listOf(it + "_he", it + "_he_f", it + "_he_m") }.toSet()
         for ((stem, ipa) in stems) {

@@ -8,6 +8,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -21,6 +22,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
@@ -55,7 +59,7 @@ fun ReadSignScreen(onBack: () -> Unit, onAgain: () -> Unit) {
     if (!paused && !state.sessionComplete) PlayVoiceCue(state.cue.keys, state.cue.token.toLong())
     LaunchedEffect(state.roundIndex, state.solved, paused, state.sessionComplete) {
         if (!state.solved || paused || state.sessionComplete) return@LaunchedEffect
-        found = found.toMutableList().also { it[state.roundIndex] = readPicture(state.dockedPictureId!!) }
+        found = found.toMutableList().also { it[state.roundIndex] = nikudPicture(state.dockedPictureId!!) }
         if (!celebrated) { celebrated = true; sfx.play(Sfx.SUCCESS) }
         delay(1900)
         while (voice.isPlaying()) delay(50)
@@ -90,9 +94,12 @@ fun ReadSignScreen(onBack: () -> Unit, onAgain: () -> Unit) {
 }
 
 @Composable
-private fun ReadScene(state: ReadSignState, paused: Boolean, onReplay: () -> Unit, onPicture: (String) -> Unit) {
+internal fun ReadScene(state: ReadSignState, paused: Boolean, onReplay: () -> Unit, onPicture: (String) -> Unit) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
-        val signWidth = minOf(360.dp, maxWidth - 100.dp)
+        val measurer = rememberTextMeasurer()
+        val style = LocalTextStyle.current.copy(fontSize = 100.sp, fontWeight = FontWeight.Bold, lineHeight = 130.sp)
+        val textWidth = with(LocalDensity.current) { measurer.measure(state.signText, style, softWrap = false).size.width.toDp() }
+        val signWidth = minOf(maxOf(360.dp, textWidth + 64.dp), maxWidth - 100.dp)
         val signHeight = minOf(180.dp, maxHeight * .42f).coerceAtLeast(160.dp)
         val pictureSize = minOf(170.dp, (maxWidth - 64.dp) / 3, maxHeight - signHeight - 102.dp).coerceAtLeast(128.dp)
         Box(Modifier.align(Alignment.TopCenter).padding(top = 10.dp)) {
@@ -128,7 +135,7 @@ private fun ReadScene(state: ReadSignState, paused: Boolean, onReplay: () -> Uni
             Box(Modifier.align(AbsoluteAlignment.TopLeft).absoluteOffset(sourceX + (targetX - sourceX) * flight.value,
                 sourceY + (targetY - sourceY) * flight.value).size(dockSize)
                 .background(BigColors.Face, CircleShape).border(6.dp, BigColors.Right, CircleShape), contentAlignment = Alignment.Center) {
-                Image(painterResource(readPicture(docked)), null, Modifier.size(72.dp))
+                Image(painterResource(nikudPicture(docked)), null, Modifier.size(72.dp))
             }
         }
     }
@@ -141,7 +148,7 @@ private fun ReadPictureBoard(tile: PictureTile, size: Dp, onTap: () -> Unit) {
             TileMark.WRONG -> BoardMark.WRONG
             TileMark.CORRECT -> BoardMark.CORRECT
             else -> BoardMark.NONE
-        }, onTap, width = size, height = size, picture = readPicture(tile.pictureId),
+        }, onTap, width = size, height = size, picture = nikudPicture(tile.pictureId),
             modifier = Modifier.drawWithCache {
                 onDrawBehind {
                     if (tile.mark == TileMark.HINT || tile.mark == TileMark.CORRECT) drawRoundRect(
@@ -153,19 +160,4 @@ private fun ReadPictureBoard(tile: PictureTile, size: Dp, onTap: () -> Unit) {
             .background(BigColors.Face, RoundedCornerShape(26.dp)).border(3.dp, BigColors.TagEdge, RoundedCornerShape(26.dp)),
             contentAlignment = Alignment.Center) { SpeakerIcon(26.dp, BigColors.Coral) }
     }
-}
-
-private fun readPicture(id: String): Int = when (id) {
-    "hand" -> R.drawable.ic_nikud_yad
-    "map" -> R.drawable.ic_nikud_mapa
-    "garden" -> R.drawable.ic_nikud_gina
-    "sea" -> R.drawable.ic_nikud_yam
-    "wave" -> R.drawable.ic_nikud_gal
-    "kindergarten" -> R.drawable.ic_nikud_gan
-    "roof" -> R.drawable.ic_nikud_gag
-    "plate" -> R.drawable.ic_nikud_mana
-    "corner" -> R.drawable.ic_nikud_pina
-    "fish" -> R.drawable.ic_food_fish
-    "elephant" -> R.drawable.ic_animal_elephant
-    else -> error("Unknown nikud picture: $id")
 }

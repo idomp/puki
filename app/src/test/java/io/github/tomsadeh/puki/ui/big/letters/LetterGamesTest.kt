@@ -398,7 +398,8 @@ class LetterDetectiveGameTest {
     fun everyPairComesUpOverSessions() {
         var memory = SchedulerMemory()
         val asked = mutableSetOf<String>()
-        for (n in 0 until 5) {
+        val visits = (BigLetters.pairs.size + LetterDetectiveGame.PAIRS_PER_SESSION - 1) / LetterDetectiveGame.PAIRS_PER_SESSION
+        for (n in 0 until visits) {
             val log = Log()
             play(game(n, log, memory)).filter { it.phase == LetterPhase.COMPARE }.forEach { asked += BigLetters.pairOf(it.compare!!.a.id, it.compare!!.b.id)!!.id }
             memory = SchedulerMemory.decode(log.memory!!.encode())

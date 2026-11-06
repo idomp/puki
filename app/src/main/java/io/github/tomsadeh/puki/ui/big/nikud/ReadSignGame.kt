@@ -38,13 +38,15 @@ data class ReadSignState(
  * choice the chosen picture's word is said; the right one solves the round and the sign turns "heard".
  *
  * Level 2 (same first consonant where a word has a rival) replaces level 1 once [LEVEL2_SOLID] of the 9 clear words
- * are solid (asked in two sessions or more, not shaky now). All 9 words stay in the pool.
+ * are solid (asked in two sessions or more, not shaky now). All 9 words stay in the pool;
+ * [NikudEligibility] admits new words after their sounds and joining practice.
  */
 class ReadSignGame(
     private val scheduler: RoundScheduler,
     random: Random,
     private val events: RoundEvents,
-    val rounds: Int = ROUNDS
+    val rounds: Int = ROUNDS,
+    private val eligibility: NikudEligibility = NikudEligibility()
 ) {
     companion object {
         const val ROUNDS = 8
@@ -59,13 +61,14 @@ class ReadSignGame(
     private var level = 1
     private var word: Nikud.Word? = null
     private var slipped = false
+    private var pool = emptyList<Nikud.Word>()
 
     private fun cue(keys: List<String>) = VoiceCue(keys, ++tokens)
 
     fun start() {
-        val ids = Nikud.clearWords.map { it.id }
+        val ids = Nikud.introductoryWords.filter { it.tier == Nikud.Tier.CLEAR }.map { it.id }
         level = if (ids.count { scheduler.memory.record(it).let { r -> r.seen >= 2 && r.misses == 0 } } >= LEVEL2_SOLID) 2 else 1
-        val pool = Nikud.clearWords  // (a word with no same-start rival simply gets different-start distractors at level 2)
+        pool = eligibility.readWords(scheduler.memory)
         scheduler.begin(rounds, pool.map { it.id })
         state = ReadSignState(level = level)
         show(first = true)
@@ -75,7 +78,7 @@ class ReadSignGame(
         val w = Nikud.word(scheduler.current ?: return)
         word = w
         slipped = false
-        val layout = chooser.choose(w, if (level == 2) DistractorLevel.SAME_START else DistractorLevel.DIFFERENT_START)
+        val layout = chooser.choose(w, if (level == 2) DistractorLevel.SAME_START else DistractorLevel.DIFFERENT_START, pool = pool)
         state = state.copy(
             phase = NikudPhase.ROUND,
             roundIndex = scheduler.roundIndex,

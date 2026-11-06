@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='utf-8'?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="100dp" android:height="100dp" android:viewportWidth="100" android:viewportHeight="100">
+    <path android:pathData="M6,77 Q24,70 48,75 Q74,69 94,77 Q96,86 79,88 L22,88 Q3,87 6,77 Z" android:fillColor="#DDF3FF" />
+    <path android:pathData="M10,44 Q48,37 90,44 L77,65 Q73,71 62,71 L34,71 Q24,71 19,62 Z" android:fillColor="#D1A66B" android:strokeColor="#9B6949" android:strokeWidth="2.8" android:strokeLineCap="round" android:strokeLineJoin="round" />
+    <path android:pathData="M12,44 Q49,23 88,44 Q51,57 12,44 Z" android:fillColor="#F7E3B2" android:strokeColor="#9B6949" android:strokeWidth="2.5" android:strokeLineCap="round" android:strokeLineJoin="round" />
+    <path android:pathData="M21,44 Q50,30 78,44 Q50,51 21,44 Z" android:fillColor="#B8895A" />
+    <path android:pathData="M32,37 L39,35 L46,48 L38,48 Z M60,35 L67,38 L62,48 L54,49 Z" android:fillColor="#F7E3B2" android:strokeColor="#9B6949" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" />
+    <path android:pathData="M19,54 Q49,62 82,54 M25,63 Q49,68 76,62" android:fillColor="#00000000" android:strokeColor="#B8895A" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" />
+    <path android:pathData="M42,43 L67,71" android:fillColor="#00000000" android:strokeColor="#9B6949" android:strokeWidth="4" android:strokeLineCap="round" android:strokeLineJoin="round" />
+    <path android:pathData="M64,66 Q67,64 70,68 L81,80 Q81,83 77,84 L66,74 Q62,70 64,66 Z" android:fillColor="#F7E3B2" android:strokeColor="#9B6949" android:strokeWidth="2" android:strokeLineCap="round" android:strokeLineJoin="round" />
+    <path android:pathData="M12,79 L30,79 M36,84 L56,84 M77,75 L88,75" android:fillColor="#00000000" android:strokeColor="#5CC0EC" android:strokeWidth="2.5" android:strokeLineCap="round" android:strokeLineJoin="round" />
+    <path android:pathData="M20,47 L25,48 L30,52 L24,51 Z" android:fillColor="#FFFFFF" android:fillAlpha="0.4" />
+</vector>

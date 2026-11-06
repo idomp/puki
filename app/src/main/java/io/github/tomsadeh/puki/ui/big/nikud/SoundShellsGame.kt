@@ -43,7 +43,8 @@ data class ShellsState(
  * consonant with the target's sound. Never two boards with the same sound of the same consonant.
  *
  * The stage comes from the scheduler's record: stage 2 once [STAGE2_SOLID] of the 8 stage-1 items are
- * solid (asked in two sessions or more and not shaky now).
+ * solid (asked in two sessions or more and not shaky now). [NikudEligibility] adds consonants only
+ * after the original stage-2 sounds are comfortable; each addition joins in both sounds.
  */
 class SoundShellsGame(
     private val scheduler: RoundScheduler,
@@ -58,8 +59,12 @@ class SoundShellsGame(
         fun stage1Item(consonant: String) = "s1_$consonant"
         fun stage2Item(consonant: String, sound: Nikud.Sound) = "s2_${consonant}_${sound.name.lowercase()}"
 
-        val STAGE1_ITEMS = Nikud.consonants.map { stage1Item(it.id) }
-        val STAGE2_ITEMS = Nikud.consonants.flatMap { c -> Nikud.Sound.values().map { stage2Item(c.id, it) } }
+        val STAGE1_ITEMS = Nikud.introductoryConsonants.map { stage1Item(it.id) }
+        val STAGE2_ITEMS = Nikud.introductoryConsonants.flatMap { c -> Nikud.Sound.values().map { stage2Item(c.id, it) } }
+
+        /** One spelling per audible sound, even if two consonants use different recordings. */
+        fun distinctSounds(answer: Nikud.Syllable, candidates: List<Nikud.Syllable>): List<Nikud.Syllable> =
+            candidates.filter { it.soundId != answer.soundId }.distinctBy { it.soundId }
     }
 
     var state = ShellsState()
@@ -72,13 +77,16 @@ class SoundShellsGame(
     private var correctId = ""
     private var replayKeys: List<String> = emptyList()
     private var slipped = false
+    private var consonants = Nikud.introductoryConsonants
 
     private fun cue(keys: List<String>) = VoiceCue(keys, ++tokens)
 
     fun start() {
         val solid = STAGE1_ITEMS.count { id -> scheduler.memory.record(id).let { it.seen >= 2 && it.misses == 0 } }
         stage = if (solid >= STAGE2_SOLID) 2 else 1
-        scheduler.begin(rounds, if (stage == 1) STAGE1_ITEMS else STAGE2_ITEMS)
+        consonants = if (stage == 1) Nikud.introductoryConsonants else NikudEligibility.consonants(scheduler.memory)
+        val pool = if (stage == 1) STAGE1_ITEMS else consonants.flatMap { c -> Nikud.Sound.values().map { stage2Item(c.id, it) } }
+        scheduler.begin(rounds, pool)
         aMarks = List(rounds) { if (it % 2 == 0) Nikud.Mark.PATAH else Nikud.Mark.KAMATS }.shuffled(random)
         state = ShellsState(stage = stage, offerCard = (stage.takeIf { it !in cardsSeen }))
         show(first = true)
@@ -93,14 +101,14 @@ class SoundShellsGame(
 
     private fun show(first: Boolean) {
         val item = scheduler.current ?: return
-        val others = Nikud.consonants
+        val others = consonants
         val choices: RoundScheduler.Choices
         val answer: Nikud.Syllable
         if (stage == 1) {
             val consonant = item.removePrefix("s1_")
             val mark = nextAMark()
             answer = Nikud.syllable(consonant, mark)
-            choices = scheduler.choices(answer.id, others.filter { it.id != consonant }.map { Nikud.syllable(it.id, mark).id }, 3,
+            choices = scheduler.choices(answer.id, distinctSounds(answer, others.map { Nikud.syllable(it.id, mark) }).map { it.id }, 3,
                 distanceTo = { 2 }, key = item)
         } else {
             val parts = item.removePrefix("s2_").split('_')
@@ -110,7 +118,7 @@ class SoundShellsGame(
             val ownMark = if (sound == Nikud.Sound.A) aMark else Nikud.Mark.HIRIQ
             val twinMark = if (sound == Nikud.Sound.A) Nikud.Mark.HIRIQ else aMark
             answer = Nikud.syllable(consonant, ownMark)
-            choices = scheduler.choices(answer.id, others.filter { it.id != consonant }.map { Nikud.syllable(it.id, ownMark).id }, 3,
+            choices = scheduler.choices(answer.id, distinctSounds(answer, others.map { Nikud.syllable(it.id, ownMark) }).map { it.id }, 3,
                 distanceTo = { 2 }, forced = listOf(Nikud.syllable(consonant, twinMark).id), key = item)
         }
         target = answer

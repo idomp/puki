@@ -7,6 +7,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -22,6 +23,9 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -78,7 +82,7 @@ fun JoinWordScreen(onBack: () -> Unit, onAgain: () -> Unit) {
     LaunchedEffect(state.roundIndex, state.solved, paused, state.sessionComplete) {
         if (!state.solved || paused || state.sessionComplete) return@LaunchedEffect
         found = found.toMutableList().also {
-            it[state.roundIndex] = state.foundPictureId?.let(::joinPicture) ?: R.drawable.ic_island_echo
+            it[state.roundIndex] = state.foundPictureId?.let(::nikudPicture) ?: R.drawable.ic_island_echo
         }
         if (!celebrated) { celebrated = true; sfx.play(Sfx.SUCCESS) }
         delay(1900)
@@ -114,10 +118,16 @@ fun JoinWordScreen(onBack: () -> Unit, onAgain: () -> Unit) {
 }
 
 @Composable
-private fun JoinScene(state: JoinState, joining: Float, joinedVisually: Boolean, paused: Boolean,
+internal fun JoinScene(state: JoinState, joining: Float, joinedVisually: Boolean, paused: Boolean,
                       onUnit: (Int) -> Unit, onReplay: () -> Unit, onPicture: (String) -> Unit) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
-        val signWidth = minOf(360.dp, maxWidth - 100.dp)
+        val measurer = rememberTextMeasurer()
+        val density = LocalDensity.current
+        val style = LocalTextStyle.current.copy(fontSize = 100.sp, fontWeight = FontWeight.Bold, lineHeight = 130.sp)
+        fun textWidth(text: String): Dp = with(density) {
+            measurer.measure(text, style, softWrap = false).size.width.toDp()
+        }
+        val signWidth = minOf(maxOf(360.dp, textWidth(state.wordText) + 64.dp), maxWidth - 64.dp)
         val signHeight = minOf(180.dp, maxHeight * .42f).coerceAtLeast(160.dp)
         val showSign = joinedVisually || state.phase == JoinPhase.PICTURE || state.phase == JoinPhase.SOLVED
         if (showSign) {
@@ -135,14 +145,20 @@ private fun JoinScene(state: JoinState, joining: Float, joinedVisually: Boolean,
                         drawRoundRect(BigColors.GoldEdge.copy(alpha = .5f), cornerRadius = CornerRadius(18.dp.toPx()), style = dash)
                     }
                 })
-            val widths = state.units.map { if (it.kind == Nikud.UnitKind.CLOSING) 128.dp else 200.dp }
-            val gap = 32.dp
+            val widths = state.units.map {
+                maxOf(if (it.kind == Nikud.UnitKind.CLOSING) 128.dp else 200.dp, textWidth(it.text) + 48.dp)
+            }
+            // The frame has already reserved the listening corner. Keep full-size two-board words;
+            // use the remaining width for gaps when three boards carry longer reading units.
+            val gap = minOf(32.dp, (maxWidth - 48.dp - widths.fold(0.dp) { sum, w -> sum + w }) /
+                (widths.size - 1).coerceAtLeast(1)).coerceAtLeast(12.dp)
             val total = widths.fold(0.dp) { sum, w -> sum + w } + gap * (widths.size - 1)
             state.units.forEachIndexed { index, unit ->
                 val preceding = widths.take(index).fold(0.dp) { sum, w -> sum + w }
                 // Absolute offsets preserve right-to-left reading order independently of the app.
                 val initialX = (maxWidth - total) / 2 + total - preceding - gap * index - widths[index]
-                val finalX = (maxWidth - total + gap) / 2 + total - gap - preceding - widths[index]
+                val joinedWidth = widths.fold(0.dp) { sum, w -> sum + w }
+                val finalX = (maxWidth - joinedWidth) / 2 + joinedWidth - preceding - widths[index]
                 val initialY = maxHeight * .12f
                 Box(Modifier.align(AbsoluteAlignment.TopLeft).absoluteOffset(initialX + (finalX - initialX) * joining, initialY + (10.dp - initialY) * joining)) {
                     AnswerBoard(unit.text, BoardMark.NONE, { if (!paused) onUnit(index) },
@@ -213,7 +229,7 @@ private fun JoinPictureBoard(tile: PictureTile, size: Dp, onTap: () -> Unit) {
             TileMark.WRONG -> BoardMark.WRONG
             TileMark.CORRECT -> BoardMark.CORRECT
             else -> BoardMark.NONE
-        }, onTap, width = size, height = size, picture = joinPicture(tile.pictureId),
+        }, onTap, width = size, height = size, picture = nikudPicture(tile.pictureId),
             modifier = Modifier.drawWithCache {
                 onDrawBehind {
                     if (tile.mark == TileMark.HINT || tile.mark == TileMark.CORRECT) drawRoundRect(
@@ -226,19 +242,4 @@ private fun JoinPictureBoard(tile: PictureTile, size: Dp, onTap: () -> Unit) {
             .background(BigColors.Face, RoundedCornerShape(26.dp)).border(3.dp, BigColors.TagEdge, RoundedCornerShape(26.dp)),
             contentAlignment = Alignment.Center) { SpeakerIcon(26.dp, BigColors.Coral) }
     }
-}
-
-private fun joinPicture(id: String): Int = when (id) {
-    "hand" -> R.drawable.ic_nikud_yad
-    "map" -> R.drawable.ic_nikud_mapa
-    "garden" -> R.drawable.ic_nikud_gina
-    "sea" -> R.drawable.ic_nikud_yam
-    "wave" -> R.drawable.ic_nikud_gal
-    "kindergarten" -> R.drawable.ic_nikud_gan
-    "roof" -> R.drawable.ic_nikud_gag
-    "plate" -> R.drawable.ic_nikud_mana
-    "corner" -> R.drawable.ic_nikud_pina
-    "fish" -> R.drawable.ic_food_fish
-    "elephant" -> R.drawable.ic_animal_elephant
-    else -> error("Unknown nikud picture: $id")
 }

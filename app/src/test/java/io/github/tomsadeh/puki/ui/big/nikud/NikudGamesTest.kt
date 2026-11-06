@@ -329,7 +329,7 @@ class JoinWordGameTest {
             memory = SchedulerMemory.decode(t.memory!!.encode())
             assertEquals(8, t.stars)
         }
-        assertEquals(Nikud.words.map { it.id }.toSet(), asked)
+        assertEquals(Nikud.introductoryWords.map { it.id }.toSet(), asked)
     }
 
     @Test
@@ -459,7 +459,7 @@ class ReadSignGameTest {
             while (two.state.phase == NikudPhase.ROUND) {
                 val w = target(two)
                 val rest = two.state.pictures.filter { it.id != w.id }.map { Nikud.word(it.id) }
-                val rivals = Nikud.clearWords.any { it.id != w.id && it.firstConsonant == w.firstConsonant && !Nikud.areTwins(it, w) }
+                val rivals = Nikud.introductoryWords.any { it.tier == Nikud.Tier.CLEAR && it.id != w.id && it.firstConsonant == w.firstConsonant && !Nikud.areTwins(it, w) }
                 if (rivals) assertTrue(rest.any { it.firstConsonant == w.firstConsonant })
                 if (rest.all { it.firstConsonant == w.firstConsonant }) sameStart++
                 for (a in two.state.pictures) for (b in two.state.pictures) if (a.id != b.id) assertFalse(Nikud.areTwins(Nikud.word(a.id), Nikud.word(b.id)))
@@ -479,7 +479,7 @@ class ReadSignGameTest {
             while (g.state.phase == NikudPhase.ROUND) { val w = target(g); read += w.id; g.onAnswer(w.id); g.next() }
             memory = SchedulerMemory.decode(t.memory!!.encode())
         }
-        assertEquals(Nikud.clearWords.map { it.id }.toSet(), read)
+        assertEquals(Nikud.introductoryWords.filter { it.tier == Nikud.Tier.CLEAR }.map { it.id }.toSet(), read)
     }
 
     @Test
