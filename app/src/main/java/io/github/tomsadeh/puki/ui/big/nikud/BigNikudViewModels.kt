@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.tomsadeh.puki.PukiApplication
+import io.github.tomsadeh.puki.data.models.ContentPace
 import io.github.tomsadeh.puki.learning.DataStoreSchedulerStore
 import io.github.tomsadeh.puki.learning.RoundScheduler
 import io.github.tomsadeh.puki.learning.SchedulerMemory
@@ -12,6 +13,7 @@ import io.github.tomsadeh.puki.ui.common.GameSession
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
@@ -68,11 +70,14 @@ abstract class NikudGameViewModel<G, S>(
                 runCatching { store.load("big_nikud_shells") }.getOrDefault(SchedulerMemory())
             val join = if (memoryKey == "big_nikud_join") memory else
                 runCatching { store.load("big_nikud_join") }.getOrDefault(SchedulerMemory())
+            // The parent's pace is read as a session begins: a change applies to the next one, not a running one
+            val pace = runCatching { (getApplication<Application>() as PukiApplication).settingsRepository.settings.first().contentPace }
+                .getOrDefault(ContentPace.GRADUAL)
             val random = Random.Default
             val nextScheduler = RoundScheduler(memory, random)
             scheduler = nextScheduler
             completedMemory = null
-            val g = createGame(nextScheduler, random, events, seen, NikudEligibility(shells, join))
+            val g = createGame(nextScheduler, random, events, seen, NikudEligibility(shells, join, pace))
             game = g
             startGame(g)
             _state.value = snapshot(g)
@@ -103,7 +108,7 @@ class SoundShellsViewModel(application: Application) :
     NikudGameViewModel<SoundShellsGame, ShellsState>(application, "big_nikud_shells", "big_nikud_shells", ShellsState()) {
     override fun createGame(scheduler: RoundScheduler, random: Random, events: RoundEvents,
                             cardsSeen: Set<Int>, eligibility: NikudEligibility) =
-        SoundShellsGame(scheduler, random, events, cardsSeen)
+        SoundShellsGame(scheduler, random, events, cardsSeen, eligibility = eligibility)
 
     override fun startGame(game: SoundShellsGame) = game.start()
     override fun snapshot(game: SoundShellsGame) = game.state

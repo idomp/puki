@@ -26,7 +26,7 @@ class NikudEligibilityTest {
     @Test
     fun newChildGetsExactlyTheOriginalPoolsEvenWithOtherGamesMastered() {
         val empty = SchedulerMemory()
-        assertEquals(Nikud.introductoryConsonants, NikudEligibility.consonants(empty))
+        assertEquals(Nikud.introductoryConsonants, NikudEligibility().consonants(empty))
         assertEquals(initialWords, NikudEligibility().joinWords(empty).map { it.id }.toSet())
         assertEquals(initialClear, NikudEligibility().readWords(empty).map { it.id }.toSet())
         assertEquals(initialWords, ready.joinWords(empty).map { it.id }.toSet())
@@ -39,13 +39,13 @@ class NikudEligibilityTest {
     @Test
     fun shellsExpandOnlyAfterTwelveOriginalSoundItemsAreSolid() {
         val ids = SoundShellsGame.STAGE2_ITEMS
-        assertEquals(Nikud.introductoryConsonants, NikudEligibility.consonants(solid(ids.take(11))))
-        assertEquals(Nikud.introductoryConsonants, NikudEligibility.consonants(solid(ids.take(12), seen = 1)))
-        assertEquals(Nikud.introductoryConsonants, NikudEligibility.consonants(solid(ids.take(12), misses = 1)))
-        assertEquals(Nikud.introductoryConsonants, NikudEligibility.consonants(solid(SoundShellsGame.STAGE1_ITEMS)))
-        assertEquals(Nikud.consonants, NikudEligibility.consonants(solid(ids.take(12))))
+        assertEquals(Nikud.introductoryConsonants, NikudEligibility().consonants(solid(ids.take(11))))
+        assertEquals(Nikud.introductoryConsonants, NikudEligibility().consonants(solid(ids.take(12), seen = 1)))
+        assertEquals(Nikud.introductoryConsonants, NikudEligibility().consonants(solid(ids.take(12), misses = 1)))
+        assertEquals(Nikud.introductoryConsonants, NikudEligibility().consonants(solid(SoundShellsGame.STAGE1_ITEMS)))
+        assertEquals(Nikud.consonants, NikudEligibility().consonants(solid(ids.take(12))))
         val exposure = SchedulerMemory(covered = ids.toSet())
-        assertEquals(Nikud.introductoryConsonants, NikudEligibility.consonants(exposure))
+        assertEquals(Nikud.introductoryConsonants, NikudEligibility().consonants(exposure))
     }
 
     @Test

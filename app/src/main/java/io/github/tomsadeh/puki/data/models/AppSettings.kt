@@ -28,12 +28,38 @@ data class AppSettings(
     /** Islands a parent took off the map (fewer choices at two), by id. */
     val hiddenIslands: Set<String> = emptySet(),
     /** Whose map the hub shows: the toddler islands, or the games for the last year of kindergarten. */
-    val ageGroup: AgeGroup = AgeGroup.BIG
+    val ageGroup: AgeGroup = AgeGroup.BIG,
+    /** How fast Sounds and Words opens its newer letters and words (the BIG map only). */
+    val contentPace: ContentPace = ContentPace.GRADUAL
 )
 
 /** The fork's two maps. LITTLE is the original game (ages 2-4); BIG is letters, reading and sums (5-6). */
 enum class AgeGroup {
     LITTLE, BIG
+}
+
+/**
+ * How fast the newer reading content opens. A "solid" item was asked in at least [sessions] sessions
+ * with no remaining misses; new sound-shell consonants need [shellsSolid] of the original 16 sound items
+ * solid, new Join Word words [joinSolid] of the original 12 words, new Read Sign words [readSolid] of the
+ * original 9 clear words. With [prerequisites] a word also waits for its sounds to be met in Sound Shells
+ * (and Read Sign for a clean Join Word encounter); without them everything is open from the first session.
+ */
+enum class ContentPace(
+    val shellsSolid: Int,
+    val joinSolid: Int,
+    val readSolid: Int,
+    val sessions: Int,
+    val prerequisites: Boolean
+) {
+    GRADUAL(12, 8, 6, 2, true),
+    FASTER(8, 6, 4, 1, true),
+    ALL_NOW(0, 0, 0, 1, false);
+
+    companion object {
+        /** The stored name back to a pace; missing or unknown (an older or newer build wrote it) is GRADUAL. */
+        fun fromStored(name: String?): ContentPace = name?.let { runCatching { valueOf(it) }.getOrNull() } ?: GRADUAL
+    }
 }
 
 enum class Language {

@@ -44,14 +44,16 @@ data class ShellsState(
  *
  * The stage comes from the scheduler's record: stage 2 once [STAGE2_SOLID] of the 8 stage-1 items are
  * solid (asked in two sessions or more and not shaky now). [NikudEligibility] adds consonants only
- * after the original stage-2 sounds are comfortable; each addition joins in both sounds.
+ * after the original stage-2 sounds are comfortable (or at once, if the parent chose so); each addition
+ * joins in both sounds.
  */
 class SoundShellsGame(
     private val scheduler: RoundScheduler,
     private val random: Random,
     private val events: RoundEvents,
     private val cardsSeen: Set<Int> = emptySet(),
-    val rounds: Int = ROUNDS
+    val rounds: Int = ROUNDS,
+    private val eligibility: NikudEligibility = NikudEligibility()
 ) {
     companion object {
         const val ROUNDS = 8
@@ -84,8 +86,8 @@ class SoundShellsGame(
     fun start() {
         val solid = STAGE1_ITEMS.count { id -> scheduler.memory.record(id).let { it.seen >= 2 && it.misses == 0 } }
         stage = if (solid >= STAGE2_SOLID) 2 else 1
-        consonants = if (stage == 1) Nikud.introductoryConsonants else NikudEligibility.consonants(scheduler.memory)
-        val pool = if (stage == 1) STAGE1_ITEMS else consonants.flatMap { c -> Nikud.Sound.values().map { stage2Item(c.id, it) } }
+        consonants = if (stage == 1) eligibility.firstConsonants() else eligibility.consonants(scheduler.memory)
+        val pool = if (stage == 1) consonants.map { stage1Item(it.id) } else consonants.flatMap { c -> Nikud.Sound.values().map { stage2Item(c.id, it) } }
         scheduler.begin(rounds, pool)
         aMarks = List(rounds) { if (it % 2 == 0) Nikud.Mark.PATAH else Nikud.Mark.KAMATS }.shuffled(random)
         state = ShellsState(stage = stage, offerCard = (stage.takeIf { it !in cardsSeen }))
