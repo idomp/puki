@@ -16,9 +16,9 @@ object Nikud {
 
     /** A vowel mark. Kamatz and patach are two marks with one sound (and one clip). */
     enum class Mark(val vowel: String, val sound: Sound, val nameKey: String, val hebrewName: String) {
-        PATAH(Nikud.PATAH, Sound.A, "voice_big_nikud_name_patah", "פַּתָּח"),
-        KAMATS(Nikud.KAMATS, Sound.A, "voice_big_nikud_name_kamats", "קָמָץ"),
-        HIRIQ(Nikud.HIRIQ, Sound.I, "voice_big_nikud_name_hiriq", "חִירִיק")
+        PATAH(Nikud.PATAH, Sound.A, "voice_big_nikud_mark_patah", "פַּתָּח"),
+        KAMATS(Nikud.KAMATS, Sound.A, "voice_big_nikud_mark_kamats", "קָמָץ"),
+        HIRIQ(Nikud.HIRIQ, Sound.I, "voice_big_nikud_mark_hiriq", "חִירִיק")
     }
 
     /** A consonant of the island. [bare] is the letter as the shells keep it (with its shin dot or dagesh, no vowel). */

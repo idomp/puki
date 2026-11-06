@@ -3,6 +3,7 @@
 Every clip here was picked by ear by the parent in a listening round (Research/puki-review/nikud/):
 TAKES holds the exact IPA (made with Phonikud from the pointed text), speed and seed of the chosen take.
 Syllable keys: voice_big_nikud_<consonant>_<vowel sound>; kamatz and patach share the /a/ clip.
+Mark names are voice_big_nikud_mark_*, never *_name*: .gitignore keeps voice_*_name* (the child's name) out of git.
 """
 
 VOICE_LINES = [
@@ -32,9 +33,9 @@ VOICE_LINES = [
     ("voice_big_nikud_pe_a", "", "פַּ"),
     ("voice_big_nikud_shin_a", "", "שַׁ"),
     ("voice_big_nikud_sin_a", "", "שַׂ"),
-    ("voice_big_nikud_name_kamats", "", "קָמָץ"),
-    ("voice_big_nikud_name_patah", "", "פַּתָּח"),
-    ("voice_big_nikud_name_hiriq", "", "חִירִיק"),
+    ("voice_big_nikud_mark_kamats", "", "קָמָץ"),
+    ("voice_big_nikud_mark_patah", "", "פַּתָּח"),
+    ("voice_big_nikud_mark_hiriq", "", "חִירִיק"),
     ("voice_big_nikud_word_pil", "", "פִּיל"),
     ("voice_big_nikud_lamed_a", "", "לַ"),
     ("voice_big_nikud_nun_a", "", "נַ"),
@@ -82,9 +83,9 @@ TAKES = {
     "voice_big_nikud_pe_a_he": ("pˈa", 0.8, 2),
     "voice_big_nikud_shin_a_he": ("ʃˈa", 0.8, 2),
     "voice_big_nikud_sin_a_he": ("sˈa", 0.8, 2),
-    "voice_big_nikud_name_kamats_he": ("kamˈats", 0.7, 0),
-    "voice_big_nikud_name_patah_he": ("patˈaχ", 0.7, 0),
-    "voice_big_nikud_name_hiriq_he": ("χiʁˈik", 0.7, 0),
+    "voice_big_nikud_mark_kamats_he": ("kamˈats", 0.7, 0),
+    "voice_big_nikud_mark_patah_he": ("patˈaχ", 0.7, 0),
+    "voice_big_nikud_mark_hiriq_he": ("χiʁˈik", 0.7, 0),
     "voice_big_nikud_word_pil_he": ("pˈil!", 0.7, 3),
     "voice_big_nikud_listen_he_m": ("takʃˈiv tˈov.", 0.7, 0),
     "voice_big_nikud_which_sound_he_m": ("ʔˈejze tslˈil ʃamˈaʔta?", 0.7, 0),
