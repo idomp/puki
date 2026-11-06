@@ -181,15 +181,18 @@ fun SpeakerIcon(size: Dp, color: Color = Color.White, modifier: Modifier = Modif
     })
 }
 
-/** Puki's captain's hat, drawn over his picture (same box as the picture). */
+/** Puki's captain's hat, drawn over his picture (same box as the picture; sized to ic_companion_parrot's head). */
 private fun Modifier.captainHat(): Modifier = drawBehind {
     val u = size.width / 120f
+    val dx = -8 * u   // his head sits a little to the beak side of the box
+    val dy = 9 * u    // and a little lower than the box's top
     val crown = Path().apply {
-        moveTo(28 * u, 30 * u); quadraticTo(36 * u, 4 * u, 62 * u, 6 * u)
-        quadraticTo(88 * u, 4 * u, 96 * u, 30 * u); quadraticTo(62 * u, 20 * u, 28 * u, 30 * u); close()
+        moveTo(dx + 34 * u, dy + 30 * u); quadraticTo(dx + 40 * u, dy + 6 * u, dx + 62 * u, dy + 8 * u)
+        quadraticTo(dx + 84 * u, dy + 6 * u, dx + 90 * u, dy + 30 * u); quadraticTo(dx + 62 * u, dy + 21 * u, dx + 34 * u, dy + 30 * u); close()
     }
     drawPath(crown, BigColors.Navy)
-    drawCircle(Color(0xFFF5C542), radius = 4.5f * u, center = Offset(62 * u, 15 * u))
+    drawLine(Color(0xFFF5C542), Offset(dx + 36 * u, dy + 28 * u), Offset(dx + 88 * u, dy + 28 * u), strokeWidth = 3 * u)
+    drawCircle(Color(0xFFF5C542), radius = 4f * u, center = Offset(dx + 62 * u, dy + 16 * u))
 }
 
 /**
@@ -291,20 +294,23 @@ fun AnswerBoard(
                 footer?.invoke()
             }
         }
-        // The post into the sand, or, after a wrong tap, the name tag hanging below
-        if (wrong && nameTag != null) {
-            Text(
-                nameTag,
-                modifier = Modifier
-                    .padding(top = 18.dp)
-                    .clip(RoundedCornerShape(22.dp))
-                    .background(Color.White)
-                    .border(3.dp, BigColors.TagEdge, RoundedCornerShape(22.dp))
-                    .padding(horizontal = 18.dp, vertical = 4.dp),
-                fontSize = 24.sp, fontWeight = FontWeight.Bold, color = BigColors.TagInk
-            )
-        } else {
-            Box(Modifier.width(16.dp).height(30.dp).background(BigColors.Post))
+        // The post into the sand, or, after a wrong tap, the name tag hanging below. A fixed height,
+        // so a board that gets its tag doesn't shift its neighbours in the row
+        Box(Modifier.height(64.dp), contentAlignment = Alignment.TopCenter) {
+            if (wrong && nameTag != null) {
+                Text(
+                    nameTag,
+                    modifier = Modifier
+                        .padding(top = 18.dp)
+                        .clip(RoundedCornerShape(22.dp))
+                        .background(Color.White)
+                        .border(3.dp, BigColors.TagEdge, RoundedCornerShape(22.dp))
+                        .padding(horizontal = 18.dp, vertical = 2.dp),
+                    fontSize = 24.sp, fontWeight = FontWeight.Bold, color = BigColors.TagInk
+                )
+            } else {
+                Box(Modifier.width(16.dp).height(30.dp).background(BigColors.Post))
+            }
         }
     }
 }
