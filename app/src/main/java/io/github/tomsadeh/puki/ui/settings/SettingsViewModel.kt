@@ -8,6 +8,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.tomsadeh.puki.PukiApplication
 import io.github.tomsadeh.puki.data.models.BrainLanguages
+import io.github.tomsadeh.puki.data.models.ContentPace
 import io.github.tomsadeh.puki.data.models.Gender
 import io.github.tomsadeh.puki.data.models.Language
 import kotlinx.coroutines.launch
@@ -95,6 +96,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     fun setAgeGroup(group: io.github.tomsadeh.puki.data.models.AgeGroup) {
         viewModelScope.launch { settingsRepository.updateAgeGroup(group) }
+    }
+
+    fun setContentPace(pace: ContentPace) {
+        viewModelScope.launch { settingsRepository.updateContentPace(pace) }
     }
 
     fun setIslandShown(id: String, shown: Boolean, hidden: Set<String>) {

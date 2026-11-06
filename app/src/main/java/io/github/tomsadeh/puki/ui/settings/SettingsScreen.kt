@@ -70,6 +70,7 @@ import io.github.tomsadeh.puki.data.models.Language
 import io.github.tomsadeh.puki.theme.CloudWhite
 import io.github.tomsadeh.puki.ui.hub.islandsFor
 import io.github.tomsadeh.puki.data.models.AgeGroup
+import io.github.tomsadeh.puki.data.models.ContentPace
 import androidx.compose.ui.graphics.Color
 import io.github.tomsadeh.puki.theme.EarthBrown
 import io.github.tomsadeh.puki.theme.GrassGreen
@@ -262,6 +263,43 @@ fun SettingsScreen(
                                 .padding(horizontal = 10.dp, vertical = 8.dp)
                         )
                     }
+                }
+
+                // How fast Sounds and Words opens its newer letters and words (the big map only)
+                if (settings.ageGroup == AgeGroup.BIG) {
+                    Text(
+                        BilingualText("מילים ואותיות חדשות", "New words and letters").resolve(language),
+                        style = MaterialTheme.typography.titleLarge,
+                        color = EarthBrown
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                        listOf(
+                            ContentPace.GRADUAL to BilingualText("בהדרגה", "Gradually"),
+                            ContentPace.FASTER to BilingualText("מהר יותר", "Faster"),
+                            ContentPace.ALL_NOW to BilingualText("הכול עכשיו", "All now")
+                        ).forEach { (pace, label) ->
+                            val chosen = settings.contentPace == pace
+                            Text(
+                                (if (chosen) "✓ " else "") + label.resolve(language),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = if (chosen) CloudWhite else EarthBrown,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(14.dp))
+                                    .background(if (chosen) GrassGreen else Color(0xFFEFEBE9))
+                                    .clickable { settingsViewModel.setContentPace(pace) }
+                                    .padding(horizontal = 10.dp, vertical = 8.dp)
+                            )
+                        }
+                    }
+                    Text(
+                        BilingualText(
+                            "באי צלילים ומילים: מתי לפתוח את המילים והאותיות החדשות. בהדרגה, אחרי שהקיימות יציבות; מהר יותר, אחרי פחות תרגול; הכול עכשיו, מהכניסה הבאה.",
+                            "On the Sounds and Words island: when the new words and letters open. Gradually, once the current ones are steady; Faster, after less practice; All now, from the next visit."
+                        ).resolve(language),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = EarthBrown
+                    )
                 }
 
                 // Which games are on the map: fewer islands, fewer choices at two

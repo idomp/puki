@@ -14,6 +14,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import io.github.tomsadeh.puki.data.models.AgeGroup
 import io.github.tomsadeh.puki.data.models.AppSettings
 import io.github.tomsadeh.puki.data.models.BrainLanguages
+import io.github.tomsadeh.puki.data.models.ContentPace
 import io.github.tomsadeh.puki.data.models.Gender
 import io.github.tomsadeh.puki.data.models.Language
 import kotlinx.coroutines.flow.Flow
@@ -45,6 +46,7 @@ class SettingsRepository(private val context: Context) {
         val TIME_UP = booleanPreferencesKey("time_up")
         val HIDDEN_ISLANDS = stringSetPreferencesKey("hidden_islands")
         val AGE_GROUP = stringPreferencesKey("age_group")
+        val CONTENT_PACE = stringPreferencesKey("content_pace")
     }
 
     val settings: Flow<AppSettings> = context.settingsDataStore.data.map { prefs ->
@@ -66,12 +68,17 @@ class SettingsRepository(private val context: Context) {
             answersOutLoud = prefs[Keys.ANSWERS_OUT_LOUD] ?: true,
             rememberBetween = prefs[Keys.REMEMBER_BETWEEN] ?: false,
             hiddenIslands = prefs[Keys.HIDDEN_ISLANDS] ?: emptySet(),
-            ageGroup = prefs[Keys.AGE_GROUP]?.let { runCatching { AgeGroup.valueOf(it) }.getOrNull() } ?: AgeGroup.BIG
+            ageGroup = prefs[Keys.AGE_GROUP]?.let { runCatching { AgeGroup.valueOf(it) }.getOrNull() } ?: AgeGroup.BIG,
+            contentPace = ContentPace.fromStored(prefs[Keys.CONTENT_PACE])
         )
     }
 
     suspend fun updateAgeGroup(group: AgeGroup) {
         context.settingsDataStore.edit { it[Keys.AGE_GROUP] = group.name }
+    }
+
+    suspend fun updateContentPace(pace: ContentPace) {
+        context.settingsDataStore.edit { it[Keys.CONTENT_PACE] = pace.name }
     }
 
     suspend fun updateLanguage(language: Language) {
