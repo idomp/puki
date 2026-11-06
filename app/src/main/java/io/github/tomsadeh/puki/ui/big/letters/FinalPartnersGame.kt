@@ -25,7 +25,7 @@ class FinalPartnersGame(
     private val allLetters = BigLetters.all.map { it.id }
 
     fun start() {
-        scheduler.begin(rounds, items)
+        scheduler.begin(rounds, items, groupOf = { BigLetters[it].baseId ?: it }, spreadGroups = true)
         show(first = true)
     }
 

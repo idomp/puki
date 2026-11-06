@@ -228,6 +228,55 @@ class ListenFindGameTest {
         }
         assertTrue("back $back of 100", back > 40)  // a clean letter comes back about 1 time in 4
     }
+
+    @Test
+    fun allBaseLettersAreCoveredWithinThreeReconstructedVisits() {
+        for (seed in 0 until 100) {
+            var saved = SchedulerMemory().encode()
+            val asked = mutableListOf<String>()
+            repeat(3) { visit ->
+                val log = Log()
+                asked += play(game(seed + visit, log, SchedulerMemory.decode(saved)))
+                saved = log.memory!!.encode()
+            }
+            assertTrue("seed $seed: $asked", asked.containsAll(BigLetters.base.map { it.id }))
+        }
+    }
+
+    @Test
+    fun exactUnlockThresholdsAndFinalCapsSurviveCoverageHistory() {
+        val baseIds = BigLetters.base.map { it.id }
+        val learningOrder = (BigLetters.finals.map { it.baseId!! } + baseIds).distinct()
+        for (known in listOf(9, 10, 13, 14)) for (seed in 0 until 30) {
+            val memory = SchedulerMemory(
+                records = learningOrder.take(known).associateWith { io.github.tomsadeh.puki.learning.ItemRecord(1, 1, 0) },
+                covered = baseIds.toSet()
+            )
+            val asked = play(game(seed, Log(), memory)) { state, _ ->
+                assertEquals(if (known < 10) 3 else 4, state.tiles.size)
+            }
+            assertEquals(if (known < 14) 0 else 2, asked.count { BigLetters[it].isFinal })
+        }
+    }
+
+    @Test
+    fun anUnfinishedVisitRestartsAtRoundZeroWithoutAwardingMastery() {
+        val scheduler = RoundScheduler(random = Random(8))
+        val first = ListenFindGame(scheduler, Log().events).also { it.start() }
+        val opening = named(first.state)
+        first.onAnswer(opening)
+        first.next()
+        val second = named(first.state)
+        val saved = SchedulerMemory.decode(scheduler.checkpoint().encode())
+        val next = game(8, Log(), saved)
+        assertEquals(0, next.state.roundIndex)
+        assertEquals(0, next.state.starsEarned)
+        assertTrue(saved.records.isEmpty())
+        assertFalse(named(next.state) in setOf(opening, second))
+        val tiles = next.state.tiles
+        next.replay()
+        assertEquals(tiles, next.state.tiles)
+    }
 }
 
 class LetterDetectiveGameTest {
@@ -349,12 +398,53 @@ class LetterDetectiveGameTest {
     fun everyPairComesUpOverSessions() {
         var memory = SchedulerMemory()
         val asked = mutableSetOf<String>()
-        for (n in 0 until 20) {
+        for (n in 0 until 5) {
             val log = Log()
             play(game(n, log, memory)).filter { it.phase == LetterPhase.COMPARE }.forEach { asked += BigLetters.pairOf(it.compare!!.a.id, it.compare!!.b.id)!!.id }
-            memory = log.memory!!
+            memory = SchedulerMemory.decode(log.memory!!.encode())
         }
         assertEquals(BigLetters.pairs.map { it.id }.toSet(), asked)
+    }
+
+    @Test
+    fun everyBalancedFourQuestionOrderIsReachable() {
+        val orders = mutableSetOf<String>()
+        for (seed in 0 until 200) {
+            val states = play(game(seed, Log()))
+            for (block in states.chunked(5)) {
+                val pair = block.first().compare!!
+                val order = block.drop(1).map { if (named(it) == pair.a.id) 'A' else 'B' }.joinToString("")
+                assertEquals(2, order.count { it == 'A' })
+                assertEquals(2, order.count { it == 'B' })
+                orders += order
+            }
+        }
+        assertEquals(setOf("AABB", "ABAB", "ABBA", "BAAB", "BABA", "BBAA"), orders)
+    }
+
+    @Test
+    fun retriesUseScheduledOccurrencesWithoutAnImmediateDuplicate() {
+        for (seed in 0 until 100) for (missAt in 0..1) {
+            val rounds = play(game(seed, Log()), wrongFirst = { it == missAt })
+                .filter { it.phase == LetterPhase.ROUND }.take(4)
+            val targets = rounds.map(::named)
+            val missed = targets[missAt]
+            val retry = (missAt + 2..3).firstOrNull { targets[it] == missed }
+            assertTrue("seed $seed miss $missAt: $targets", retry != null)
+            assertNotEquals(missed, targets[retry!! - 1])
+            if (retry < 3) assertNotEquals(missed, targets[retry + 1])
+            assertEquals(2, targets.toSet().size)
+        }
+    }
+
+    @Test
+    fun detectiveLayoutsAreRememberedPerPairAndTarget() {
+        val first = RoundScheduler(random = Random(2))
+        val g = LetterDetectiveGame(first, Random(3), Log().events).also { it.start() }
+        play(g)
+        val memory = SchedulerMemory.decode(first.finish().encode())
+        assertEquals(4, memory.presentations.size)
+        assertTrue(memory.presentations.keys.all { key -> BigLetters.pairs.any { key.startsWith("${it.id}_") } })
     }
 }
 
@@ -454,5 +544,21 @@ class FinalPartnersGameTest {
             memory = log.memory!!
         }
         assertEquals(BigLetters.finals.flatMap { listOf(it.id, it.baseId!!) }.toSet(), asked)
+    }
+
+    @Test
+    fun allRelationshipsAppearBeforeReverseDirectionsAcrossVisits() {
+        for (seed in 0 until 50) {
+            var memory = SchedulerMemory()
+            val coverage = mutableListOf<String>()
+            repeat(5) { visit ->
+                val log = Log()
+                val asked = play(game(seed + visit, log, memory))
+                assertEquals("seed $seed visit $visit: $asked", 5, asked.take(5).map(BigLetters::baseOf).toSet().size)
+                coverage += asked
+                memory = SchedulerMemory.decode(log.memory!!.encode())
+            }
+            coverage.chunked(10).forEach { cycle -> assertEquals("seed $seed: $coverage", cycle.size, cycle.toSet().size) }
+        }
     }
 }

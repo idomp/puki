@@ -11,6 +11,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -20,11 +22,12 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
+import io.github.tomsadeh.puki.ui.big.kit.ReadingScreenModels
 import io.github.tomsadeh.puki.data.models.BilingualText
 import io.github.tomsadeh.puki.ui.big.kit.BigColors
 import io.github.tomsadeh.puki.ui.big.kit.SpeakerIcon
@@ -43,23 +46,31 @@ private const val PARTNERS = "partners"
  */
 @Composable
 fun BigLettersScreen(onBack: () -> Unit) {
+    val models: ReadingScreenModels = viewModel()
     var game by rememberSaveable { mutableStateOf<String?>(null) }
+    var visit by rememberSaveable { mutableIntStateOf(0) }
+    val toDoors = { models.reset(); game = null }
+    val choose: (String) -> Unit = { models.reset(); game = it }
+    val again: () -> Unit = { models.reset(); visit++ }
     ReadingIsland {
-        BackHandler(enabled = game != null) { game = null }
-        val toDoors = { game = null }
-        when (game) {
-            LISTEN -> ListenFindRound(onBack = toDoors)
-            DETECTIVE -> LetterDetectiveRound(onBack = toDoors)
-            PARTNERS -> FinalPartnersRound(onBack = toDoors)
-            else -> DoorChooserScreen(
-                onBack = onBack,
-                scene = Scene.PLAYGROUND,
-                doors = listOf(
-                    Door(BilingualText("שמע ומצא", "Listen and find"), BigColors.Coral, { game = LISTEN }) { ListenPicture() },
-                    Door(BilingualText("בלש אותיות", "Letter detective"), BigColors.Blue, { game = DETECTIVE }) { DetectivePicture() },
-                    Door(BilingualText("חברות סופיות", "Final-form partners"), Color(0xFF6CC24A), { game = PARTNERS }) { PartnersPicture() }
-                )
-            )
+        BackHandler(enabled = game != null, onBack = toDoors)
+        key(game, visit) {
+            CompositionLocalProvider(LocalViewModelStoreOwner provides models) {
+                when (game) {
+                    LISTEN -> ListenFindRound(onBack = toDoors, onAgain = again)
+                    DETECTIVE -> LetterDetectiveRound(onBack = toDoors, onAgain = again)
+                    PARTNERS -> FinalPartnersRound(onBack = toDoors, onAgain = again)
+                    else -> DoorChooserScreen(
+                        onBack = onBack,
+                        scene = Scene.PLAYGROUND,
+                        doors = listOf(
+                            Door(BilingualText("שמע ומצא", "Listen and find"), BigColors.Coral, { choose(LISTEN) }) { ListenPicture() },
+                            Door(BilingualText("בלש אותיות", "Letter detective"), BigColors.Blue, { choose(DETECTIVE) }) { DetectivePicture() },
+                            Door(BilingualText("חברות סופיות", "Final-form partners"), Color(0xFF6CC24A), { choose(PARTNERS) }) { PartnersPicture() }
+                        )
+                    )
+                }
+            }
         }
     }
 }

@@ -43,7 +43,7 @@ import kotlinx.coroutines.delay
 
 /** Reading units stay whole, including their marks, then travel into one heard sign. */
 @Composable
-fun JoinWordScreen(onBack: () -> Unit) {
+fun JoinWordScreen(onBack: () -> Unit, onAgain: () -> Unit) {
     val model: JoinWordViewModel = viewModel()
     val state by model.state.collectAsStateWithLifecycle()
     val paused = LocalGamePaused.current
@@ -103,10 +103,7 @@ fun JoinWordScreen(onBack: () -> Unit) {
                 }
                 if (state.sessionComplete && !paused) {
                     ConfettiOverlay(show = true)
-                    RoundCompleteSheet(state.starsEarned, onContinue = {
-                        found = List(JoinWordGame.ROUNDS) { 0 }; celebrated = false; heardMisses = 0
-                        model.restart()
-                    }, onHome = onBack)
+                    RoundCompleteSheet(state.starsEarned, onContinue = onAgain, onHome = onBack)
                 }
             }) {
             if (state.phase != JoinPhase.LOADING && !state.sessionComplete) key(state.roundIndex) {

@@ -40,7 +40,7 @@ import kotlinx.coroutines.delay
 
 /** A silent sign becomes a heard sign only after its picture is found. */
 @Composable
-fun ReadSignScreen(onBack: () -> Unit) {
+fun ReadSignScreen(onBack: () -> Unit, onAgain: () -> Unit) {
     val model: ReadSignViewModel = viewModel()
     val state by model.state.collectAsStateWithLifecycle()
     val paused = LocalGamePaused.current
@@ -79,10 +79,7 @@ fun ReadSignScreen(onBack: () -> Unit) {
                 }
                 if (state.sessionComplete && !paused) {
                     ConfettiOverlay(show = true)
-                    RoundCompleteSheet(state.starsEarned, onContinue = {
-                        found = List(ReadSignGame.ROUNDS) { 0 }; celebrated = false; heardMisses = 0
-                        model.restart()
-                    }, onHome = onBack)
+                    RoundCompleteSheet(state.starsEarned, onContinue = onAgain, onHome = onBack)
                 }
             }) {
             if (state.phase == NikudPhase.ROUND) key(state.roundIndex) {

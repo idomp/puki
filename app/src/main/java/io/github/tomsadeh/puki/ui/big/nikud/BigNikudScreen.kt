@@ -21,6 +21,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -30,12 +32,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
+import io.github.tomsadeh.puki.ui.big.kit.ReadingScreenModels
 import io.github.tomsadeh.puki.R
 import io.github.tomsadeh.puki.data.models.BilingualText
 import io.github.tomsadeh.puki.ui.big.kit.BigColors
@@ -56,27 +59,35 @@ private const val MEET = "meet"
  */
 @Composable
 fun BigNikudScreen(onBack: () -> Unit) {
+    val models: ReadingScreenModels = viewModel()
     var game by rememberSaveable { mutableStateOf<String?>(null) }
+    var visit by rememberSaveable { mutableIntStateOf(0) }
+    val toDoors = { models.reset(); game = null }
+    val choose: (String) -> Unit = { models.reset(); game = it }
+    val again: () -> Unit = { models.reset(); visit++ }
     ReadingIsland {
-        BackHandler(enabled = game != null) { game = null }
-        val toDoors = { game = null }
-        when (game) {
-            SHELLS -> SoundShellsScreen(onBack = toDoors)
-            JOIN -> JoinWordScreen(onBack = toDoors)
-            READ -> ReadSignScreen(onBack = toDoors)
-            MEET -> MeetMarkScreen(onBack = toDoors)
-            else -> Box(Modifier.fillMaxSize()) {
-                DoorChooserScreen(
-                    onBack = onBack,
-                    scene = Scene.PLAYGROUND,
-                    doors = listOf(
-                        Door(BilingualText("צדפי צלילים", "Sound shells"), BigColors.Coral, { game = SHELLS }) { ShellPicture() },
-                        Door(BilingualText("פוקי מחבר מילה", "Puki joins a word"), BigColors.Blue, { game = JOIN }) { JoinPicture() },
-                        Door(BilingualText("קוראים שלט", "Read the sign"), Color(0xFF6CC24A), { game = READ }) { SignPicture() }
-                    )
-                )
-                // Bottom far corner: clear of the door labels
-                MeetMarkButton(Modifier.align(Alignment.BottomEnd).padding(24.dp)) { game = MEET }
+        BackHandler(enabled = game != null, onBack = toDoors)
+        key(game, visit) {
+            CompositionLocalProvider(LocalViewModelStoreOwner provides models) {
+                when (game) {
+                    SHELLS -> SoundShellsScreen(onBack = toDoors, onAgain = again)
+                    JOIN -> JoinWordScreen(onBack = toDoors, onAgain = again)
+                    READ -> ReadSignScreen(onBack = toDoors, onAgain = again)
+                    MEET -> MeetMarkScreen(onBack = toDoors)
+                    else -> Box(Modifier.fillMaxSize()) {
+                        DoorChooserScreen(
+                            onBack = onBack,
+                            scene = Scene.PLAYGROUND,
+                            doors = listOf(
+                                Door(BilingualText("צדפי צלילים", "Sound shells"), BigColors.Coral, { choose(SHELLS) }) { ShellPicture() },
+                                Door(BilingualText("פוקי מחבר מילה", "Puki joins a word"), BigColors.Blue, { choose(JOIN) }) { JoinPicture() },
+                                Door(BilingualText("קוראים שלט", "Read the sign"), Color(0xFF6CC24A), { choose(READ) }) { SignPicture() }
+                            )
+                        )
+                        // Bottom far corner: clear of the door labels
+                        MeetMarkButton(Modifier.align(Alignment.BottomEnd).padding(24.dp)) { choose(MEET) }
+                    }
+                }
             }
         }
     }

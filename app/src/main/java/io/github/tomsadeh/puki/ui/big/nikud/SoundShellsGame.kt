@@ -67,7 +67,7 @@ class SoundShellsGame(
 
     private var tokens = 0
     private var stage = 1
-    private var aToggle = random.nextBoolean()
+    private var aMarks = emptyList<Nikud.Mark>()
     private var target: Nikud.Syllable? = null
     private var correctId = ""
     private var replayKeys: List<String> = emptyList()
@@ -79,14 +79,14 @@ class SoundShellsGame(
         val solid = STAGE1_ITEMS.count { id -> scheduler.memory.record(id).let { it.seen >= 2 && it.misses == 0 } }
         stage = if (solid >= STAGE2_SOLID) 2 else 1
         scheduler.begin(rounds, if (stage == 1) STAGE1_ITEMS else STAGE2_ITEMS)
+        aMarks = List(rounds) { if (it % 2 == 0) Nikud.Mark.PATAH else Nikud.Mark.KAMATS }.shuffled(random)
         state = ShellsState(stage = stage, offerCard = (stage.takeIf { it !in cardsSeen }))
         show(first = true)
     }
 
-    /** kamatz and patach take turns, so both are met in a session. */
+    /** Both spellings get equal practice, in a fresh order. */
     private fun nextAMark(): Nikud.Mark {
-        aToggle = !aToggle
-        return if (aToggle) Nikud.Mark.PATAH else Nikud.Mark.KAMATS
+        return aMarks[scheduler.roundIndex]
     }
 
     private fun tile(s: Nikud.Syllable) = SyllableTile(s.id, s.text, s.clipKey, s.consonant.bare)

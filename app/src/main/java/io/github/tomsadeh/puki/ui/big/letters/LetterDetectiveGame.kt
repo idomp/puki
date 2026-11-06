@@ -12,7 +12,8 @@ import kotlin.random.Random
  * A session is [pairsPerSession] pairs, [ROUNDS] questions in all.
  *
  * [pairScheduler] picks the pairs (over pair ids: new and shaky pairs first, and remembers them);
- * each pair gets its own short scheduler for which of the two to ask, sharing the answer-position bag.
+ * each pair gets a balanced question plan and a short scheduler for retries. The pair scheduler also
+ * remembers each task's layout across visits.
  */
 class LetterDetectiveGame(
     private val pairScheduler: RoundScheduler,
@@ -34,7 +35,7 @@ class LetterDetectiveGame(
     private var inner: RoundScheduler = newInner()
     private var firstPair = true
 
-    private fun newInner() = RoundScheduler(random = random, slots = pairScheduler.slots)
+    private fun newInner() = RoundScheduler(random = random)
 
     fun start() {
         pairScheduler.begin(pairsPerSession, BigLetters.pairs.map { it.id })
@@ -66,7 +67,7 @@ class LetterDetectiveGame(
             LetterPhase.COMPARE -> {
                 val p = pair ?: return
                 inner = newInner()
-                inner.begin(roundsPerPair, listOf(p.a, p.b))
+                inner.beginPlan(List(roundsPerPair) { if (it % 2 == 0) p.a else p.b }.shuffled(random))
                 showQuestion(p)
             }
             LetterPhase.ROUND -> {
@@ -88,10 +89,10 @@ class LetterDetectiveGame(
         val target = inner.current ?: return
         val partner = if (target == p.a) p.b else p.a
         val letter = BigLetters[target]
-        val choices = inner.choices(
+        val choices = pairScheduler.choices(
             answer = target, pool = otherLetters, count = OPTIONS,
             distanceTo = { minOf(BigLetters.visualDistance(target, it), BigLetters.visualDistance(partner, it)) },
-            minDistance = 1, forced = listOf(partner)
+            minDistance = 1, forced = listOf(partner), key = "${p.id}_$target"
         )
         showRound(
             RoundSpec(

@@ -7,11 +7,24 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 
 private val Context.nikudDataStore: DataStore<Preferences> by preferencesDataStore(name = "nikud")
 
 /** The "meet the mark" cards seen, as a comma-separated string of card numbers. */
 class DataStoreNikudCardStore(private val context: Context) : NikudCardStore {
+    companion object {
+        private var visits: OrderedNikudCardStore? = null
+
+        fun visits(context: Context): OrderedNikudCardStore = synchronized(this) {
+            visits ?: OrderedNikudCardStore(
+                DataStoreNikudCardStore(context.applicationContext), CoroutineScope(SupervisorJob() + Dispatchers.IO)
+            ).also { visits = it }
+        }
+    }
+
     private val key = stringPreferencesKey("cards_seen")
 
     override suspend fun seen(): Set<Int> =

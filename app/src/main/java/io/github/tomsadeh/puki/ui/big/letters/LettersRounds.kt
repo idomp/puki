@@ -23,7 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -72,17 +71,16 @@ private fun TileMark.toBoard() = when (this) {
  * end of the session. [content] is the play area for the current state.
  */
 @Composable
-private fun LettersRound(vm: BigLetterGameViewModel, onExit: () -> Unit, content: @Composable BoxScope.(LetterGameState) -> Unit) {
+private fun LettersRound(vm: BigLetterGameViewModel, onExit: () -> Unit, onAgain: () -> Unit, content: @Composable BoxScope.(LetterGameState) -> Unit) {
     val state by vm.state.collectAsStateWithLifecycle()
     val sfx = LocalSfxPlayer.current
     val paused by rememberGamePaused()
-    var session by remember { mutableIntStateOf(0) }
 
-    LaunchedEffect(Unit) { if (vm.state.value.phase == LetterPhase.COMPLETE) vm.restart() else vm.start() }
+    LaunchedEffect(vm) { vm.start() }
     PlayVoiceCue(state.cue.keys, state.cue.token.toLong())
 
     // The shells keep what this session found
-    val found = remember(session) { mutableStateListOf<String?>().apply { repeat(ListenFindGame.ROUNDS) { add(null) } } }
+    val found = remember { mutableStateListOf<String?>().apply { repeat(ListenFindGame.ROUNDS) { add(null) } } }
     LaunchedEffect(state.solved, state.roundIndex) {
         if (state.solved) state.tiles.firstOrNull { it.mark == TileMark.CORRECT }?.let { tile ->
             if (state.roundIndex in found.indices) found[state.roundIndex] = tile.glyph
@@ -123,7 +121,7 @@ private fun LettersRound(vm: BigLetterGameViewModel, onExit: () -> Unit, content
                 ConfettiOverlay(show = true)
                 RoundCompleteSheet(
                     starsEarned = state.starsEarned,
-                    onContinue = { session++; vm.restart() },
+                    onContinue = onAgain,
                     onHome = onExit
                 )
             }
@@ -156,16 +154,16 @@ private fun BoardsRow(state: LetterGameState, onTap: (String) -> Unit) {
 
 /** Listen and find: Puki names a letter, the child taps it among 3 or 4 boards. */
 @Composable
-fun ListenFindRound(onBack: () -> Unit) {
+fun ListenFindRound(onBack: () -> Unit, onAgain: () -> Unit) {
     val vm: ListenFindViewModel = viewModel()
-    LettersRound(vm, onBack) { state -> BoardsRow(state, vm::onAnswer) }
+    LettersRound(vm, onBack, onAgain) { state -> BoardsRow(state, vm::onAnswer) }
 }
 
 /** Letter detective: two look-alikes side by side with the difference said aloud, then questions. */
 @Composable
-fun LetterDetectiveRound(onBack: () -> Unit) {
+fun LetterDetectiveRound(onBack: () -> Unit, onAgain: () -> Unit) {
     val vm: LetterDetectiveViewModel = viewModel()
-    LettersRound(vm, onBack) { state ->
+    LettersRound(vm, onBack, onAgain) { state ->
         val compare = state.compare
         if (state.phase == LetterPhase.COMPARE && compare != null) {
             CompareView(compare, onReplay = vm::replay, onGo = vm::next)
@@ -220,9 +218,9 @@ private fun GoButton(size: androidx.compose.ui.unit.Dp, onClick: () -> Unit) {
 
 /** Final-form partners: a letter on the reading side, a link, and three candidates for its partner. */
 @Composable
-fun FinalPartnersRound(onBack: () -> Unit) {
+fun FinalPartnersRound(onBack: () -> Unit, onAgain: () -> Unit) {
     val vm: FinalPartnersViewModel = viewModel()
-    LettersRound(vm, onBack) { state ->
+    LettersRound(vm, onBack, onAgain) { state ->
         val shown = state.shown
         BoxWithConstraints(Modifier.fillMaxWidth()) {
             val shownW = 190.dp
