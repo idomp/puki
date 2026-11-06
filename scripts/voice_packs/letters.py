@@ -61,7 +61,7 @@ PHONEMES = {
     "voice_big_letters_final_kaf_he": "zˈot haʔˈot kˈaf sofˈit.",
     "voice_big_letters_final_mem_he": "zˈot haʔˈot mˈem sofˈit.",
     "voice_big_letters_final_nun_he": "zˈot haʔˈot nˈun sofˈit.",
-    "voice_big_letters_final_pe_he": "zˈot haʔˈot fˈe sofˈit.",
+    "voice_big_letters_final_pe_he": "zˈot haʔˈot pˈe sofˈit.",
     "voice_big_letters_final_tsadi_he": "zˈot haʔˈot tsˈadi sofˈit.",
 
     "voice_big_letters_find_it_he_f": "timtsˈi ʔotˈa!",
