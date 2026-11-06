@@ -105,7 +105,7 @@ class ContentPaceTest {
     }
 
     @Test
-    fun allNowSoundShellsAskEveryConsonantFromTheFirstSession() {
+    fun allNowMakesEveryConsonantEligibleInAnExtendedFirstVisit() {
         val everything = NikudEligibility(pace = ContentPace.ALL_NOW)
         for (seed in 0 until 20) {
             val game = SoundShellsGame(RoundScheduler(random = Random(seed)), Random(seed), Tally().events,

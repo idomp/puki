@@ -152,8 +152,14 @@ object Nikud {
     /** The words that may be a picture distractor or a "Read the sign" word. */
     val clearWords: List<Word> = words.filter { it.tier == Tier.CLEAR && it.id !in pendingAudio }
 
-    /** Pictures that look alike enough to be confused (never in one round). */
-    val pictureTwins: Set<Set<String>> = setOf(setOf("wave", "sea"), setOf("kindergarten", "garden"))
+    /** Pictures that look alike or can reasonably name the same thing (never in one round). */
+    val pictureTwins: Set<Set<String>> = setOf(
+        setOf("wave", "sea"),
+        setOf("kindergarten", "garden"),
+        setOf("spoon", "hand"), // kaf also means the palm of a hand
+        setOf("sea", "boat"), // the sea picture includes a sailboat
+        setOf("roof", "kindergarten") // the kindergarten picture includes a prominent roof
+    )
 
     fun areTwins(a: Word, b: Word): Boolean = a.pictureId != null && b.pictureId != null &&
         (a.pictureId == b.pictureId || setOf(a.pictureId, b.pictureId) in pictureTwins)

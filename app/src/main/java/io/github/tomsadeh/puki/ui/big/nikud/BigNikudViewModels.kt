@@ -8,6 +8,7 @@ import io.github.tomsadeh.puki.data.models.ContentPace
 import io.github.tomsadeh.puki.learning.DataStoreSchedulerStore
 import io.github.tomsadeh.puki.learning.RoundScheduler
 import io.github.tomsadeh.puki.learning.SchedulerMemory
+import io.github.tomsadeh.puki.learning.SchedulerVisit
 import io.github.tomsadeh.puki.ui.big.letters.RoundEvents
 import io.github.tomsadeh.puki.ui.common.GameSession
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +21,7 @@ import kotlin.random.Random
 /**
  * Wraps one scored Sounds-and-Words game for a screen: [start] once, observe [state], send the game's
  * events through the subclass's functions. The screen plays each state's `cue` (keys + token) in Hebrew.
- * Stars go to a GameSession; learning is saved on completion and exposure when the visit's owner is released.
+ * Stars go to a GameSession; learning is saved on completion and exposure before each new presentation is published.
  */
 abstract class NikudGameViewModel<G, S>(
     application: Application,
@@ -38,16 +39,14 @@ abstract class NikudGameViewModel<G, S>(
     protected var game: G? = null
         private set
     private var starting = false
-    private var scheduler: RoundScheduler? = null
-    private var completedMemory: SchedulerMemory? = null
+    private var visit: SchedulerVisit? = null
 
     private val events = RoundEvents(
         onStar = { session.star() },
         onSlip = { session.slip() },
         onFinish = { rounds, memory ->
             session.finish(rounds)
-            completedMemory = memory
-            store.save(memoryKey, memory)
+            visit?.complete(memory)
         }
     )
 
@@ -75,27 +74,26 @@ abstract class NikudGameViewModel<G, S>(
                 .getOrDefault(ContentPace.GRADUAL)
             val random = Random.Default
             val nextScheduler = RoundScheduler(memory, random)
-            scheduler = nextScheduler
-            completedMemory = null
+            val nextVisit = SchedulerVisit(nextScheduler, memoryKey, store)
+            visit = nextVisit
             val g = createGame(nextScheduler, random, events, seen, NikudEligibility(shells, join, pace))
             game = g
-            startGame(g)
-            _state.value = snapshot(g)
+            _state.value = nextVisit.update {
+                startGame(g)
+                snapshot(g)
+            }
             starting = false
         }
     }
 
-    private fun saveVisit() {
-        val memory = completedMemory ?: scheduler?.checkpoint() ?: return
-        store.save(memoryKey, memory)
-    }
-
-    override fun onCleared() { saveVisit() }
+    override fun onCleared() { visit?.save() }
 
     protected fun act(action: (G) -> Unit) {
         val g = game ?: return
-        action(g)
-        _state.value = snapshot(g)
+        _state.value = visit?.update {
+            action(g)
+            snapshot(g)
+        } ?: return
     }
 
     /** A card was seen (from the shells' offer or the door): remember it. */
