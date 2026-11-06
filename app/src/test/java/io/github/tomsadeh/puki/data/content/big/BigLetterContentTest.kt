@@ -62,7 +62,8 @@ class BigLetterContentTest {
     @Test
     fun lookalikePairsUseRealIdsAndAreNotRepeated() {
         val required = listOf("dalet" to "resh", "he" to "het", "bet" to "kaf", "vav" to "yod", "gimel" to "nun",
-            "tet" to "samekh", "ayin" to "shin", "vav" to "zayin", "nun_final" to "vav", "mem_final" to "samekh")
+            "tet" to "samekh", "ayin" to "shin", "vav" to "zayin", "nun_final" to "vav", "mem_final" to "samekh",
+            "kaf" to "pe", "het" to "tav")
         for ((a, b) in required) assertNotNull("$a/$b", BigLetters.pairOf(a, b))
         assertEquals(required.size, BigLetters.pairs.size)
         assertEquals(BigLetters.pairs.size, BigLetters.pairs.map { it.id }.toSet().size)

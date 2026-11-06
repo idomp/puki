@@ -49,7 +49,8 @@ abstract class NikudGameViewModel<G, S>(
         }
     )
 
-    protected abstract fun createGame(scheduler: RoundScheduler, random: Random, events: RoundEvents, cardsSeen: Set<Int>): G
+    protected abstract fun createGame(scheduler: RoundScheduler, random: Random, events: RoundEvents,
+                                      cardsSeen: Set<Int>, eligibility: NikudEligibility): G
     protected abstract fun startGame(game: G)
     protected abstract fun snapshot(game: G): S
 
@@ -63,11 +64,15 @@ abstract class NikudGameViewModel<G, S>(
         viewModelScope.launch {
             val memory = runCatching { store.load(memoryKey) }.getOrDefault(SchedulerMemory())
             val seen = runCatching { cards.seen() }.getOrDefault(emptySet())
+            val shells = if (memoryKey == "big_nikud_shells") memory else
+                runCatching { store.load("big_nikud_shells") }.getOrDefault(SchedulerMemory())
+            val join = if (memoryKey == "big_nikud_join") memory else
+                runCatching { store.load("big_nikud_join") }.getOrDefault(SchedulerMemory())
             val random = Random.Default
             val nextScheduler = RoundScheduler(memory, random)
             scheduler = nextScheduler
             completedMemory = null
-            val g = createGame(nextScheduler, random, events, seen)
+            val g = createGame(nextScheduler, random, events, seen, NikudEligibility(shells, join))
             game = g
             startGame(g)
             _state.value = snapshot(g)
@@ -96,7 +101,8 @@ abstract class NikudGameViewModel<G, S>(
 
 class SoundShellsViewModel(application: Application) :
     NikudGameViewModel<SoundShellsGame, ShellsState>(application, "big_nikud_shells", "big_nikud_shells", ShellsState()) {
-    override fun createGame(scheduler: RoundScheduler, random: Random, events: RoundEvents, cardsSeen: Set<Int>) =
+    override fun createGame(scheduler: RoundScheduler, random: Random, events: RoundEvents,
+                            cardsSeen: Set<Int>, eligibility: NikudEligibility) =
         SoundShellsGame(scheduler, random, events, cardsSeen)
 
     override fun startGame(game: SoundShellsGame) = game.start()
@@ -109,8 +115,9 @@ class SoundShellsViewModel(application: Application) :
 
 class JoinWordViewModel(application: Application) :
     NikudGameViewModel<JoinWordGame, JoinState>(application, "big_nikud_join", "big_nikud_join", JoinState()) {
-    override fun createGame(scheduler: RoundScheduler, random: Random, events: RoundEvents, cardsSeen: Set<Int>) =
-        JoinWordGame(scheduler, random, events)
+    override fun createGame(scheduler: RoundScheduler, random: Random, events: RoundEvents,
+                            cardsSeen: Set<Int>, eligibility: NikudEligibility) =
+        JoinWordGame(scheduler, random, events, eligibility = eligibility)
 
     override fun startGame(game: JoinWordGame) = game.start()
     override fun snapshot(game: JoinWordGame) = game.state
@@ -124,8 +131,9 @@ class JoinWordViewModel(application: Application) :
 
 class ReadSignViewModel(application: Application) :
     NikudGameViewModel<ReadSignGame, ReadSignState>(application, "big_nikud_read", "big_nikud_read", ReadSignState()) {
-    override fun createGame(scheduler: RoundScheduler, random: Random, events: RoundEvents, cardsSeen: Set<Int>) =
-        ReadSignGame(scheduler, random, events)
+    override fun createGame(scheduler: RoundScheduler, random: Random, events: RoundEvents,
+                            cardsSeen: Set<Int>, eligibility: NikudEligibility) =
+        ReadSignGame(scheduler, random, events, eligibility = eligibility)
 
     override fun startGame(game: ReadSignGame) = game.start()
     override fun snapshot(game: ReadSignGame) = game.state

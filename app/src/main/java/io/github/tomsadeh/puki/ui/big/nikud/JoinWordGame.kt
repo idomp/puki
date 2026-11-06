@@ -65,7 +65,8 @@ class JoinWordGame(
     private val scheduler: RoundScheduler,
     random: kotlin.random.Random,
     private val events: RoundEvents,
-    val rounds: Int = ROUNDS
+    val rounds: Int = ROUNDS,
+    private val eligibility: NikudEligibility = NikudEligibility()
 ) {
     companion object {
         const val ROUNDS = 8
@@ -79,11 +80,13 @@ class JoinWordGame(
     private var word: Nikud.Word? = null
     private var layout: PictureLayout? = null
     private var slipped = false
+    private var pool = emptyList<Nikud.Word>()
 
     private fun cue(keys: List<String>) = VoiceCue(keys, ++tokens)
 
     fun start() {
-        scheduler.begin(rounds, Nikud.words.map { it.id })
+        pool = eligibility.joinWords(scheduler.memory)
+        scheduler.begin(rounds, pool.map { it.id })
         show(first = true)
     }
 
@@ -135,7 +138,7 @@ class JoinWordGame(
             solve(w)
             return
         }
-        val l = chooser.choose(w, DistractorLevel.DIFFERENT_START)
+        val l = chooser.choose(w, DistractorLevel.DIFFERENT_START, pool = pool)
         layout = l
         state = state.copy(
             phase = JoinPhase.PICTURE,

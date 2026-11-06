@@ -19,19 +19,34 @@ class NikudContentTest {
         .findAll(packText).associate { it.groupValues[1] to it.groupValues.drop(2).filter { t -> t.isNotEmpty() } }
     private val rawKeys = repoFile("app/src/main/res/raw").listFiles()!!.map { it.name.substringBefore("_he").substringBefore("_en") }.toSet()
 
-    /** Syllable clips the parent has not picked yet (the keys exist in the code; audio is skipped until they do). */
-    private val pending = setOf("lamed_a", "nun_a", "yod_a", "lamed_i", "nun_i", "shin_i", "gimel_i", "dalet_i", "yod_i", "pe_i")
-        .map { "voice_big_nikud_$it" }.toSet()
-
     @Test
     fun unitsRebuildEachWordExactlyAsTheVoicePackWritesIt() {
-        assertEquals(12, Nikud.words.size)
+        assertEquals(21, Nikud.words.size)
         for (w in Nikud.words) {
             assertEquals(w.id, w.units.joinToString("") { it.text }, w.text)
+            if (w.id in Nikud.pendingAudio) continue
             val packed = packLines[w.wordKey]
             assertNotNull("${w.wordKey} in the pack", packed)
             assertEquals(w.id, nfc(packed!!.first()), nfc(w.text))
         }
+    }
+
+    @Test
+    fun newWordsKeepTheirApprovedPointingAndReadingUnits() {
+        val expected = mapOf(
+            "gamal" to listOf("גָּ", "מָ", "ל"), "kaf" to listOf("כַּ", "ף"),
+            "sal" to listOf("סַ", "ל"), "sir" to listOf("סִי", "ר"), "sira" to listOf("סִי", "רָה"),
+            "panas" to listOf("פָּ", "נָ", "ס"), "banana" to listOf("בָּ", "נָ", "נָה"),
+            "para" to listOf("פָּ", "רָה"), "tiras" to listOf("תִּי", "רָ", "ס")
+        )
+        for ((id, units) in expected) {
+            val word = Nikud.word(id)
+            assertEquals(id, units.map(::nfc), word.units.map { nfc(it.text) })
+            assertEquals(id, nfc(units.joinToString("")), nfc(word.text))
+            assertEquals(Nikud.Tier.CLEAR, word.tier)
+            assertEquals("voice_big_nikud_word_$id", word.wordKey)
+        }
+        assertTrue(Nikud.pendingAudio.all { it in setOf("banana", "para", "tiras") })
     }
 
     @Test
@@ -59,21 +74,35 @@ class NikudContentTest {
 
     @Test
     fun tiersAndPictures() {
-        assertEquals(setOf("dag", "pil", "yad", "mapa", "gina", "yam", "gal", "gan", "gag"), Nikud.clearWords.map { it.id }.toSet())
+        assertEquals(setOf("dag", "pil", "yad", "mapa", "gina", "yam", "gal", "gan", "gag",
+            "gamal", "kaf", "sal", "sir", "sira", "panas", "banana", "para", "tiras") - Nikud.pendingAudio,
+            Nikud.clearWords.map { it.id }.toSet())
         assertEquals(setOf("mana", "pina"), Nikud.words.filter { it.tier == Nikud.Tier.SCENE }.map { it.id }.toSet())
         assertEquals(listOf("mila"), Nikud.words.filter { it.tier == Nikud.Tier.NONE }.map { it.id })
         assertNull(Nikud.word("mila").pictureId)
         val pictures = Nikud.words.mapNotNull { it.pictureId }
         assertEquals(pictures.size, pictures.toSet().size)
-        assertEquals(setOf("fish", "elephant", "hand", "map", "garden", "sea", "wave", "kindergarten", "roof", "plate", "corner"), pictures.toSet())
         assertTrue(Nikud.areTwins(Nikud.word("gal"), Nikud.word("yam")))
         assertTrue(Nikud.areTwins(Nikud.word("gan"), Nikud.word("gina")))
         assertFalse(Nikud.areTwins(Nikud.word("gal"), Nikud.word("gan")))
+        assertTrue(Nikud.areTwins(Nikud.word("sal"), Nikud.word("sal").copy(id = "another_basket")))
     }
 
     @Test
-    fun syllablesAreSixteenClipsAndKamatzSharesPatah() {
-        assertEquals(16, Nikud.SYLLABLE_CLIPS.size)
+    fun everyPictureMapsToAnExistingDrawable() {
+        val mapping = repoFile("app/src/main/java/io/github/tomsadeh/puki/ui/big/nikud/NikudPictures.kt").readText()
+        val resources = Regex(""""([a-z]+)" -> R.drawable.([a-z_]+)""").findAll(mapping)
+            .associate { it.groupValues[1] to it.groupValues[2] }
+        for (word in Nikud.words.filter { it.pictureId != null }) {
+            val drawable = resources[word.pictureId]
+            assertNotNull(word.id, drawable)
+            assertTrue(word.id, repoFile("app/src/main/res/drawable/$drawable.xml").isFile)
+        }
+    }
+
+    @Test
+    fun syllablesAreTwentySixClipsAndKamatzSharesPatah() {
+        assertEquals(26, Nikud.SYLLABLE_CLIPS.size)
         for (c in Nikud.consonants) for (m in Nikud.Mark.values()) {
             val s = Nikud.syllable(c.id, m)
             assertEquals(Nikud.syllableClip(c.id, m.sound), s.clipKey)
@@ -86,15 +115,13 @@ class NikudContentTest {
     }
 
     @Test
-    fun everyVoiceKeyWrittenInTheCodeHasALineAudioOrIsKnownPending() {
+    fun everyActiveVoiceKeyHasAPackLineAndAudio() {
         val dirs = listOf("app/src/main/java/io/github/tomsadeh/puki/ui/big/nikud", "app/src/main/java/io/github/tomsadeh/puki/data/content/big/NikudContent.kt")
         val used = dirs.map { repoFile(it) }.flatMap { f -> if (f.isDirectory) f.walk().filter { it.extension == "kt" }.toList() else listOf(f) }
             .flatMap { f -> Regex(""""(voice_big_nikud_[a-z0-9_]+)"""").findAll(f.readText(Charsets.UTF_8)).map { it.groupValues[1] }.toList() }.toSet()
         assertTrue(used.size > 30)
-        val known = packLines.keys + rawKeys
-        // keys the coordinator still has to add to the pack (or that wait for the listening round)
-        val missing = used.filter { it !in known }.toSet()
-        val allowed = pending + setOf("voice_big_nikud_pick_picture", "voice_big_nikud_two_marks")
-        assertEquals("unknown keys", emptySet<String>(), missing - allowed)
+        val playable = used + Nikud.SYLLABLE_CLIPS.values + Nikud.words.filter { it.id !in Nikud.pendingAudio }.map { it.wordKey }
+        assertEquals("missing pack lines", emptySet<String>(), playable - packLines.keys)
+        assertEquals("missing audio", emptySet<String>(), playable - rawKeys)
     }
 }

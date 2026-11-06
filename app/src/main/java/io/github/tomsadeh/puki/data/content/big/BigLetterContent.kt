@@ -94,7 +94,9 @@ object BigLetters {
         LetterPair("ayin_shin", "ayin", "shin", "voice_big_letters_cmp_ayin_shin", "לשין שלושה ענפים, ולעין שני ענפים ורגל."),
         LetterPair("vav_zayin", "vav", "zayin", "voice_big_letters_cmp_vav_zayin", "לזיין יש כובע למעלה, ולוו אין."),
         LetterPair("nun_final_vav", "nun_final", "vav", "voice_big_letters_cmp_nun_final_vav", "לנון סופית יש רגל ארוכה שיורדת מתחת לשורה, ולוו אין."),
-        LetterPair("mem_final_samekh", "mem_final", "samekh", "voice_big_letters_cmp_mem_final_samekh", "למם סופית יש פינות, ולסמך עיגול.")
+        LetterPair("mem_final_samekh", "mem_final", "samekh", "voice_big_letters_cmp_mem_final_samekh", "למם סופית יש פינות, ולסמך עיגול."),
+        LetterPair("kaf_pe", "kaf", "pe", "voice_big_letters_cmp_kaf_pe", "לפא יש לשון קטנה בפנים, ולכף אין."),
+        LetterPair("het_tav", "het", "tav", "voice_big_letters_cmp_het_tav", "לתו יש רגל שפונה החוצה, ולחית שתי רגליים ישרות.")
     )
 
     private val pairKeys: Set<Set<String>> = pairs.map { setOf(it.a, it.b) }.toSet()
@@ -102,7 +104,7 @@ object BigLetters {
     /** Pairs of letters that look a little alike but are not on the detective's list. */
     private val nearKeys: Set<Set<String>> = listOf(
         "gimel" to "zayin", "nun" to "zayin", "tet" to "mem", "ayin" to "tsadi", "shin" to "mem",
-        "he" to "tav", "het" to "tav", "kaf_final" to "resh", "kaf_final" to "dalet", "kaf_final" to "nun_final",
+        "he" to "tav", "kaf_final" to "resh", "kaf_final" to "dalet", "kaf_final" to "nun_final",
         "nun_final" to "zayin", "pe_final" to "tsadi_final", "tsadi" to "tsadi_final", "qof" to "kaf", "qof" to "het"
     ).map { setOf(it.first, it.second) }.toSet()
 
