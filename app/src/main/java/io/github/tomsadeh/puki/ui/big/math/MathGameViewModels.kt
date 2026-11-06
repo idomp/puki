@@ -53,14 +53,14 @@ abstract class MathGameViewModel<S : MathState>(
 }
 
 class FriendsViewModel(application: Application) : MathGameViewModel<FriendsState>(
-    application, FriendsGame(Random.Default, DataStoreMathProgressStore(application))
+    application, FriendsGame(Random.Default, DataStoreMathProgressStore(application), DataStoreMathHistoryStore(application))
 ) {
     fun advancePhase() = event { (game as FriendsGame).advancePhase() }
     fun onAnswer(number: Int) = event { (game as FriendsGame).onAnswer(number) }
 }
 
 class PicnicViewModel(application: Application) : MathGameViewModel<PicnicState>(
-    application, PicnicGame(Random.Default, DataStoreMathProgressStore(application))
+    application, PicnicGame(Random.Default, DataStoreMathProgressStore(application), DataStoreMathHistoryStore(application))
 ) {
     fun addItem() = event { (game as PicnicGame).addItem() }
     fun removeItem() = event { (game as PicnicGame).removeItem() }
@@ -68,7 +68,7 @@ class PicnicViewModel(application: Application) : MathGameViewModel<PicnicState>
 }
 
 class FrameViewModel(application: Application) : MathGameViewModel<FrameState>(
-    application, FrameGame(Random.Default, DataStoreMathProgressStore(application))
+    application, FrameGame(Random.Default, DataStoreMathProgressStore(application), DataStoreMathHistoryStore(application))
 ) {
     fun onAnswer(number: Int) = event { (game as FrameGame).onAnswer(number) }
 }

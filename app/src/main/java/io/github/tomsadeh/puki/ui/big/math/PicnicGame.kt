@@ -29,40 +29,26 @@ data class PicnicState(
     override val voice: MathVoiceCue = MathVoiceCue()
 ) : MathState
 
-class PicnicGame(random: Random, progress: MathProgressStore) :
-    MathGame<PicnicState>(MathGameId.PICNIC, random, progress) {
+class PicnicGame(random: Random, progress: MathProgressStore, history: MathHistoryStore = InMemoryMathHistoryStore()) :
+    MathGame<PicnicState>(MathGameId.PICNIC, random, progress, history) {
     override var state = PicnicState()
         private set
+    /** Last three rounds of a mixed stage: both requests appear, in a shuffled order. */
+    private var laterRequests = emptyList<PicnicRequest>()
 
-    override fun startRound() {
+    override suspend fun startRound() {
         val stage = session.stage
         val index = session.roundIndex
-        val maximum = if (stage == MathStage.MIXED_10 && index < 2) 5 else stage.maximum
-        val minimum = if (stage.allowsZero) 0 else 1
-        val request = when {
-            index < 3 -> PicnicRequest.EXACT
-            stage == MathStage.JOIN_5 -> PicnicRequest.ONE_MORE
-            stage == MathStage.TAKE_5 -> PicnicRequest.ONE_LESS
-            index % 2 == 1 -> PicnicRequest.ONE_MORE
-            else -> PicnicRequest.ONE_LESS
-        }
-        val candidates = (0..maximum).mapNotNull { shown ->
-            val target = shown + when (request) {
-                PicnicRequest.EXACT -> 0
-                PicnicRequest.ONE_MORE -> 1
-                PicnicRequest.ONE_LESS -> -1
+        val maximum = picnicMaximum(stage, index)
+        val request = when (val fixed = picnicRequests(stage, index).singleOrNull()) {
+            null -> {
+                if (laterRequests.isEmpty()) laterRequests = listOf(PicnicRequest.ONE_MORE, PicnicRequest.ONE_LESS,
+                    if (random.nextBoolean()) PicnicRequest.ONE_MORE else PicnicRequest.ONE_LESS).shuffled(random)
+                laterRequests[index - 3]
             }
-            if (shown in minimum..maximum && target in minimum..maximum &&
-                (stage != MathStage.MIXED_10 || index < 2 || maxOf(shown, target) > 5))
-                PicnicRound(request, shown) else null
+            else -> fixed
         }
-        // Explicit zero target first, then zero as the visible reference in a one-more task.
-        val round = when {
-            stage == MathStage.ZERO_5 && index == 2 -> PicnicRound(PicnicRequest.EXACT, 0)
-            stage == MathStage.ZERO_5 && index == 3 -> PicnicRound(PicnicRequest.ONE_MORE, 0)
-            stage == MathStage.ZERO_5 && index == 4 -> PicnicRound(PicnicRequest.ONE_LESS, 1)
-            else -> candidates.random(random)
-        }
+        val round = draw(picnicPool(stage, index, request)) { picnicKey(it) }
         val prompt = when (round.request) {
             PicnicRequest.EXACT -> listOf(MathContent.picnicTargets[round.target], MathContent.pressReady)
             PicnicRequest.ONE_MORE -> listOf(MathContent.picnicShown[round.shownAmount], MathContent.oneMore, MathContent.pressReady)
@@ -105,3 +91,48 @@ class PicnicGame(random: Random, progress: MathProgressStore) :
     }
     override fun refreshSession() { state = state.copy(session = session, voice = cue(emptyList())) }
 }
+
+private fun picnicKey(round: PicnicRound) = "${when (round.request) {
+    PicnicRequest.EXACT -> '='
+    PicnicRequest.ONE_MORE -> '+'
+    PicnicRequest.ONE_LESS -> '-'
+}}${round.shownAmount}"
+
+private fun picnicMaximum(stage: MathStage, index: Int) = if (stage == MathStage.MIXED_10 && index < 2) 5 else stage.maximum
+
+/** Exact quantities first; then the stage's one request, or a shuffle of both in the mixed stages. */
+internal fun picnicRequests(stage: MathStage, index: Int): Set<PicnicRequest> = when {
+    index < 3 -> setOf(PicnicRequest.EXACT)
+    stage == MathStage.JOIN_5 -> setOf(PicnicRequest.ONE_MORE)
+    stage == MathStage.TAKE_5 -> setOf(PicnicRequest.ONE_LESS)
+    stage == MathStage.ZERO_5 -> setOf(if (index % 2 == 1) PicnicRequest.ONE_MORE else PicnicRequest.ONE_LESS)
+    else -> setOf(PicnicRequest.ONE_MORE, PicnicRequest.ONE_LESS)
+}
+
+/** Every basket this round may ask for. ZERO_5 fixes the zero examples; the opening rounds leave zero to them. */
+internal fun picnicPool(stage: MathStage, index: Int, request: PicnicRequest): List<PicnicRound> {
+    // Explicit zero target first, then zero as the visible reference in a one-more task.
+    if (stage == MathStage.ZERO_5) when (index) {
+        2 -> return listOf(PicnicRound(PicnicRequest.EXACT, 0))
+        3 -> return listOf(PicnicRound(PicnicRequest.ONE_MORE, 0))
+        4 -> return listOf(PicnicRound(PicnicRequest.ONE_LESS, 1))
+    }
+    val maximum = picnicMaximum(stage, index)
+    val minimum = if (stage.allowsZero) 0 else 1
+    val change = when (request) {
+        PicnicRequest.EXACT -> 0
+        PicnicRequest.ONE_MORE -> 1
+        PicnicRequest.ONE_LESS -> -1
+    }
+    return (minimum..maximum).mapNotNull { shown ->
+        val target = shown + change
+        if (target in minimum..maximum &&
+            (stage != MathStage.MIXED_10 || index < 2 || maxOf(shown, target) > 5) &&
+            !(stage == MathStage.ZERO_5 && index < 2 && shown == 0))
+            PicnicRound(request, shown) else null
+    }
+}
+
+/** Everything a stage can show over its six rounds. */
+internal fun picnicCatalog(stage: MathStage): Set<PicnicRound> =
+    (0 until 6).flatMap { index -> picnicRequests(stage, index).flatMap { picnicPool(stage, index, it) } }.toSet()

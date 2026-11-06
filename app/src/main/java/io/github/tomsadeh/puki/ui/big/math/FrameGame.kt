@@ -24,25 +24,19 @@ data class FrameState(
     override val voice: MathVoiceCue = MathVoiceCue()
 ) : MathState
 
-class FrameGame(random: Random, progress: MathProgressStore) :
-    MathGame<FrameState>(MathGameId.FRAME, random, progress) {
+class FrameGame(random: Random, progress: MathProgressStore, history: MathHistoryStore = InMemoryMathHistoryStore()) :
+    MathGame<FrameState>(MathGameId.FRAME, random, progress, history) {
     override var state = FrameState()
         private set
 
-    override fun startRound() {
-        val capacity = if (session.stage == MathStage.MIXED_10 && session.roundIndex >= 2) 10 else 5
-        val minimum = if (session.stage.allowsZero) 0 else 1
-        val maximum = if (session.stage.allowsZero) capacity else capacity - 1
-        val filled = when {
-            session.stage.allowsZero && session.roundIndex == 3 -> 0
-            session.stage.allowsZero && session.roundIndex == 4 -> capacity
-            else -> random.nextInt(minimum, maximum + 1)
-        }
-        val round = FrameRound(capacity, filled)
+    override suspend fun startRound() {
+        val round = draw(framePool(session.stage, session.roundIndex)) { "${it.capacity}:${it.filled}" }
+        val capacity = round.capacity
+        val filled = round.filled
         val prompt = listOf(if (capacity == 5) MathContent.frameFive else MathContent.frameTen,
             MathContent.frameFilled[filled], MathContent.howManyMissing)
         state = FrameState(
-            round = round, choices = mathChoices(round.missing, capacity, session.stage.allowsZero, random),
+            round = round, choices = mathChoices(round.missing, capacity, session.stage.allowsZero, random, answerSlot()),
             prompt = prompt, cells = List(capacity) { it < filled },
             equation = if (session.stage >= MathStage.MIXED_5 && session.roundIndex >= 3)
                 Equation(filled, MathOperation.PLUS, null, capacity) else null,
@@ -70,3 +64,22 @@ class FrameGame(random: Random, progress: MathProgressStore) :
     }
     override fun refreshSession() { state = state.copy(session = session, voice = cue(emptyList())) }
 }
+
+private fun frameCapacity(stage: MathStage, index: Int) = if (stage == MathStage.MIXED_10 && index >= 2) 10 else 5
+
+/**
+ * Every frame this round may show. Counters stay in canonical order, so a problem is just a count. The empty and
+ * full examples are fixed rounds where zero is taught, and the open rounds leave them out so nothing repeats.
+ */
+internal fun framePool(stage: MathStage, index: Int): List<FrameRound> {
+    val capacity = frameCapacity(stage, index)
+    if (stage.allowsZero && index == 3) return listOf(FrameRound(capacity, 0))
+    if (stage.allowsZero && index == 4) return listOf(FrameRound(capacity, capacity))
+    // Zero-stage warmups on the small frame may still be empty or full; the big frame saves them for the examples.
+    val range = if (stage == MathStage.MIXED_10 && capacity == 5) 0..5 else 1 until capacity
+    return range.map { FrameRound(capacity, it) }
+}
+
+/** Everything a stage can show over its six rounds. */
+internal fun frameCatalog(stage: MathStage): Set<FrameRound> =
+    (0 until 6).flatMap { framePool(stage, it) }.toSet()

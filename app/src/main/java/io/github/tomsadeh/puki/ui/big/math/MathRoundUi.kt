@@ -86,14 +86,14 @@ internal fun MathRoundUi(
     }
 }
 
-/** Fixed LTR order, including in an RTL island. The kit's HINT tilts, so use a still halo. */
+/** Fixed LTR order, including in an RTL island; choices keep the engine's order. The kit's HINT tilts, so use a still halo. */
 @Composable
 internal fun NumberBoards(choices: List<Int>, answer: Int, complete: Boolean, feedback: MathFeedback?, showHint: Boolean,
                           showDots: Boolean, onAnswer: (Int) -> Unit, modifier: Modifier = Modifier) {
     val paused = LocalGamePaused.current
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
         Row(modifier, horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
-            choices.sorted().forEach { n ->
+            choices.forEach { n ->
                 val mark = when {
                     complete && n == answer -> BoardMark.CORRECT
                     feedback?.chosen == n -> BoardMark.WRONG

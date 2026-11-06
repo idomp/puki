@@ -30,12 +30,14 @@ data class FriendsState(
     override val roundComplete: Boolean get() = phase == StoryPhase.ANSWERED
 }
 
-class FriendsGame(random: Random, progress: MathProgressStore) :
-    MathGame<FriendsState>(MathGameId.FRIENDS, random, progress) {
+class FriendsGame(random: Random, progress: MathProgressStore, history: MathHistoryStore = InMemoryMathHistoryStore()) :
+    MathGame<FriendsState>(MathGameId.FRIENDS, random, progress, history) {
     override var state = FriendsState()
         private set
+    /** Rounds 3-6 of a mixed stage: two joins and two leaves in a shuffled order. */
+    private var laterOperations = emptyList<MathOperation>()
 
-    override fun startRound() {
+    override suspend fun startRound() {
         val round = selectRound()
         // Warmup stories use at most three birds, but still offer the mockup's four boards.
         val choiceMaximum = if (session.stage == MathStage.JOIN_5) session.stage.maximum else roundMaximum()
@@ -49,7 +51,7 @@ class FriendsGame(random: Random, progress: MathProgressStore) :
         )
         state = FriendsState(
             round = round, phaseVoices = voices,
-            choices = mathChoices(round.result, choiceMaximum, session.stage.allowsZero, random),
+            choices = mathChoices(round.result, choiceMaximum, session.stage.allowsZero, random, answerSlot()),
             session = session, voice = cue(voices.getValue(StoryPhase.SHOW_START))
         )
     }
@@ -88,44 +90,69 @@ class FriendsGame(random: Random, progress: MathProgressStore) :
     }
     override fun refreshSession() { state = state.copy(session = session, voice = cue(emptyList())) }
 
-    private fun roundMaximum(): Int = when {
-        session.stage == MathStage.MIXED_10 && session.roundIndex < 2 -> 5
-        session.stage == MathStage.JOIN_5 && session.roundIndex < 2 -> 3
-        else -> session.stage.maximum
-    }
+    private fun roundMaximum() = friendsMaximum(session.stage, session.roundIndex)
 
-    private fun selectRound(): FriendsRound {
+    private suspend fun selectRound(): FriendsRound {
         val stage = session.stage
         val index = session.roundIndex
-        val maximum = roundMaximum()
-        // Zero gets deliberate examples: empty start, no change, take everything, empty + empty.
-        if (stage == MathStage.ZERO_5 && index >= 2) {
-            val n = random.nextInt(1, maximum + 1)
-            return when (index) {
-                2 -> FriendsRound(0, n, MathOperation.PLUS)
-                3 -> FriendsRound(n, 0, MathOperation.PLUS)
-                4 -> FriendsRound(n, n, MathOperation.MINUS)
-                else -> FriendsRound(0, 0, MathOperation.PLUS)
+        val operation = when {
+            stage == MathStage.JOIN_5 -> MathOperation.PLUS
+            stage == MathStage.TAKE_5 -> MathOperation.MINUS
+            index < 2 || stage == MathStage.ZERO_5 -> MathOperation.PLUS
+            else -> {
+                if (laterOperations.isEmpty()) laterOperations = listOf(MathOperation.PLUS, MathOperation.PLUS,
+                    MathOperation.MINUS, MathOperation.MINUS).shuffled(random)
+                laterOperations[index - 2]
             }
         }
-        val operation = when (stage) {
-            MathStage.JOIN_5 -> MathOperation.PLUS
-            MathStage.TAKE_5 -> MathOperation.MINUS
-            else -> when (index) {
-                0, 1 -> MathOperation.PLUS
-                2, 3 -> MathOperation.MINUS
-                else -> if (random.nextBoolean()) MathOperation.PLUS else MathOperation.MINUS
-            }
-        }
-        val minimum = if (stage.allowsZero) 0 else 1
-        val candidates = (minimum..maximum).flatMap { a ->
-            (minimum..maximum).mapNotNull { b ->
-                val result = if (operation == MathOperation.PLUS) a + b else a - b
-                if (result in minimum..maximum &&
-                    (stage != MathStage.MIXED_10 || index < 2 || maxOf(a, b, result) > 5))
-                    FriendsRound(a, b, operation) else null
-            }
-        }
-        return candidates.random(random)
+        return draw(friendsPool(stage, index, operation)) { friendsKey(it) }
     }
 }
+
+private fun friendsKey(round: FriendsRound) =
+    "${round.startCount}${if (round.direction == MathOperation.PLUS) '+' else '-'}${round.change}"
+
+/** Warmup stories stay small: at most three birds at the start of JOIN_5, five at the start of MIXED_10. */
+internal fun friendsMaximum(stage: MathStage, index: Int): Int = when {
+    stage == MathStage.MIXED_10 && index < 2 -> 5
+    stage == MathStage.JOIN_5 && index < 2 -> 3
+    else -> stage.maximum
+}
+
+/** Operations a round can ask for; mixed stages open with joins, then shuffle the rest. */
+internal fun friendsOperations(stage: MathStage, index: Int): Set<MathOperation> = when {
+    stage == MathStage.JOIN_5 -> setOf(MathOperation.PLUS)
+    stage == MathStage.TAKE_5 -> setOf(MathOperation.MINUS)
+    index < 2 || stage == MathStage.ZERO_5 -> setOf(MathOperation.PLUS)
+    else -> MathOperation.entries.toSet()
+}
+
+/** Every story this round may show. The zero examples are fixed at ZERO_5; the opening rounds leave zero to them. */
+internal fun friendsPool(stage: MathStage, index: Int, operation: MathOperation): List<FriendsRound> {
+    val maximum = friendsMaximum(stage, index)
+    // Zero gets deliberate examples: empty start, no change, take everything, empty + empty.
+    if (stage == MathStage.ZERO_5 && index >= 2) {
+        val counts = 1..maximum
+        return when (index) {
+            2 -> counts.map { FriendsRound(0, it, MathOperation.PLUS) }
+            3 -> counts.map { FriendsRound(it, 0, MathOperation.PLUS) }
+            4 -> counts.map { FriendsRound(it, it, MathOperation.MINUS) }
+            else -> listOf(FriendsRound(0, 0, MathOperation.PLUS))
+        }
+    }
+    val openingLeavesZeroToLaterRounds = stage == MathStage.ZERO_5
+    val minimum = if (stage.allowsZero) 0 else 1
+    return (minimum..maximum).flatMap { a ->
+        (minimum..maximum).mapNotNull { b ->
+            val result = if (operation == MathOperation.PLUS) a + b else a - b
+            if (result in minimum..maximum &&
+                (stage != MathStage.MIXED_10 || index < 2 || maxOf(a, b, result) > 5) &&
+                (!openingLeavesZeroToLaterRounds || (a > 0 && b > 0)))
+                FriendsRound(a, b, operation) else null
+        }
+    }
+}
+
+/** Everything a stage can show over its six rounds. */
+internal fun friendsCatalog(stage: MathStage): Set<FriendsRound> =
+    (0 until 6).flatMap { index -> friendsOperations(stage, index).flatMap { friendsPool(stage, index, it) } }.toSet()
