@@ -277,9 +277,9 @@ class NikudUPackTest {
     fun theUCardIsOfferedWhenUFirstOpens() {
         assertEquals(3, shells(1, aiOpen, setOf(1, 2)).state.offerCard)
         assertNull(shells(1, aiOpen, setOf(1, 2, 3)).state.offerCard)
-        // a child who never saw the hiriq card meets it first, then the /u/ card in the next session
+        // a child who never saw an earlier card meets it first, one card per session
         assertEquals(2, shells(1, aiOpen, setOf(1)).state.offerCard)
-        assertEquals(2, shells(1, aiOpen, emptySet()).state.offerCard)
+        assertEquals(1, shells(1, aiOpen, emptySet()).state.offerCard)
         // the earlier stages keep offering their own card
         assertEquals(2, shells(1, solid(stage1), setOf(1)).state.offerCard)
         assertEquals(1, shells(1, SchedulerMemory(), emptySet()).state.offerCard)
@@ -367,8 +367,16 @@ class NikudUPackTest {
             while (!c.state.finished) c.onDone()
             return seen
         }
-        assertEquals(listOf(1, 2), flow(MeetMarkCard.CARD_I))
-        assertEquals(listOf(1, 2, 3), flow(MeetMarkCard.CARD_U))
+        // the card limit comes from the same eligibility test Sound Shells uses, per pace
+        val locked = mapOf(ContentPace.GRADUAL to solid(stage1 + ai.take(19)), ContentPace.FASTER to solid(stage1 + ai.take(17), seen = 1))
+        val unlocked = mapOf(ContentPace.GRADUAL to solid(stage1 + ai.take(20)), ContentPace.FASTER to solid(stage1 + ai.take(18), seen = 1))
+        for ((pace, memory) in locked) assertEquals("$pace locked", listOf(1, 2), flow(lastMeetCard(memory, pace)))
+        for ((pace, memory) in unlocked) assertEquals("$pace unlocked", listOf(1, 2, 3), flow(lastMeetCard(memory, pace)))
+        assertEquals(listOf(1, 2), flow(lastMeetCard(SchedulerMemory(), ContentPace.GRADUAL)))
+        assertEquals(listOf(1, 2), flow(lastMeetCard(SchedulerMemory(), ContentPace.FASTER)))
+        assertEquals(listOf(1, 2, 3), flow(lastMeetCard(SchedulerMemory(), ContentPace.ALL_NOW)))
+        assertEquals(MeetMarkCard.CARD_I, lastMeetCard(SchedulerMemory(), ContentPace.GRADUAL))
+        assertEquals(MeetMarkCard.CARD_U, lastMeetCard(unlocked.getValue(ContentPace.GRADUAL), ContentPace.GRADUAL))
         val default = MeetMarkCard(1, true).also { it.start() }
         default.onDone(); default.onDone()
         assertTrue(default.state.finished)
@@ -431,11 +439,43 @@ class NikudUPackTest {
 
     @Test
     fun oldCardRecordsKeepTheirMeaning() {
-        // "1,2" was the whole set before the /u/ card: it is read as the first two cards seen
-        val old = "1,2".split(',').mapNotNull { it.toIntOrNull() }.toSet()
+        // "1,2" was the whole stored value before the /u/ card: the production decoder reads it as two cards seen
+        val old = DataStoreNikudCardStore.decode("1,2")
         assertEquals(setOf(1, 2), old)
+        assertEquals(setOf(1), DataStoreNikudCardStore.decode("1"))
+        assertEquals(emptySet<Int>(), DataStoreNikudCardStore.decode(null))
+        assertEquals(emptySet<Int>(), DataStoreNikudCardStore.decode(""))
+        assertEquals(setOf(1, 2, 3), DataStoreNikudCardStore.decode("1,x,2,,3"))
+        assertEquals("1,2,3", DataStoreNikudCardStore.encode(old + 3))
+        assertEquals(setOf(1, 2, 3), DataStoreNikudCardStore.decode(DataStoreNikudCardStore.encode(old + 3)))
         val g = shells(1, solid(stage1), old)
         assertNull(g.state.offerCard)
         assertEquals(3, shells(1, aiOpen, old).state.offerCard)
+    }
+
+    // ---- ALL_NOW ----
+
+    @Test
+    fun allNowRunsAFullSoundShellsSessionWithUFromAnEmptyMemory() {
+        for (seed in 0 until 30) {
+            val tally = Tally()
+            val r = Random(seed)
+            val memory = SchedulerMemory()
+            val g = SoundShellsGame(RoundScheduler(memory, r), r, tally.events, emptySet(),
+                eligibility = NikudEligibility(memory, pace = ContentPace.ALL_NOW)).also { it.start() }
+            assertEquals("no introductory stage", 3, g.state.stage)
+            assertEquals("the first card is still offered", 1, g.state.offerCard)
+            var u = 0
+            var count = 0
+            rounds(g) { tiles, t ->
+                count++
+                if (t.sound == Nikud.Sound.U) u++
+                assertEquals(3, tiles.map { it.soundId }.toSet().size)
+            }
+            assertEquals(SoundShellsGame.ROUNDS, count)
+            assertTrue("/u/ rounds: $u", u >= SoundShellsGame.ROUNDS - SoundShellsGame.AI_REVIEW_ROUNDS)
+            assertEquals(1, tally.finished); assertEquals(SoundShellsGame.ROUNDS, tally.stars); assertEquals(0, tally.slips)
+            assertTrue(g.state.sessionComplete)
+        }
     }
 }

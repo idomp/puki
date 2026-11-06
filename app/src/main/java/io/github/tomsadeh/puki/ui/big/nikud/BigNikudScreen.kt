@@ -66,10 +66,10 @@ fun BigNikudScreen(onBack: () -> Unit) {
     val models: ReadingScreenModels = viewModel()
     var game by rememberSaveable { mutableStateOf<String?>(null) }
     var visit by rememberSaveable { mutableIntStateOf(0) }
-    // Whether /u/ is open, read each time the doors are shown: the corner button then reaches the /u/ card too
-    var uOpen by rememberSaveable { mutableStateOf(false) }
+    // The last card of the corner button, read each time the doors are shown: card 3 once /u/ is open
+    var lastCard by rememberSaveable { mutableIntStateOf(MeetMarkCard.CARD_I) }
     val application = LocalContext.current.applicationContext as Application
-    LaunchedEffect(game) { if (game == null) uOpen = uPackOpen(application) }
+    LaunchedEffect(game) { if (game == null) lastCard = islandLastCard(application) }
     val toDoors = { models.reset(); game = null }
     val choose: (String) -> Unit = { models.reset(); game = it }
     val again: () -> Unit = { models.reset(); visit++ }
@@ -81,7 +81,7 @@ fun BigNikudScreen(onBack: () -> Unit) {
                     SHELLS -> SoundShellsScreen(onBack = toDoors, onAgain = again)
                     JOIN -> JoinWordScreen(onBack = toDoors, onAgain = again)
                     READ -> ReadSignScreen(onBack = toDoors, onAgain = again)
-                    MEET -> MeetMarkScreen(onBack = toDoors, lastCard = if (uOpen) MeetMarkCard.CARD_U else MeetMarkCard.CARD_I)
+                    MEET -> MeetMarkScreen(onBack = toDoors, lastCard = lastCard)
                     else -> Box(Modifier.fillMaxSize()) {
                         DoorChooserScreen(
                             onBack = onBack,

@@ -46,7 +46,8 @@ data class ShellsState(
  * stage 2. Shuruk is the /u/ spelling; kubutz joins the rounds, mixed with it, when [NikudEligibility]
  * allows. Never two spellings of one sound in a round (not מוּ with מֻ, not מַ with מָ).
  *
- * The stage comes from the scheduler's record: stage 2 once [STAGE2_SOLID] of the 8 stage-1 items are
+ * ALL_NOW starts at stage 3, with every consonant, from the first session. Otherwise the stage comes
+ * from the scheduler's record: stage 2 once [STAGE2_SOLID] of the 8 stage-1 items are
  * solid (asked in two sessions or more and not shaky now). [NikudEligibility] adds consonants only
  * after the original stage-2 sounds are comfortable (or at once, if the parent chose so); each addition
  * joins in /a/ and /i/ (and /u/ at stage 3).
@@ -99,6 +100,7 @@ class SoundShellsGame(
     fun start() {
         val solid = STAGE1_ITEMS.count { id -> scheduler.memory.record(id).let { it.seen >= 2 && it.misses == 0 } }
         stage = when {
+            eligibility.opensAtOnce() -> 3  // ALL_NOW: the introductory stages are skipped
             solid < STAGE2_SOLID -> 1
             eligibility.uSyllables(scheduler.memory) -> 3
             else -> 2
@@ -113,8 +115,8 @@ class SoundShellsGame(
         uMarks = if (eligibility.kubutz(scheduler.memory)) {
             List(rounds) { if (it % 2 == 0) Nikud.Mark.SHURUK else Nikud.Mark.KUBUTZ }.shuffled(random)
         } else List(rounds) { Nikud.Mark.SHURUK }
-        // (a child who skipped the stage-2 card still gets it before the /u/ one)
-        val offer = if (stage == 3) listOf(2, 3).firstOrNull { it !in cardsSeen } else stage.takeIf { it !in cardsSeen }
+        // (a child who skipped an earlier card still gets it first, one card per session)
+        val offer = if (stage == 3) listOf(1, 2, 3).firstOrNull { it !in cardsSeen } else stage.takeIf { it !in cardsSeen }
         state = ShellsState(stage = stage, offerCard = offer)
         show(first = true)
     }

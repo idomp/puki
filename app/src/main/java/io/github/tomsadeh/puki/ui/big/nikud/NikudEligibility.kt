@@ -47,6 +47,9 @@ class NikudEligibility(
         if (SoundShellsGame.STAGE2_ITEMS.count { solid(memory, it) } >= pace.shellsSolid) Nikud.consonants
         else Nikud.introductoryConsonants
 
+    /** ALL_NOW has no prerequisites: Sound Shells starts at its last stage, with every consonant and /u/. */
+    fun opensAtOnce(): Boolean = !pace.prerequisites
+
     /** /u/ syllables in Sound Shells (the memory is the shells memory). */
     fun uSyllables(memory: SchedulerMemory): Boolean =
         SoundShellsGame.AI_ITEMS.count { solid(memory, it) } >= pace.uShellsSolid
@@ -84,3 +87,7 @@ class NikudEligibility(
         return Nikud.clearWords.filter { it in Nikud.introductoryWords || open(it, ready, uReady) && (!pace.prerequisites || join.isKnown(it.id)) }
     }
 }
+
+/** The last "meet the mark" card the island's corner button goes through: the /u/ card once /u/ is open. */
+fun lastMeetCard(shells: SchedulerMemory, pace: ContentPace): Int =
+    if (NikudEligibility(shells, pace = pace).uSyllables(shells)) MeetMarkCard.CARD_U else MeetMarkCard.CARD_I

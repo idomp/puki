@@ -176,12 +176,12 @@ class MeetMarkViewModel(application: Application) : AndroidViewModel(application
 }
 
 /**
- * Whether /u/ is open for this child now (the same test Sound Shells uses): the island's corner button
- * then goes on from the hiriq card to the /u/ card. The parent's pace is read at the call.
+ * The last "meet the mark" card for this child now: card 3 once /u/ is open (the test Sound Shells uses),
+ * else card 2. The parent's pace is read at the call.
  */
-suspend fun uPackOpen(application: Application): Boolean {
+suspend fun islandLastCard(application: Application): Int {
     val shells = runCatching { DataStoreSchedulerStore.visits(application).load("big_nikud_shells") }.getOrDefault(SchedulerMemory())
     val pace = runCatching { (application as PukiApplication).settingsRepository.settings.first().contentPace }
         .getOrDefault(ContentPace.GRADUAL)
-    return NikudEligibility(shells, pace = pace).uSyllables(shells)
+    return lastMeetCard(shells, pace)
 }
