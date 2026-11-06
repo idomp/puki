@@ -45,11 +45,11 @@ VOICE_LINES = [
 
     # --- Final-form partners ---
     ("voice_big_letters_partner_intro", "",
-     ("יש אותיות שמשתנות כשהן בסוף המילה. בואי נמצא את החברות שלהן!",
-      "יש אותיות שמשתנות כשהן בסוף המילה. בוא נמצא את החברות שלהן!")),
-    ("voice_big_letters_partner_ask", "", ("תמצאי את החברה שלה!", "תמצא את החברה שלה!")),
+     ("יש אותיות שמשתנות כשהן בסוף המילה. בואי נמצא את הזוגות!",
+      "יש אותיות שמשתנות כשהן בסוף המילה. בוא נמצא את הזוגות!")),
+    ("voice_big_letters_partner_ask", "", ("תמצאי לה זוג!", "תמצא לה זוג!")),
     ("voice_big_letters_partner_not_friend", "",
-     ("אבל זאת לא החברה שלה. נסי שוב!", "אבל זאת לא החברה שלה. נסה שוב!")),
+     ("אבל הן לא זוג. תנסי שוב!", "אבל הן לא זוג. תנסה שוב!")),
 ]
 
 # Exact IPA where plain spelling is ambiguous for the TTS: letter names, "ל" + a letter name
@@ -66,17 +66,15 @@ PHONEMES = {
 
     "voice_big_letters_find_it_he_f": "timtsˈi ʔotˈa!",
     "voice_big_letters_find_it_he_m": "timtsˈa ʔotˈa!",
-    "voice_big_letters_hint_he_f": "tistakˈli, hˈine hˈi!",
-    "voice_big_letters_hint_he_m": "tistakˈel, hˈine hˈi!",
 
     "voice_big_letters_cmp_dalet_resh_he": "ledˈalet jˈeʃ pinˈa, leʁˈeʃ jˈeʃ kˈeʃet.",
-    "voice_big_letters_cmp_he_het_he": "leχˈet ʃtˈej ʁaɡlˈajim meχubˈaʁot, ulehˈe jˈeʃ ʁˈeɡel ktanˈa ʃenifʁedˈa.",
+    "voice_big_letters_cmp_he_het_he": "leχˈet ʃtˈej ʁaɡlˈajim meχubaʁˈot, ulehˈe jˈeʃ ʁˈeɡel ktanˈa ʃenifʁedˈa.",
     "voice_big_letters_cmp_bet_kaf_he": "lebˈet jˈeʃ pinˈa lemˈata, ulekˈaf jˈeʃ kˈeʃet ʔaɡulˈa.",
     "voice_big_letters_cmp_vav_yod_he": "levˈav jˈeʃ kav ʔaʁˈoχ, ulijˈud ʁˈak psˈik katˈan.",
     "voice_big_letters_cmp_gimel_nun_he": "leɡˈimel jˈeʃ ʁˈeɡel ktanˈa beʔalaχsˈon, ulenˈun ʁitspˈa jeʃaʁˈa.",
     "voice_big_letters_cmp_tet_samekh_he": "letˈet jˈeʃ taltˈal bifnˈim, ulesˈameχ ʔiɡˈul saɡˈuʁ.",
     "voice_big_letters_cmp_ayin_shin_he": "leʃˈin ʃloʃˈa ʔanafˈim, uleʔˈajin ʃnˈej ʔanafˈim veʁˈeɡel.",
-    "voice_big_letters_cmp_vav_zayin_he": "lezˈajin jˈeʃ kovˈa lemaʔˈla, ulevˈav ʔˈejn.",
+    "voice_big_letters_cmp_vav_zayin_he": "lezˈajin jˈeʃ kˈova lemˈala, ulevˈav ʔˈejn.",
     "voice_big_letters_cmp_nun_final_vav_he": "lenˈun sofˈit jˈeʃ ʁˈeɡel ʔaʁukˈa ʃejoʁˈedet mitˈaχat laʃuʁˈa, ulevˈav ʔˈejn.",
     "voice_big_letters_cmp_mem_final_samekh_he": "lemˈem sofˈit jˈeʃ pinˈot, ulesˈameχ ʔiɡˈul.",
 }
