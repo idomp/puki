@@ -62,7 +62,7 @@ abstract class MathGame<S : MathState>(
     suspend fun start() {
         if (!session.isLoading) return
         earlier = history.load(gameId)
-        session = session.copy(stage = progress.load(gameId), isLoading = false)
+        session = session.copy(stage = gameId.normalize(progress.load(gameId)), isLoading = false)
         startRound()
     }
 
@@ -114,7 +114,7 @@ abstract class MathGame<S : MathState>(
     suspend fun next() {
         if (session.isLoading || session.sessionComplete || !state.roundComplete) return
         if (session.roundIndex + 1 == session.totalRounds) {
-            val stage = nextMathStage(session.stage, session.totalRounds, session.misses, session.missedRounds)
+            val stage = nextMathStage(gameId, session.stage, session.totalRounds, session.misses, session.missedRounds)
             progress.save(gameId, stage)
             session = session.copy(sessionComplete = true, nextStage = stage)
             refreshSession()

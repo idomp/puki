@@ -11,13 +11,13 @@ import kotlinx.coroutines.flow.first
 // One delegate per process; separate from the shared settings/progress stores and their 3-level rule.
 private val Context.bigMathDataStore: DataStore<Preferences> by preferencesDataStore(name = "big_math")
 
-class DataStoreMathProgressStore(context: Context) : MathProgressStore {
-    private val dataStore = context.applicationContext.bigMathDataStore
+class DataStoreMathProgressStore internal constructor(private val dataStore: DataStore<Preferences>) : MathProgressStore {
+    constructor(context: Context) : this(context.applicationContext.bigMathDataStore)
     private fun key(game: MathGameId) = stringPreferencesKey("stage_${game.island}")
 
     override suspend fun load(game: MathGameId): MathStage {
         val saved = dataStore.data.first()[key(game)]
-        return MathStage.entries.firstOrNull { it.name == saved } ?: MathStage.JOIN_5
+        return game.normalize(MathStage.entries.firstOrNull { it.name == saved } ?: MathStage.JOIN_5)
     }
 
     override suspend fun save(game: MathGameId, stage: MathStage) {
