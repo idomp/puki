@@ -76,7 +76,7 @@ abstract class NikudGameViewModel<G, S>(
             val nextScheduler = RoundScheduler(memory, random)
             val nextVisit = SchedulerVisit(nextScheduler, memoryKey, store)
             visit = nextVisit
-            val g = createGame(nextScheduler, random, events, seen, NikudEligibility(shells, join, pace))
+            val g = createGame(nextScheduler, random, events, seen, NikudEligibility(shells, join, pace, seen))
             game = g
             _state.value = nextVisit.update {
                 startGame(g)
@@ -153,8 +153,8 @@ class MeetMarkViewModel(application: Application) : AndroidViewModel(application
     val state: StateFlow<MeetMarkState> = _state.asStateFlow()
     private var card: MeetMarkCard? = null
 
-    fun open(startCard: Int = 1, throughAll: Boolean = true) {
-        val c = MeetMarkCard(startCard, throughAll, cards::markSeen)
+    fun open(startCard: Int = 1, throughAll: Boolean = true, lastCard: Int = MeetMarkCard.CARD_I) {
+        val c = MeetMarkCard(startCard, throughAll, lastCard, cards::markSeen)
         card = c
         c.start()
         _state.value = c.state
@@ -173,4 +173,15 @@ class MeetMarkViewModel(application: Application) : AndroidViewModel(application
 
     /** For a screen that wants to know before the first session. */
     suspend fun seenCards(): Set<Int> = runCatching { cards.seen() }.getOrDefault(emptySet())
+}
+
+/**
+ * Whether /u/ is open for this child now (the same test Sound Shells uses): the island's corner button
+ * then goes on from the hiriq card to the /u/ card. The parent's pace is read at the call.
+ */
+suspend fun uPackOpen(application: Application): Boolean {
+    val shells = runCatching { DataStoreSchedulerStore.visits(application).load("big_nikud_shells") }.getOrDefault(SchedulerMemory())
+    val pace = runCatching { (application as PukiApplication).settingsRepository.settings.first().contentPace }
+        .getOrDefault(ContentPace.GRADUAL)
+    return NikudEligibility(shells, pace = pace).uSyllables(shells)
 }

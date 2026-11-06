@@ -14,7 +14,9 @@ class PictureChooserTest {
     @Test
     fun picturesThatCanAnswerTheSameWordNeverShareARound() {
         val excluded = listOf("kaf" to "yad", "yam" to "sira", "gag" to "gan",
-            "gal" to "yam", "gan" to "gina")
+            "gal" to "yam", "gan" to "gina",
+            "dubi" to "buba",   // the teddy is דֻּבִּי, and a child may call it a doll
+            "kadur" to "pina")  // the corner scene has a ball in it
         for ((a, b) in excluded) {
             assertTrue("$a / $b", Nikud.areTwins(Nikud.word(a), Nikud.word(b)))
             assertTrue("$b / $a", Nikud.areTwins(Nikud.word(b), Nikud.word(a)))
@@ -36,23 +38,43 @@ class PictureChooserTest {
 
     @Test
     fun expandedFamiliesNeedReadingBeyondTheFirstConsonant() {
-        val families = listOf(listOf("sal", "sir", "sira"), listOf("pil", "para", "panas"),
-            listOf("gag", "gal", "gamal"))
+        val families = listOf(listOf("sal", "sir", "sira", "sus"), listOf("pil", "para", "panas"),
+            listOf("gag", "gal", "gamal"), listOf("kaf", "kadur"))
         for (ids in families) {
             assertEquals(1, ids.map { Nikud.word(it).firstConsonant }.toSet().size)
             for (a in ids) for (b in ids) if (a != b) assertFalse(Nikud.areTwins(Nikud.word(a), Nikud.word(b)))
         }
-        for (seed in 0 until 30) for (id in listOf("sal", "sir", "sira")) {
+        for (seed in 0 until 30) for (id in listOf("sal", "sir", "sira", "sus")) {
             val random = Random(seed)
             val layout = PictureChooser(random, RoundScheduler(random = random))
                 .choose(Nikud.word(id), DistractorLevel.SAME_START, pool = Nikud.clearWords)
-            assertEquals(setOf("sal", "sir", "sira"), layout.options.map { it.id }.toSet())
+            // three of the four סָ words, so only reading to the end tells them apart
+            assertTrue(layout.options.map { it.id }.toSet().all { it in setOf("sal", "sir", "sira", "sus") })
+        }
+        for (seed in 0 until 30) for ((id, rival) in listOf("kaf" to "kadur", "kadur" to "kaf")) {
+            val random = Random(seed)
+            val layout = PictureChooser(random, RoundScheduler(random = random))
+                .choose(Nikud.word(id), DistractorLevel.SAME_START, pool = Nikud.clearWords)
+            assertTrue(layout.options.any { it.id == rival })
         }
         val random = Random(3)
         val chooser = PictureChooser(random, RoundScheduler(random = random))
         val pe = chooser.choose(Nikud.word("panas"), DistractorLevel.SAME_START, pool = Nikud.words)
         assertTrue(pe.options.any { it.id == "pil" })
         assertFalse(pe.options.any { it.id in Nikud.pendingAudio })
+    }
+
+    @Test
+    fun theTeddyAndTheBallNeverShareARoundWithAPictureThatCouldBeCalledTheSame() {
+        for (seed in 0 until 60) for (level in DistractorLevel.values()) for (pool in listOf(Nikud.words, Nikud.clearWords)) {
+            for (target in pool.filter { it.pictureId != null }) {
+                val random = Random(seed)
+                val pictures = PictureChooser(random, RoundScheduler(random = random)).choose(target, level, pool = pool)
+                    .options.map { it.pictureId }
+                assertFalse("teddy beside a doll: $pictures", "teddy" in pictures && "doll" in pictures)
+                assertFalse("ball beside the corner scene: $pictures", "ball" in pictures && "corner" in pictures)
+            }
+        }
     }
 
     @Test

@@ -24,5 +24,10 @@ internal fun nikudPicture(id: String): Int = when (id) {
     "banana" -> R.drawable.ic_food_banana
     "cow" -> R.drawable.ic_animal_cow
     "corn" -> R.drawable.ic_food_corn
+    "horse" -> R.drawable.ic_animal_horse
+    "ball" -> R.drawable.ic_word_ball
+    "teddy" -> R.drawable.ic_tidy_teddy
+    "strawberry" -> R.drawable.ic_nikud_tut
+    "doll" -> R.drawable.ic_nikud_buba
     else -> error("Unknown nikud picture: $id")
 }

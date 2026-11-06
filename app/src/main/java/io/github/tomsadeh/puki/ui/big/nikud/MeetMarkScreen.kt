@@ -50,21 +50,24 @@ import io.github.tomsadeh.puki.ui.components.BackButton
  * Meet the mark (frame F), a short unscored card in plain ink. Card 1: מָ and מַ on one double board
  * with one speaker between the faces: tapping either face or the speaker plays the same clip; the name
  * tags (קָמָץ, פַּתָּח) appear once it was heard and say their name when tapped. Card 2: מִ and חִירִיק.
- * The green button goes on (card 2, then [onFinished]). [startCard] 2 with [throughAll] false shows
- * card 2 alone (before stage 2). [onFinished] defaults to going back.
+ * Card 3 is card 1's double board for מוּ and מֻ (שׁוּרוּק, קֻבּוּץ).
+ * The green button goes on (card 2, card 3 once /u/ is open, then [onFinished]); [lastCard] is where a
+ * [throughAll] visit stops. [startCard] 2 or 3 with [throughAll] false shows that card alone (before the
+ * stage that uses it). [onFinished] defaults to going back.
  */
 @Composable
 fun MeetMarkScreen(
     onBack: () -> Unit,
     startCard: Int = 1,
     throughAll: Boolean = true,
+    lastCard: Int = MeetMarkCard.CARD_I,
     onFinished: () -> Unit = onBack
 ) {
     val vm: MeetMarkViewModel = viewModel()
     val state by vm.state.collectAsStateWithLifecycle()
     // (the ViewModel outlives the screen: ignore what a previous visit left in it until open() has run)
     var opened by remember { mutableStateOf(false) }
-    LaunchedEffect(startCard, throughAll) { vm.open(startCard, throughAll); opened = true }
+    LaunchedEffect(startCard, throughAll, lastCard) { vm.open(startCard, throughAll, lastCard); opened = true }
     LaunchedEffect(state.finished, opened) { if (opened && state.finished) onFinished() }
     PlayVoiceCue(if (opened) state.cue.keys else emptyList(), state.cue.token.toLong())
 

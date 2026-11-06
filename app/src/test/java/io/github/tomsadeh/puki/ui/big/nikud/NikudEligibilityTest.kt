@@ -21,7 +21,9 @@ class NikudEligibilityTest {
     private val allShells = solid(SoundShellsGame.STAGE1_ITEMS + Nikud.consonants.flatMap { c ->
         Nikud.Sound.values().map { SoundShellsGame.stage2Item(c.id, it) }
     })
-    private val ready = NikudEligibility(allShells, allWords)
+    /** Nineteen of the 26 /a/ and /i/ items solid, one short of opening /u/: Sound Shells at stage 2 with all consonants. */
+    private val aiShells = solid(SoundShellsGame.STAGE1_ITEMS + SoundShellsGame.AI_ITEMS.take(19))
+    private val ready = NikudEligibility(allShells, allWords, cards = setOf(1, 2, 3))
 
     @Test
     fun newChildGetsExactlyTheOriginalPoolsEvenWithOtherGamesMastered() {
@@ -160,7 +162,7 @@ class NikudEligibilityTest {
     @Test
     fun expandedShellsCoverBothSoundsWithoutAudibleDuplicates() {
         for (seed in 0 until 30) {
-            val game = SoundShellsGame(RoundScheduler(allShells, Random(seed)), Random(seed), Tally().events,
+            val game = SoundShellsGame(RoundScheduler(aiShells, Random(seed)), Random(seed), Tally().events,
                 rounds = 26).also { it.start() }
             val asked = mutableSetOf<String>()
             while (game.state.phase == NikudPhase.ROUND) {
@@ -174,7 +176,7 @@ class NikudEligibilityTest {
                 game.onAnswer(target.id)
                 game.next()
             }
-            assertEquals(allShells.records.keys.filter { it.startsWith("s2_") }.toSet(), asked)
+            assertEquals(SoundShellsGame.AI_ITEMS.toSet(), asked)
         }
     }
 

@@ -1,6 +1,7 @@
 package io.github.tomsadeh.puki.ui.big.nikud
 
 import io.github.tomsadeh.puki.ui.big.kit.ReadingIsland
+import android.app.Application
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.foundation.Image
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
@@ -32,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -55,13 +58,18 @@ private const val MEET = "meet"
 /**
  * The Sounds and Words island (frame A2): three doors drawn as boards (a shell with the "heard" badge,
  * joining boards, a sign over its picture) and the chosen game inside the same composable. A small מַ
- * board in the corner opens "meet the mark" again, for a child who wants it. Hebrew only: RTL throughout.
+ * board in the corner opens "meet the mark" again, for a child who wants it: card 1, 2, and 3 once /u/ is
+ * open. Hebrew only: RTL throughout.
  */
 @Composable
 fun BigNikudScreen(onBack: () -> Unit) {
     val models: ReadingScreenModels = viewModel()
     var game by rememberSaveable { mutableStateOf<String?>(null) }
     var visit by rememberSaveable { mutableIntStateOf(0) }
+    // Whether /u/ is open, read each time the doors are shown: the corner button then reaches the /u/ card too
+    var uOpen by rememberSaveable { mutableStateOf(false) }
+    val application = LocalContext.current.applicationContext as Application
+    LaunchedEffect(game) { if (game == null) uOpen = uPackOpen(application) }
     val toDoors = { models.reset(); game = null }
     val choose: (String) -> Unit = { models.reset(); game = it }
     val again: () -> Unit = { models.reset(); visit++ }
@@ -73,7 +81,7 @@ fun BigNikudScreen(onBack: () -> Unit) {
                     SHELLS -> SoundShellsScreen(onBack = toDoors, onAgain = again)
                     JOIN -> JoinWordScreen(onBack = toDoors, onAgain = again)
                     READ -> ReadSignScreen(onBack = toDoors, onAgain = again)
-                    MEET -> MeetMarkScreen(onBack = toDoors)
+                    MEET -> MeetMarkScreen(onBack = toDoors, lastCard = if (uOpen) MeetMarkCard.CARD_U else MeetMarkCard.CARD_I)
                     else -> Box(Modifier.fillMaxSize()) {
                         DoorChooserScreen(
                             onBack = onBack,

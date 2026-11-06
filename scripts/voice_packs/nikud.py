@@ -72,6 +72,27 @@ VOICE_LINES = [
     ("voice_big_nikud_join", "", ("בּ֫וֹאִי נְֽחַבֵּר אֶת הַצְּלִילִים.", "בּוֹא נְֽחַבֵּר אֶת הַצְּלִילִים.")),
     ("voice_big_nikud_pick_picture", "", ("עַכְשָׁו תִּבְחֲרִי תְּמוּנָה.", "עַכְשָׁו תִּבְחַר תְּמוּנָה.")),
     ("voice_big_nikud_two_marks", "", "שְׁנֵי סִימָנִים, צְלִיל אֶחָד."),
+    # step 3 (the /u/ pack: shuruk and kubutz); these clips wait for the parent's listening round.
+    # מוּ is the existing voice_big_nikud_mem_u above; one /u/ clip serves both marks.
+    ("voice_big_nikud_lamed_u", "", "לוּ"),
+    ("voice_big_nikud_nun_u", "", "נוּ"),
+    ("voice_big_nikud_shin_u", "", "שׁוּ"),
+    ("voice_big_nikud_gimel_u", "", "גּוּ"),
+    ("voice_big_nikud_dalet_u", "", "דּוּ"),
+    ("voice_big_nikud_yod_u", "", "יוּ"),
+    ("voice_big_nikud_pe_u", "", "פּוּ"),
+    ("voice_big_nikud_bet_u", "", "בּוּ"),
+    ("voice_big_nikud_resh_u", "", "רוּ"),
+    ("voice_big_nikud_samekh_u", "", "סוּ"),
+    ("voice_big_nikud_kaf_u", "", "כּוּ"),
+    ("voice_big_nikud_tav_u", "", "תּוּ"),
+    ("voice_big_nikud_mark_shuruk", "", "שׁוּרוּק"),
+    ("voice_big_nikud_mark_kubutz", "", "קֻבּוּץ"),
+    ("voice_big_nikud_word_sus", "", "סוּס"),
+    ("voice_big_nikud_word_kadur", "", "כַּדּוּר"),
+    ("voice_big_nikud_word_tut", "", "תּוּת"),
+    ("voice_big_nikud_word_dubi", "", "דֻּבִּי"),
+    ("voice_big_nikud_word_buba", "", "בֻּבָּה"),
 ]
 
 TAKES = {
