@@ -311,28 +311,30 @@ fun SettingsScreen(
                         style = MaterialTheme.typography.titleLarge,
                         color = EarthBrown
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                        listOf(
-                            MathLevel.FROM_START to BilingualText("מההתחלה", "From the start"),
-                            MathLevel.WITHIN_TEN to BilingualText("עד עשר", "Within ten"),
-                            MathLevel.MAKE_THE_TOTAL to BilingualText("להשלים עד", "Make the total"),
-                            MathLevel.TEN_AND_MORE to BilingualText("עשר ועוד", "Ten and more")
-                        ).forEach { (level, label) ->
-                            val chosen = settings.mathLevel == level
-                            Text(
-                                (if (chosen) "✓ " else "") + label.resolve(language),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = if (chosen) CloudWhite else EarthBrown,
-                                // (three to a row: one line each, even with the ✓)
-                                maxLines = 1,
-                                softWrap = false,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clip(RoundedCornerShape(14.dp))
-                                    .background(if (chosen) GrassGreen else Color(0xFFEFEBE9))
-                                    .clickable { settingsViewModel.setMathLevel(level) }
-                                    .padding(horizontal = 6.dp, vertical = 8.dp)
-                            )
+                    // Four levels don't fit one row with the ✓ ("להשלים עד" lost its ל), so two rows of two
+                    listOf(
+                        MathLevel.FROM_START to BilingualText("מההתחלה", "From the start"),
+                        MathLevel.WITHIN_TEN to BilingualText("עד עשר", "Within ten"),
+                        MathLevel.MAKE_THE_TOTAL to BilingualText("להשלים עד", "Make the total"),
+                        MathLevel.TEN_AND_MORE to BilingualText("עשר ועוד", "Ten and more")
+                    ).chunked(2).forEach { pair ->
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                            pair.forEach { (level, label) ->
+                                val chosen = settings.mathLevel == level
+                                Text(
+                                    (if (chosen) "✓ " else "") + label.resolve(language),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = if (chosen) CloudWhite else EarthBrown,
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clip(RoundedCornerShape(14.dp))
+                                        .background(if (chosen) GrassGreen else Color(0xFFEFEBE9))
+                                        .clickable { settingsViewModel.setMathLevel(level) }
+                                        .padding(horizontal = 6.dp, vertical = 8.dp)
+                                )
+                            }
                         }
                     }
                     Text(
