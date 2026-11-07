@@ -23,7 +23,7 @@ class MathVoiceContentTest {
         val existing = (1..10).map { "voice_number_$it" }.toSet()
         assertTrue("Keys absent from pack: ${keys - packKeys.toSet() - existing}", (keys - packKeys.toSet() - existing).isEmpty())
         assertEquals(MathContent.allLines.map { it.key }.toSet(), keys)
-        assertEquals(91, keys.size)
+        assertEquals(99, keys.size)
     }
 
     @Test fun completeSentencesAndGenderedVariantsMatchBilingualContentAndEnglishIsAvailable() {
@@ -51,6 +51,17 @@ class MathVoiceContentTest {
             "voice_big_math_birds_leave_8_he", "voice_big_math_picnic_8_he_f", "voice_big_math_picnic_8_he_m",
             "voice_big_math_shown_8_he", "voice_big_math_frame_8_he")) {
             assertTrue(stem, pack.contains("\"$stem\":"))
+        }
+    }
+
+    @Test fun frameTargetsUseEightCompleteSentencesWithMasculineNumberWords() {
+        val words = listOf("שְׁנֵי", "שְׁלוֹשָׁה", "אַרְבָּעָה", "חֲמִשָּׁה", "שִׁשָּׁה", "שִׁבְעָה", "שְׁמוֹנָה", "תִּשְׁעָה")
+        assertEquals((2..9).toSet(), MathContent.frameTargets.keys)
+        for (target in 2..9) {
+            val line = MathContent.frameTargets.getValue(target)
+            assertEquals("voice_big_math_frame_target_$target", line.key)
+            assertEquals("בַּמִּסְגֶּרֶת צְרִיכִים לִהְיוֹת ${words[target - 2]} עִיגּוּלִים.", line.text.he)
+            assertTrue(MathContent.allLines.contains(line))
         }
     }
 }
