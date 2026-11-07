@@ -46,6 +46,17 @@ VOICE_LINES = [
     ("voice_big_math_picnic_8", "Put eight apples in the basket.", ("תשימי בסל שמונה תפוחים.", "תשים בסל שמונה תפוחים.")),
     ("voice_big_math_picnic_9", "Put nine apples in the basket.", ("תשימי בסל תשעה תפוחים.", "תשים בסל תשעה תפוחים.")),
     ("voice_big_math_picnic_10", "Put ten apples in the basket.", ("תשימי בסל עשרה תפוחים.", "תשים בסל עשרה תפוחים.")),
+    ("voice_big_math_picnic_already", "There are already apples in the basket.", "בַּסַּל כְּבָר יֵשׁ תַּפּוּחִים."),
+    ("voice_big_math_picnic_target_1", "There should be one apple in the basket.", "בַּסַּל צָרִיךְ לִהְיוֹת תַּפּוּחַ אֶחָד."),
+    ("voice_big_math_picnic_target_2", "There should be two apples in the basket.", "בַּסַּל צְרִיכִים לִהְיוֹת שְׁנֵי תַּפּוּחִים."),
+    ("voice_big_math_picnic_target_3", "There should be three apples in the basket.", "בַּסַּל צְרִיכִים לִהְיוֹת שְׁלוֹשָׁה תַּפּוּחִים."),
+    ("voice_big_math_picnic_target_4", "There should be four apples in the basket.", "בַּסַּל צְרִיכִים לִהְיוֹת אַרְבָּעָה תַּפּוּחִים."),
+    ("voice_big_math_picnic_target_5", "There should be five apples in the basket.", "בַּסַּל צְרִיכִים לִהְיוֹת חֲמִשָּׁה תַּפּוּחִים."),
+    ("voice_big_math_picnic_target_6", "There should be six apples in the basket.", "בַּסַּל צְרִיכִים לִהְיוֹת שִׁשָּׁה תַּפּוּחִים."),
+    ("voice_big_math_picnic_target_7", "There should be seven apples in the basket.", "בַּסַּל צְרִיכִים לִהְיוֹת שִׁבְעָה תַּפּוּחִים."),
+    ("voice_big_math_picnic_target_8", "There should be eight apples in the basket.", "בַּסַּל צְרִיכִים לִהְיוֹת שְׁמוֹנָה תַּפּוּחִים."),
+    ("voice_big_math_picnic_target_9", "There should be nine apples in the basket.", "בַּסַּל צְרִיכִים לִהְיוֹת תִּשְׁעָה תַּפּוּחִים."),
+    ("voice_big_math_picnic_target_10", "There should be ten apples in the basket.", "בַּסַּל צְרִיכִים לִהְיוֹת עֲשָׂרָה תַּפּוּחִים."),
     ("voice_big_math_shown_0", "There are no apples on the mat.", "על המחצלת אין תפוחים."),
     ("voice_big_math_shown_1", "There is one apple on the mat.", "על המחצלת יש תפוח אחד."),
     ("voice_big_math_shown_2", "There are two apples on the mat.", "על המחצלת יש שני תפוחים."),
@@ -101,3 +112,18 @@ PHONEMES = {
 # one of how_many swallowed its end, so they get other takes. Slowing the long picnic lines made them
 # worse (gaps, a doubled ת), so those were split into two short clips instead.
 SEEDS = {"voice_big_math_shown_3_he": 1, "voice_big_math_how_many_he": 1}
+
+# Takes the parent picked by ear (math listening round 9, 2026-11-07): stem -> (IPA, speed, seed)
+TAKES = {
+    "voice_big_math_picnic_already_he": ("basˈal kvˈaʁ jˈeʃ tapuχˈim.", 0.7, 1),
+    "voice_big_math_picnic_target_1_he": ("basˈal tsaʁˈiχ lihjˈot tapuˈaχ ʔeχˈad.", 0.7, 1),
+    "voice_big_math_picnic_target_2_he": ("basˈal tsʁiχˈim lihjˈot ʃnˈej tapuχˈim.", 0.7, 1),
+    "voice_big_math_picnic_target_3_he": ("basˈal tsʁiχˈim lihjˈot ʃloʃˈa tapuχˈim.", 0.7, 1),
+    "voice_big_math_picnic_target_4_he": ("basˈal tsʁiχˈim lihjˈot ʔaʁbaʔˈa tapuχˈim.", 0.7, 1),
+    "voice_big_math_picnic_target_5_he": ("basˈal tsʁiχˈim lihjˈot χamiʃˈa tapuχˈim.", 0.7, 2),
+    "voice_big_math_picnic_target_6_he": ("basˈal tsʁiχˈim lihjˈot ʃiʃˈa tapuχˈim.", 0.7, 0),
+    "voice_big_math_picnic_target_7_he": ("basˈal tsʁiχˈim lihjˈot ʃivʔˈa tapuχˈim.", 0.7, 1),
+    "voice_big_math_picnic_target_8_he": ("basˈal tsʁiχˈim lihjˈot ʃmonˈa tapuχˈim.", 0.7, 1),
+    "voice_big_math_picnic_target_9_he": ("basˈal tsʁiχˈim lihjˈot tiʃʔˈa tapuχˈim.", 0.7, 1),
+    "voice_big_math_picnic_target_10_he": ("basˈal tsʁiχˈim lihjˈot ʔasaʁˈa tapuχˈim.", 0.7, 1),
+}

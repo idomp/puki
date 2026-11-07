@@ -2,11 +2,20 @@ package io.github.tomsadeh.puki.ui.big.math
 
 /** Names are persisted; order defines the teaching progression. */
 enum class MathStage(val maximum: Int, val allowsZero: Boolean = false) {
-    JOIN_5(5), TAKE_5(5), MIXED_5(5), ZERO_5(5, true), MIXED_10(10, true)
+    JOIN_5(5), TAKE_5(5), MIXED_5(5), ZERO_5(5, true), MIXED_10(10, true),
+    PART_5(5, allowsZero = true), PART_10(10, allowsZero = true)
 }
 
-enum class MathGameId(val island: String) {
-    FRIENDS("big_math_friends"), PICNIC("big_math_picnic"), FRAME("big_math_frame")
+/** Legacy PART stages use counting content; Friends and Frame progression stops at MIXED_10. */
+internal val MathStage.countingStage: MathStage get() = if (this >= MathStage.PART_5) MathStage.MIXED_10 else this
+
+/** Only Picnic advances into part-whole stages until the other games have their own rounds. */
+enum class MathGameId(val island: String, val maxStage: MathStage) {
+    FRIENDS("big_math_friends", MathStage.MIXED_10),
+    PICNIC("big_math_picnic", MathStage.PART_10),
+    FRAME("big_math_frame", MathStage.MIXED_10);
+
+    internal fun normalize(stage: MathStage): MathStage = minOf(stage, maxStage)
 }
 
 interface MathProgressStore {
@@ -16,7 +25,7 @@ interface MathProgressStore {
 
 class InMemoryMathProgressStore : MathProgressStore {
     private val stages = mutableMapOf<MathGameId, MathStage>()
-    override suspend fun load(game: MathGameId) = stages[game] ?: MathStage.JOIN_5
+    override suspend fun load(game: MathGameId) = game.normalize(stages[game] ?: MathStage.JOIN_5)
     override suspend fun save(game: MathGameId, stage: MathStage) { stages[game] = stage }
 }
 
@@ -32,13 +41,14 @@ class InMemoryMathHistoryStore : MathHistoryStore {
     override suspend fun save(game: MathGameId, recent: List<String>) { this.recent[game] = recent }
 }
 
-/** One miss at most promotes; misses in a strict majority of rounds ease the next session. */
-fun nextMathStage(stage: MathStage, rounds: Int, misses: Int, missedRounds: Int): MathStage {
+/** One miss at most promotes up to the game's ceiling; a strict majority of missed rounds eases. */
+fun nextMathStage(game: MathGameId, stage: MathStage, rounds: Int, misses: Int, missedRounds: Int): MathStage {
     require(rounds > 0 && misses >= 0 && missedRounds in 0..rounds && misses >= missedRounds)
+    val current = game.normalize(stage)
     val index = when {
-        misses <= 1 -> stage.ordinal + 1
-        missedRounds > rounds / 2 -> stage.ordinal - 1
-        else -> stage.ordinal
-    }.coerceIn(0, MathStage.entries.lastIndex)
+        misses <= 1 -> current.ordinal + 1
+        missedRounds > rounds / 2 -> current.ordinal - 1
+        else -> current.ordinal
+    }.coerceIn(0, game.maxStage.ordinal)
     return MathStage.entries[index]
 }

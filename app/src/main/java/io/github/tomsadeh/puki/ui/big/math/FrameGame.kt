@@ -72,6 +72,7 @@ private fun frameCapacity(stage: MathStage, index: Int) = if (stage == MathStage
  * full examples are fixed rounds where zero is taught, and the open rounds leave them out so nothing repeats.
  */
 internal fun framePool(stage: MathStage, index: Int): List<FrameRound> {
+    if (stage != stage.countingStage) return framePool(stage.countingStage, index)
     val capacity = frameCapacity(stage, index)
     if (stage.allowsZero && index == 3) return listOf(FrameRound(capacity, 0))
     if (stage.allowsZero && index == 4) return listOf(FrameRound(capacity, capacity))

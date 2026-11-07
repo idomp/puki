@@ -65,7 +65,12 @@ class MathGamesTest {
 
     private fun FriendsGame.question() { advancePhase(); advancePhase() }
     private fun FriendsGame.solve() { question(); onAnswer(state.round!!.result) }
-    private fun PicnicGame.solve() { repeat(state.round!!.target) { addItem() }; ready() }
+    private fun PicnicGame.solve() {
+        val target = state.round!!.target
+        while (state.basketCount < target) addItem()
+        while (state.basketCount > target) removeItem()
+        ready()
+    }
 
     @Test fun storiesStayWithinStageAndChoicesAreUniqueAcrossSeeds() = runBlocking {
         for (stage in MathStage.entries) for (seed in 0..79) {
@@ -74,7 +79,7 @@ class MathGamesTest {
             val operations = mutableListOf<MathOperation>()
             repeat(6) { index ->
                 val round = game.state.round!!
-                val maximum = if (stage == MathStage.MIXED_10 && index < 2) 5 else stage.maximum
+                val maximum = if (stage.countingStage == MathStage.MIXED_10 && index < 2) 5 else stage.countingStage.maximum
                 val minimum = if (stage.allowsZero) 0 else 1
                 assertTrue(round.startCount in minimum..maximum)
                 assertTrue(round.change in minimum..maximum)
@@ -83,11 +88,12 @@ class MathGamesTest {
                 when (stage) {
                     MathStage.JOIN_5 -> assertEquals(MathOperation.PLUS, round.direction)
                     MathStage.TAKE_5 -> assertEquals(MathOperation.MINUS, round.direction)
-                    MathStage.MIXED_5, MathStage.MIXED_10 -> if (index < 2) assertEquals(MathOperation.PLUS, round.direction)
+                    MathStage.MIXED_5, MathStage.MIXED_10, MathStage.PART_5, MathStage.PART_10 ->
+                        if (index < 2) assertEquals(MathOperation.PLUS, round.direction)
                     else -> Unit
                 }
                 operations += round.direction
-                if (stage == MathStage.MIXED_10 && index >= 2)
+                if (stage.countingStage == MathStage.MIXED_10 && index >= 2)
                     assertTrue(maxOf(round.startCount, round.change, round.result) > 5)
                 game.solve()
                 assertEquals(round.equation, game.state.equation)
@@ -96,7 +102,7 @@ class MathGamesTest {
             }
             assertTrue(game.state.session.sessionComplete)
             // Both operations stay covered; the later two joins and two leaves come in a shuffled order.
-            if (stage == MathStage.MIXED_5 || stage == MathStage.MIXED_10)
+            if (stage == MathStage.MIXED_5 || stage.countingStage == MathStage.MIXED_10)
                 assertEquals(listOf(2, 2), listOf(MathOperation.PLUS, MathOperation.MINUS).map { op -> operations.drop(2).count { it == op } })
         }
     }
@@ -201,7 +207,7 @@ class MathGamesTest {
     }
 
     @Test fun picnicRequestsHaveConcreteWarmupThenOneMoreOrOneLessWithinStage() = runBlocking {
-        for (stage in MathStage.entries) for (seed in 0..39) {
+        for (stage in MathStage.entries.take(5)) for (seed in 0..39) {
             val game = PicnicGame(Random(seed), Store(stage))
             game.start()
             repeat(6) { index ->
@@ -246,7 +252,7 @@ class MathGamesTest {
             game.start()
             repeat(6) { index ->
                 val round = game.state.round!!
-                assertEquals(if (stage == MathStage.MIXED_10 && index >= 2) 10 else 5, round.capacity)
+                assertEquals(if (stage.countingStage == MathStage.MIXED_10 && index >= 2) 10 else 5, round.capacity)
                 assertEquals(round.capacity, round.filled + round.missing)
                 assertEquals(round.capacity, game.state.cells.size)
                 assertEquals(round.filled, game.state.cells.count { it })
@@ -286,15 +292,240 @@ class MathGamesTest {
 
     @Test fun stageRulePromotesAtMostOneMissAndDemotesOnlyAMajorityOfMissedRounds() {
         val stage = MathStage.MIXED_5
-        assertEquals(MathStage.ZERO_5, nextMathStage(stage, 6, 0, 0))
-        assertEquals(MathStage.ZERO_5, nextMathStage(stage, 6, 1, 1))
-        assertEquals(stage, nextMathStage(stage, 6, 2, 2))
-        assertEquals(stage, nextMathStage(stage, 6, 20, 1))
-        assertEquals(stage, nextMathStage(stage, 6, 3, 3))
-        assertEquals(MathStage.TAKE_5, nextMathStage(stage, 6, 4, 4))
-        assertEquals(MathStage.TAKE_5, nextMathStage(stage, 6, 10, 6))
-        assertEquals(MathStage.JOIN_5, nextMathStage(MathStage.JOIN_5, 6, 6, 6))
-        assertEquals(MathStage.MIXED_10, nextMathStage(MathStage.MIXED_10, 6, 0, 0))
+        for (game in MathGameId.entries) {
+            assertEquals(MathStage.ZERO_5, nextMathStage(game, stage, 6, 0, 0))
+            assertEquals(MathStage.ZERO_5, nextMathStage(game, stage, 6, 1, 1))
+            assertEquals(stage, nextMathStage(game, stage, 6, 2, 2))
+            assertEquals(stage, nextMathStage(game, stage, 6, 20, 1))
+            assertEquals(stage, nextMathStage(game, stage, 6, 3, 3))
+            assertEquals(MathStage.TAKE_5, nextMathStage(game, stage, 6, 4, 4))
+            assertEquals(MathStage.TAKE_5, nextMathStage(game, stage, 6, 10, 6))
+            assertEquals(MathStage.JOIN_5, nextMathStage(game, MathStage.JOIN_5, 6, 6, 6))
+            assertEquals(MathStage.ZERO_5, nextMathStage(game, MathStage.MIXED_10, 6, 4, 4))
+        }
+    }
+
+    @Test fun promotionStopsAtEachGamesContentCeiling() {
+        for (game in MathGameId.entries) for (misses in 0..1) {
+            val ceiling = if (game == MathGameId.PICNIC) MathStage.PART_10 else MathStage.MIXED_10
+            var stage = MathStage.JOIN_5
+            repeat(10) { stage = nextMathStage(game, stage, 6, misses, misses) }
+            assertEquals(ceiling, stage)
+            for (saved in listOf(MathStage.MIXED_10, MathStage.PART_5, MathStage.PART_10)) {
+                val expected = if (game == MathGameId.PICNIC)
+                    MathStage.entries[minOf(saved.ordinal + 1, ceiling.ordinal)] else ceiling
+                assertEquals(expected, nextMathStage(game, saved, 6, misses, misses))
+            }
+        }
+    }
+
+    @Test fun partStagesAreAppendedAndOldSavedNamesStillResolve() {
+        val oldNames = listOf("JOIN_5", "TAKE_5", "MIXED_5", "ZERO_5", "MIXED_10")
+        assertEquals(oldNames + listOf("PART_5", "PART_10"), MathStage.entries.map { it.name })
+        oldNames.forEachIndexed { index, name -> assertEquals(index, MathStage.valueOf(name).ordinal) }
+        assertEquals(5, MathStage.PART_5.maximum)
+        assertEquals(10, MathStage.PART_10.maximum)
+        assertTrue(MathStage.PART_5.allowsZero && MathStage.PART_10.allowsZero)
+        assertEquals(MathStage.PART_5, nextMathStage(MathGameId.PICNIC, MathStage.MIXED_10, 6, 1, 1))
+        assertEquals(MathStage.MIXED_10, nextMathStage(MathGameId.PICNIC, MathStage.PART_5, 6, 4, 4))
+        assertEquals(MathStage.PART_10, nextMathStage(MathGameId.PICNIC, MathStage.PART_5, 6, 0, 0))
+        assertEquals(MathStage.PART_5, nextMathStage(MathGameId.PICNIC, MathStage.PART_10, 6, 4, 4))
+    }
+
+    @Test fun picnicSessionsPersistPromotionIntoPartAndDemotionBack() = runBlocking {
+        val store = Store(MathStage.MIXED_10)
+        val mixed = PicnicGame(Random(0), store); mixed.start()
+        repeat(6) { mixed.solve(); mixed.next() }
+        assertEquals(MathStage.PART_5, store.stage)
+        val part = PicnicGame(Random(1), store); part.start()
+        repeat(6) { index ->
+            if (index < 4) {
+                if (part.state.basketCount == part.state.round!!.target) part.addItem()
+                part.ready()
+            }
+            part.solve(); part.next()
+        }
+        assertEquals(MathStage.MIXED_10, store.stage)
+        assertEquals(2, store.writes)
+    }
+
+    @Test fun smallPartRoundsTopUpFirstThenShuffleDifferentKinds() {
+        val orders = mutableSetOf<List<PicnicRequest>>()
+        val kinds = mutableSetOf<PicnicRequest>()
+        for (seed in 0..99) {
+            val rounds = picnicSession(MathStage.PART_5, seed)
+            assertTrue(rounds.all { it.startCount in 0..5 && it.target in 0..5 && it.request.isPart })
+            assertTrue(rounds.take(3).all { it.request == PicnicRequest.TOP_UP && it.startCount < it.target })
+            val later = rounds.drop(3).map { it.request }
+            assertEquals(3, later.distinct().size)
+            assertTrue(rounds.count { it.request == PicnicRequest.ALREADY_RIGHT } <= 1)
+            assertTrue(rounds.count { it.request == PicnicRequest.EMPTY_IT } <= 1)
+            for (round in rounds) when (round.request) {
+                PicnicRequest.TOP_UP -> assertTrue(round.startCount < round.target)
+                PicnicRequest.TAKE_OUT -> assertTrue(round.startCount > round.target && round.target > 0)
+                PicnicRequest.ALREADY_RIGHT -> assertEquals(round.startCount, round.target)
+                PicnicRequest.EMPTY_IT -> assertTrue(round.startCount > 0 && round.target == 0)
+                else -> fail("Unexpected request ${round.request}")
+            }
+            orders += later
+            kinds += later
+        }
+        assertEquals(setOf(PicnicRequest.TOP_UP, PicnicRequest.TAKE_OUT, PicnicRequest.ALREADY_RIGHT, PicnicRequest.EMPTY_IT), kinds)
+        assertTrue(orders.size > 6)
+    }
+
+    @Test fun bigPartRoundsWarmUpThenKeepSmallChangesAboveFiveAndMixFamiliarRequests() {
+        val familiar = mutableSetOf<PicnicRequest>()
+        val orders = mutableSetOf<List<PicnicRequest>>()
+        for (seed in 0..99) {
+            val rounds = picnicSession(MathStage.PART_10, seed)
+            assertTrue(rounds.take(2).all { it.startCount in 0..5 && it.shownAmount in 0..5 && it.target in 0..5 })
+            assertEquals(PicnicRequest.TOP_UP, rounds.first().request)
+            assertFalse(rounds[1].request.isPart)
+            assertEquals(0, rounds[1].startCount)
+            familiar += rounds[1].request
+            assertTrue(rounds.drop(2).all { it.request.isPart && it.startCount in 0..10 && it.target in 0..10 &&
+                maxOf(it.startCount, it.target) > 5 && kotlin.math.abs(it.startCount - it.target) <= 3 })
+            val later = rounds.drop(2).map { it.request }
+            assertTrue(PicnicRequest.TOP_UP in later && PicnicRequest.TAKE_OUT in later)
+            assertTrue(rounds.count { it.request == PicnicRequest.ALREADY_RIGHT } <= 1)
+            assertTrue(rounds.count { it.request == PicnicRequest.EMPTY_IT } <= 1)
+            orders += later
+        }
+        assertEquals(setOf(PicnicRequest.EXACT, PicnicRequest.ONE_MORE, PicnicRequest.ONE_LESS), familiar)
+        assertTrue(orders.size > 6)
+    }
+
+    @Test fun partPromptsGiveTheTotalAndIntroduceOnlyTheFirstPrefilledBasket() = runBlocking {
+        var unchanged = 0
+        var emptyStarts = 0
+        for (stage in listOf(MathStage.PART_5, MathStage.PART_10)) for (seed in 0..59) {
+            val game = PicnicGame(Random(seed), Store(stage)); game.start()
+            var introduced = false
+            repeat(6) { index ->
+                val initial = game.state
+                val round = initial.round!!
+                assertEquals(round.startCount, initial.basketCount)
+                val expected = when (round.request) {
+                    PicnicRequest.EXACT -> listOf(MathContent.picnicTargets[round.target], MathContent.pressReady)
+                    PicnicRequest.ONE_MORE -> listOf(MathContent.picnicShown[round.shownAmount], MathContent.oneMore, MathContent.pressReady)
+                    PicnicRequest.ONE_LESS -> listOf(MathContent.picnicShown[round.shownAmount], MathContent.oneLess, MathContent.pressReady)
+                    else -> listOf(MathContent.picnicTotals[round.target], MathContent.pressReady)
+                }
+                val intro = if (round.startCount > 0 && !introduced) listOf(MathContent.picnicAlready) else emptyList()
+                assertEquals(expected, initial.prompt)
+                assertEquals(intro + expected, initial.voice.lines)
+                introduced = introduced || round.startCount > 0
+                game.start(); game.next()
+                assertEquals(initial, game.state)
+                game.replay()
+                assertEquals(expected, game.state.voice.lines)
+                assertEquals(initial.copy(voice = game.state.voice), game.state)
+                if (round.request == PicnicRequest.ALREADY_RIGHT) {
+                    unchanged++
+                    game.ready()
+                    assertTrue(game.state.roundComplete)
+                    assertEquals(round.startCount, game.state.basketCount)
+                    assertEquals(0, game.state.session.roundMisses)
+                } else {
+                    if (round.request.isPart && round.startCount == 0) emptyStarts++
+                    if (round.startCount != round.target) {
+                        game.ready()
+                        assertEquals(if (round.startCount < round.target) MathFeedbackKind.TOO_FEW else MathFeedbackKind.TOO_MANY,
+                            game.state.feedback!!.kind)
+                        assertEquals(round.target - round.startCount, game.state.feedback!!.adjustment)
+                        assertEquals(round, game.state.round)
+                        assertEquals(expected, game.state.prompt)
+                        game.replay()
+                        assertEquals(expected, game.state.voice.lines)
+                    }
+                    game.solve()
+                }
+                assertEquals(index + 1, game.state.session.totalStarsEarned)
+                val solved = game.state
+                game.ready(); game.addItem(); game.removeItem()
+                assertEquals(solved, game.state)
+                game.next()
+            }
+        }
+        assertTrue(unchanged > 0 && emptyStarts > 0)
+    }
+
+    @Test fun partHistoryAvoidsLastVisitAndSavesPrefilledPairsAsSoonAsTheyAppear() = runBlocking {
+        for (stage in listOf(MathStage.PART_5, MathStage.PART_10)) for (seed in 0..39) {
+            val history = InMemoryMathHistoryStore()
+            val before = picnicSession(stage, seed, history)
+            assertEquals(6, history.load(MathGameId.PICNIC).size)
+            val after = picnicSession(stage, seed + 1000, history)
+            assertTrue(before.intersect(after.toSet()).isEmpty())
+            assertEquals(12, history.load(MathGameId.PICNIC).size)
+            // Even after recent history fills up, each session still has six different problems.
+            repeat(4) { visit -> assertEquals(6, picnicSession(stage, seed + visit, history).distinct().size) }
+            val partial = PicnicGame(Random(seed), Store(stage), history); partial.start()
+            val round = partial.state.round!!
+            assertEquals("part:${round.startCount}:${round.target}", history.load(MathGameId.PICNIC).last())
+            assertEquals(12, history.load(MathGameId.PICNIC).size)
+        }
+    }
+
+    @Test fun savedPartFriendsAndFrameLoadAsMixedTenIncludingChoicesVoicesAndEquations() = runBlocking {
+        for (stage in listOf(MathStage.PART_5, MathStage.PART_10)) for (seed in 0..19) {
+            val friends = FriendsGame(Random(seed), Store(stage)); friends.start()
+            val mixedFriends = FriendsGame(Random(seed), Store(MathStage.MIXED_10)); mixedFriends.start()
+            val frame = FrameGame(Random(seed), Store(stage)); frame.start()
+            val mixedFrame = FrameGame(Random(seed), Store(MathStage.MIXED_10)); mixedFrame.start()
+            repeat(6) { index ->
+                assertEquals(mixedFriends.state, friends.state)
+                assertEquals(mixedFrame.state, frame.state)
+                assertEquals(MathStage.MIXED_10, friends.state.session.stage)
+                assertEquals(MathStage.MIXED_10, frame.state.session.stage)
+                assertEquals(friendsPool(MathStage.MIXED_10, index, MathOperation.PLUS), friendsPool(stage, index, MathOperation.PLUS))
+                assertEquals(friendsPool(MathStage.MIXED_10, index, MathOperation.MINUS), friendsPool(stage, index, MathOperation.MINUS))
+                assertEquals(framePool(MathStage.MIXED_10, index), framePool(stage, index))
+                friends.question(); mixedFriends.question()
+                val wrongBirds = friends.state.choices.first { it != friends.state.round!!.result }
+                friends.onAnswer(wrongBirds); mixedFriends.onAnswer(wrongBirds)
+                val wrongCounters = frame.state.choices.first { it != frame.state.round!!.missing }
+                frame.onAnswer(wrongCounters); mixedFrame.onAnswer(wrongCounters)
+                friends.replay(); mixedFriends.replay(); frame.replay(); mixedFrame.replay()
+                assertEquals(mixedFriends.state, friends.state)
+                assertEquals(mixedFrame.state, frame.state)
+                friends.onAnswer(friends.state.round!!.result); mixedFriends.onAnswer(mixedFriends.state.round!!.result)
+                frame.onAnswer(frame.state.round!!.missing); mixedFrame.onAnswer(mixedFrame.state.round!!.missing)
+                assertEquals(mixedFriends.state.equation, friends.state.equation)
+                assertEquals(mixedFrame.state.equation, frame.state.equation)
+                friends.next(); mixedFriends.next(); frame.next(); mixedFrame.next()
+            }
+        }
+    }
+
+    @Test fun friendsAndFrameStayAtMixedTenThenEaseInOneMajorityMissSession() = runBlocking {
+        for (saved in listOf(MathStage.MIXED_10, MathStage.PART_5, MathStage.PART_10)) {
+            val friendsStore = Store(saved)
+            val frameStore = Store(saved)
+            repeat(3) { visit ->
+                val friends = FriendsGame(Random(visit), friendsStore); friends.start()
+                val frame = FrameGame(Random(visit), frameStore); frame.start()
+                assertEquals(MathStage.MIXED_10, friends.state.session.stage)
+                assertEquals(MathStage.MIXED_10, frame.state.session.stage)
+                repeat(6) { index ->
+                    friends.question()
+                    if (visit == 2 && index < 4) {
+                        friends.onAnswer(friends.state.choices.first { it != friends.state.round!!.result })
+                        frame.onAnswer(frame.state.choices.first { it != frame.state.round!!.missing })
+                    }
+                    friends.onAnswer(friends.state.round!!.result); friends.next()
+                    frame.onAnswer(frame.state.round!!.missing); frame.next()
+                }
+                val expected = if (visit == 2) MathStage.ZERO_5 else MathStage.MIXED_10
+                assertEquals(expected, friendsStore.stage)
+                assertEquals(expected, frameStore.stage)
+                assertEquals(expected, friends.state.session.nextStage)
+                assertEquals(expected, frame.state.session.nextStage)
+                assertEquals(visit + 1, friendsStore.writes)
+                assertEquals(visit + 1, frameStore.writes)
+            }
+        }
     }
 
     @Test fun onlyFinishedSessionsSaveAndEachGameRemembersItsOwnStage() = runBlocking {
@@ -376,9 +607,9 @@ class MathGamesTest {
     private fun counts(catalog: (MathStage) -> Set<Any>) = MathStage.entries.map { catalog(it).size }
 
     @Test fun catalogsHaveTheMeasuredSizesPerStage() {
-        assertEquals(listOf(10, 10, 20, 26, 111), counts(::friendsCatalog))
-        assertEquals(listOf(9, 9, 13, 12, 21), counts(::picnicCatalog))
-        assertEquals(listOf(4, 4, 4, 6, 17), counts(::frameCatalog))
+        assertEquals(listOf(10, 10, 20, 26, 111, 111, 111), counts(::friendsCatalog))
+        assertEquals(listOf(9, 9, 13, 12, 21, 36, 66), counts(::picnicCatalog))
+        assertEquals(listOf(4, 4, 4, 6, 17, 17, 17), counts(::frameCatalog))
     }
 
     private fun friendsSession(stage: MathStage, seed: Int, history: MathHistoryStore = InMemoryMathHistoryStore()) = runBlocking {

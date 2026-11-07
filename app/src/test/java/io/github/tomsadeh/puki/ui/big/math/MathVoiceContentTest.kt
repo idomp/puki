@@ -23,7 +23,7 @@ class MathVoiceContentTest {
         val existing = (1..10).map { "voice_number_$it" }.toSet()
         assertTrue("Keys absent from pack: ${keys - packKeys.toSet() - existing}", (keys - packKeys.toSet() - existing).isEmpty())
         assertEquals(MathContent.allLines.map { it.key }.toSet(), keys)
-        assertEquals(80, keys.size)
+        assertEquals(91, keys.size)
     }
 
     @Test fun completeSentencesAndGenderedVariantsMatchBilingualContentAndEnglishIsAvailable() {
@@ -36,6 +36,14 @@ class MathVoiceContentTest {
                 assertTrue(line.key, entry.contains("(\"$girl\", \"${line.text.he}\")"))
             }
         }
+    }
+
+    @Test fun partTotalsUseNewWholeSentenceKeysAndReuseTheExistingZero() {
+        assertEquals("voice_big_math_picnic_already", MathContent.picnicAlready.key)
+        assertEquals(11, MathContent.picnicTotals.size)
+        assertEquals(MathContent.picnicTargets[0], MathContent.picnicTotals[0])
+        for (target in 1..10) assertEquals("voice_big_math_picnic_target_$target", MathContent.picnicTotals[target].key)
+        assertEquals(MathContent.allLines.size, MathContent.allLines.map { it.key }.distinct().size)
     }
 
     @Test fun ambiguousEightUsesGenderAppropriatePhonemeStems() {

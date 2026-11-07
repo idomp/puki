@@ -47,7 +47,7 @@ internal fun PicnicScreen(viewModel: PicnicViewModel, onBack: () -> Unit, onRest
             Row(Modifier.fillMaxSize().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(24.dp), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     val round = state.round
-                    if (round != null && round.request != PicnicRequest.EXACT) {
+                    if (round != null && round.request in setOf(PicnicRequest.ONE_MORE, PicnicRequest.ONE_LESS)) {
                         AppleMat(round.shownAmount, Modifier.fillMaxWidth().height(120.dp))
                     }
                     // Two countable rows, replenished after each drop so overfilling is possible.

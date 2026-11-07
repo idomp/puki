@@ -93,7 +93,7 @@ class FriendsGame(random: Random, progress: MathProgressStore, history: MathHist
     private fun roundMaximum() = friendsMaximum(session.stage, session.roundIndex)
 
     private suspend fun selectRound(): FriendsRound {
-        val stage = session.stage
+        val stage = session.stage.countingStage
         val index = session.roundIndex
         val operation = when {
             stage == MathStage.JOIN_5 -> MathOperation.PLUS
@@ -114,9 +114,9 @@ private fun friendsKey(round: FriendsRound) =
 
 /** Warmup stories stay small: at most three birds at the start of JOIN_5, five at the start of MIXED_10. */
 internal fun friendsMaximum(stage: MathStage, index: Int): Int = when {
-    stage == MathStage.MIXED_10 && index < 2 -> 5
+    stage.countingStage == MathStage.MIXED_10 && index < 2 -> 5
     stage == MathStage.JOIN_5 && index < 2 -> 3
-    else -> stage.maximum
+    else -> stage.countingStage.maximum
 }
 
 /** Operations a round can ask for; mixed stages open with joins, then shuffle the rest. */
@@ -129,6 +129,7 @@ internal fun friendsOperations(stage: MathStage, index: Int): Set<MathOperation>
 
 /** Every story this round may show. The zero examples are fixed at ZERO_5; the opening rounds leave zero to them. */
 internal fun friendsPool(stage: MathStage, index: Int, operation: MathOperation): List<FriendsRound> {
+    if (stage != stage.countingStage) return friendsPool(stage.countingStage, index, operation)
     val maximum = friendsMaximum(stage, index)
     // Zero gets deliberate examples: empty start, no change, take everything, empty + empty.
     if (stage == MathStage.ZERO_5 && index >= 2) {
