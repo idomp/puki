@@ -144,13 +144,19 @@ class VoicePlayer(private val context: Context) {
         startAsync(onComplete) { it.setDataSource(file.absolutePath) }
     }
 
-    fun playSequence(voiceKeys: List<String>, language: Language, onAllComplete: (() -> Unit)? = null) {
-        if (voiceKeys.isEmpty()) {
+    // Bumped by stop(): a sequence that was cut doesn't go on to its next line (its caller still hears it's done)
+    private var sequenceGeneration = 0
+
+    fun playSequence(voiceKeys: List<String>, language: Language, onAllComplete: (() -> Unit)? = null) =
+        playSequenceFrom(voiceKeys, language, onAllComplete, sequenceGeneration)
+
+    private fun playSequenceFrom(voiceKeys: List<String>, language: Language, onAllComplete: (() -> Unit)?, generation: Int) {
+        if (voiceKeys.isEmpty() || generation != sequenceGeneration) {
             onAllComplete?.invoke()
             return
         }
         play(voiceKeys.first(), language) {
-            playSequence(voiceKeys.drop(1), language, onAllComplete)
+            playSequenceFrom(voiceKeys.drop(1), language, onAllComplete, generation)
         }
     }
 
@@ -234,6 +240,7 @@ class VoicePlayer(private val context: Context) {
      * a line (Say It's next word) carries on instead of waiting forever.
      */
     fun stop() {
+        sequenceGeneration++
         val cut = listOfNotNull(playingDone) + waiting.mapNotNull { it.second }
         waiting.clear()
         playingDone = null

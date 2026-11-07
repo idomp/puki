@@ -391,15 +391,17 @@ fun FeedbackBubble(text: String, modifier: Modifier = Modifier, fontSize: TextUn
 
 /**
  * Plays a game's voice cue whenever its [token] changes (the game logic bumps it for every new cue,
- * replays included). Hebrew only: the big-kids games have no English recordings.
+ * replays included). A new cue silences the one still playing, even an empty cue (a tap that found
+ * the answer): a fast child never hears the last question over the next one. Hebrew only: the
+ * big-kids games have no English recordings.
  */
 @Composable
 fun PlayVoiceCue(keys: List<String>, token: Long) {
     val voicePlayer = LocalVoicePlayer.current
     LaunchedEffect(token) {
-        if (token == 0L || keys.isEmpty()) return@LaunchedEffect
+        if (token == 0L) return@LaunchedEffect
         voicePlayer.stop()
-        voicePlayer.playSequence(keys, Language.HEBREW)
+        if (keys.isNotEmpty()) voicePlayer.playSequence(keys, Language.HEBREW)
     }
 }
 
