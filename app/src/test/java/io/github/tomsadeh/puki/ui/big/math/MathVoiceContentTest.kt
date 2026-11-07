@@ -23,7 +23,7 @@ class MathVoiceContentTest {
         val existing = (1..10).map { "voice_number_$it" }.toSet()
         assertTrue("Keys absent from pack: ${keys - packKeys.toSet() - existing}", (keys - packKeys.toSet() - existing).isEmpty())
         assertEquals(MathContent.allLines.map { it.key }.toSet(), keys)
-        assertEquals(113, keys.size)
+        assertEquals(114, keys.size)
     }
 
     @Test fun completeSentencesAndGenderedVariantsMatchBilingualContentAndEnglishIsAvailable() {
@@ -52,7 +52,7 @@ class MathVoiceContentTest {
         for (total in 2..10) {
             val line = MathContent.birdsNow.getValue(total)
             assertEquals("voice_big_math_birds_now_$total", line.key)
-            assertEquals("עכשיו יש על הענף ${words[total - 2]} ציפורים.", line.text.he)
+            assertEquals("על הענף יש עכשיו ${words[total - 2]} ציפורים.", line.text.he)
         }
         assertEquals("בואי נתחיל מהציפורים שרואים ונספור הלאה.", MathContent.hideHint.text.heGirl)
         assertEquals("בוא נתחיל מהציפורים שרואים ונספור הלאה.", MathContent.hideHint.text.he)

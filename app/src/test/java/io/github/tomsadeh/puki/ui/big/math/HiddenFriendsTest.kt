@@ -101,12 +101,14 @@ class HiddenFriendsTest {
 
     @Test fun phasesReplayAndHintsUseTheAuthoredStoryOrderForBothUnknowns() = runBlocking {
         val game = FriendsGame(Random(12), progress(MathStage.PART_10)); game.start()
+        var arrivals = 0
         repeat(6) {
             val round = game.state.round!!
             val startUnknown = round.unknown == FriendsUnknown.START
             val ask = if (startUnknown) MathContent.hideAskStart else MathContent.hideAsk
             val first = if (startUnknown) MathContent.hideStart else MathContent.birdStarts[round.startCount]
-            val change = if (startUnknown) MathContent.birdArrivals[round.change] else MathContent.hideArrive
+            val change = if (startUnknown) MathContent.birdArrivals[round.change]
+                else MathContent.hideArrivals[arrivals++ % 2]
             val expected = listOf(first, change, MathContent.birdsNow.getValue(round.result), ask)
             assertEquals(listOf(first), game.state.voice.lines)
             game.advancePhase()

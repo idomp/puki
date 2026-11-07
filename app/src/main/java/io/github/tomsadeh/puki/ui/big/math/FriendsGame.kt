@@ -65,6 +65,8 @@ class FriendsGame(
     /** Rounds 3-6 of a mixed stage: two joins and two leaves in a shuffled order. */
     private var laterOperations = emptyList<MathOperation>()
     private var laterUnknowns = emptyList<FriendsUnknown>()
+    /** "How many came?" rounds alternate the two arrival wordings. */
+    private var hiddenArrivals = 0
 
     override suspend fun startRound() {
         val round = selectRound()
@@ -75,7 +77,8 @@ class FriendsGame(
             StoryPhase.SHOW_START to listOf(if (round.unknown == FriendsUnknown.START)
                 MathContent.hideStart else MathContent.birdStarts[round.startCount]),
             StoryPhase.CHANGE to listOf(if (round.unknown == FriendsUnknown.START)
-                MathContent.birdArrivals[round.change] else MathContent.hideArrive),
+                MathContent.birdArrivals[round.change]
+                else MathContent.hideArrivals[hiddenArrivals++ % MathContent.hideArrivals.size]),
             StoryPhase.QUESTION to listOf(MathContent.birdsNow.getValue(round.result),
                 if (round.unknown == FriendsUnknown.START) MathContent.hideAskStart else MathContent.hideAsk),
             StoryPhase.ANSWERED to listOf(MathContent.exact)
