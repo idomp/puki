@@ -187,13 +187,12 @@ class NikudContentTest {
     }
 
     /** The /u/ syllables still in a listening round ([Nikud.pendingUSyllables]); this list goes when they are recorded. */
-    private val awaitingRecording: Set<String> = setOf("voice_big_nikud_gimel_u", "voice_big_nikud_kaf_u")
+    private val awaitingRecording: Set<String> = emptySet()
 
     @Test
     fun pendingUSyllablesAreNeverAsked() {
-        assertEquals(setOf("mem", "gimel", "kaf"), Nikud.pendingUSyllables)
         assertTrue(Nikud.uConsonants.none { it.id in Nikud.pendingUSyllables })
-        assertEquals(10, Nikud.uConsonants.size)
+        assertEquals(Nikud.consonants.size - Nikud.pendingUSyllables.size, Nikud.uConsonants.size)
         assertEquals(emptySet<String>(), awaitingRecording - packLines.keys)
         assertTrue("voice_big_nikud_mem_u" in rawKeys)
     }

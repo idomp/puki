@@ -56,7 +56,7 @@ object Nikud {
     fun consonant(id: String): Consonant = consonants.first { it.id == id }
 
     /** /u/ syllables still in a listening round (their takes weren't right yet): the games don't ask them. */
-    val pendingUSyllables: Set<String> = setOf("mem", "gimel", "kaf")
+    val pendingUSyllables: Set<String> = emptySet()
 
     /** The consonants whose /u/ syllable the games may ask. */
     val uConsonants: List<Consonant> get() = consonants.filter { it.id !in pendingUSyllables }

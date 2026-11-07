@@ -169,7 +169,7 @@ TAKES = {
     "voice_big_nikud_word_banana_he": ("bananˈa", 0.5, 1),
     "voice_big_nikud_word_para_he": ("paʁˈa!", 0.55, 11),
     "voice_big_nikud_word_tiras_he": ("tiʁˈas!", 0.55, 0),
-    # round 8 (/u/, 2026-11-07); גּוּ and כּוּ are in round 10, and מוּ keeps its old file until then
+    # round 8 (/u/, 2026-11-07)
     "voice_big_nikud_lamed_u_he": ("lˈu", 0.8, 1),
     "voice_big_nikud_nun_u_he": ("nˈu", 0.8, 1),
     "voice_big_nikud_shin_u_he": ("ʃˈu", 0.8, 3),
@@ -188,4 +188,8 @@ TAKES = {
     "voice_big_nikud_word_buba_he": ("bubˈa", 0.7, 0),
     "voice_big_nikud_mark_shuruk_he": ("ʃuʁˈuk", 0.7, 1),
     "voice_big_nikud_mark_kubutz_he": ("kubˈuts", 0.7, 3),
+    # round 10: גּוּ and כּוּ only came out right with "!"
+    "voice_big_nikud_mem_u_he": ("mˈu", 0.7, 1),
+    "voice_big_nikud_gimel_u_he": ("ɡˈu!", 0.7, 2),
+    "voice_big_nikud_kaf_u_he": ("kˈu!", 0.7, 1),
 }
