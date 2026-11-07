@@ -6,14 +6,14 @@ enum class MathStage(val maximum: Int, val allowsZero: Boolean = false) {
     PART_5(5, allowsZero = true), PART_10(10, allowsZero = true)
 }
 
-/** Legacy PART stages use counting content; Friends and Frame progression stops at MIXED_10. */
+/** Friends keeps counting content when asked for a part-whole stage. */
 internal val MathStage.countingStage: MathStage get() = if (this >= MathStage.PART_5) MathStage.MIXED_10 else this
 
-/** Only Picnic advances into part-whole stages until the other games have their own rounds. */
+/** Each game advances only as far as its own content supports. */
 enum class MathGameId(val island: String, val maxStage: MathStage) {
     FRIENDS("big_math_friends", MathStage.MIXED_10),
     PICNIC("big_math_picnic", MathStage.PART_10),
-    FRAME("big_math_frame", MathStage.MIXED_10);
+    FRAME("big_math_frame", MathStage.PART_10);
 
     internal fun normalize(stage: MathStage): MathStage = minOf(stage, maxStage)
 }

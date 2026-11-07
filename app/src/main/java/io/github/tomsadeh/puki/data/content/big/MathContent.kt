@@ -108,6 +108,16 @@ object MathContent {
         line("voice_big_math_frame_9", "במסגרת יש תשעה עיגולים.", "There are nine counters in the frame."),
         line("voice_big_math_frame_10", "במסגרת יש עשרה עיגולים.", "There are ten counters in the frame.")
     )
+    val frameTargets = mapOf(
+        2 to line("voice_big_math_frame_target_2", "בַּמִּסְגֶּרֶת צְרִיכִים לִהְיוֹת שְׁנֵי עִיגּוּלִים.", "There should be two counters in the frame."),
+        3 to line("voice_big_math_frame_target_3", "בַּמִּסְגֶּרֶת צְרִיכִים לִהְיוֹת שְׁלוֹשָׁה עִיגּוּלִים.", "There should be three counters in the frame."),
+        4 to line("voice_big_math_frame_target_4", "בַּמִּסְגֶּרֶת צְרִיכִים לִהְיוֹת אַרְבָּעָה עִיגּוּלִים.", "There should be four counters in the frame."),
+        5 to line("voice_big_math_frame_target_5", "בַּמִּסְגֶּרֶת צְרִיכִים לִהְיוֹת חֲמִשָּׁה עִיגּוּלִים.", "There should be five counters in the frame."),
+        6 to line("voice_big_math_frame_target_6", "בַּמִּסְגֶּרֶת צְרִיכִים לִהְיוֹת שִׁשָּׁה עִיגּוּלִים.", "There should be six counters in the frame."),
+        7 to line("voice_big_math_frame_target_7", "בַּמִּסְגֶּרֶת צְרִיכִים לִהְיוֹת שִׁבְעָה עִיגּוּלִים.", "There should be seven counters in the frame."),
+        8 to line("voice_big_math_frame_target_8", "בַּמִּסְגֶּרֶת צְרִיכִים לִהְיוֹת שְׁמוֹנָה עִיגּוּלִים.", "There should be eight counters in the frame."),
+        9 to line("voice_big_math_frame_target_9", "בַּמִּסְגֶּרֶת צְרִיכִים לִהְיוֹת תִּשְׁעָה עִיגּוּלִים.", "There should be nine counters in the frame.")
+    )
     val frameFive = line("voice_big_math_frame_five", "במסגרת יש מקום לחמישה עיגולים.", "The frame has room for five counters.")
     val frameTen = line("voice_big_math_frame_ten", "במסגרת יש מקום לעשרה עיגולים.", "The frame has room for ten counters.")
     val howMany = line("voice_big_math_how_many", "כמה ציפורים יש עכשיו?", "How many birds are there now?")
@@ -123,7 +133,7 @@ object MathContent {
     val oneMore = line("voice_big_math_one_more", "תשים בסל תפוח אחד יותר ממה שיש על המחצלת.", "Put one apple more than on the mat in the basket.", "תשימי בסל תפוח אחד יותר ממה שיש על המחצלת.")
     val oneLess = line("voice_big_math_one_less", "תשים בסל תפוח אחד פחות ממה שיש על המחצלת.", "Put one apple fewer than on the mat in the basket.", "תשימי בסל תפוח אחד פחות ממה שיש על המחצלת.")
 
-    val allLines = birdStarts + birdArrivals + birdDepartures + picnicTargets + picnicTotals.drop(1) + picnicShown + frameFilled +
+    val allLines = birdStarts + birdArrivals + birdDepartures + picnicTargets + picnicTotals.drop(1) + picnicShown + frameFilled + frameTargets.values +
         listOf(picnicAlready, frameFive, frameTen, howMany, howManyLeft, howManyMissing, joinHint, leaveHint,
             frameHint, tooFew, tooMany, exact, pressReady, oneMore, oneLess)
 }

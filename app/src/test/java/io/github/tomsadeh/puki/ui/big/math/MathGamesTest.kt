@@ -252,16 +252,16 @@ class MathGamesTest {
             game.start()
             repeat(6) { index ->
                 val round = game.state.round!!
-                assertEquals(if (stage.countingStage == MathStage.MIXED_10 && index >= 2) 10 else 5, round.capacity)
-                assertEquals(round.capacity, round.filled + round.missing)
+                assertEquals(if (stage in listOf(MathStage.MIXED_10, MathStage.PART_10) && index >= 2) 10 else 5, round.capacity)
+                assertEquals(round.target, round.filled + round.missing)
                 assertEquals(round.capacity, game.state.cells.size)
                 assertEquals(round.filled, game.state.cells.count { it })
                 assertChoices(round.missing, game.state.choices, round.capacity, stage.allowsZero)
-                if (stage >= MathStage.MIXED_5 && index >= 3)
-                    assertEquals(Equation(round.filled, MathOperation.PLUS, null, round.capacity), game.state.equation)
+                if (!round.isMakeN && stage >= MathStage.MIXED_5 && index >= 3)
+                    assertEquals(Equation(round.filled, MathOperation.PLUS, null, round.target), game.state.equation)
                 else assertNull(game.state.equation)
                 game.onAnswer(round.missing)
-                assertEquals(Equation(round.filled, MathOperation.PLUS, round.missing, round.capacity), game.state.equation)
+                assertEquals(Equation(round.filled, MathOperation.PLUS, round.missing, round.target), game.state.equation)
                 assertTrue(game.state.roundComplete)
                 game.next()
             }
@@ -307,12 +307,12 @@ class MathGamesTest {
 
     @Test fun promotionStopsAtEachGamesContentCeiling() {
         for (game in MathGameId.entries) for (misses in 0..1) {
-            val ceiling = if (game == MathGameId.PICNIC) MathStage.PART_10 else MathStage.MIXED_10
+            val ceiling = if (game == MathGameId.FRIENDS) MathStage.MIXED_10 else MathStage.PART_10
             var stage = MathStage.JOIN_5
             repeat(10) { stage = nextMathStage(game, stage, 6, misses, misses) }
             assertEquals(ceiling, stage)
             for (saved in listOf(MathStage.MIXED_10, MathStage.PART_5, MathStage.PART_10)) {
-                val expected = if (game == MathGameId.PICNIC)
+                val expected = if (game != MathGameId.FRIENDS)
                     MathStage.entries[minOf(saved.ordinal + 1, ceiling.ordinal)] else ceiling
                 assertEquals(expected, nextMathStage(game, saved, 6, misses, misses))
             }
@@ -468,62 +468,44 @@ class MathGamesTest {
         }
     }
 
-    @Test fun savedPartFriendsAndFrameLoadAsMixedTenIncludingChoicesVoicesAndEquations() = runBlocking {
+    @Test fun savedPartFriendsLoadAsMixedTenIncludingChoicesVoicesAndEquations() = runBlocking {
         for (stage in listOf(MathStage.PART_5, MathStage.PART_10)) for (seed in 0..19) {
             val friends = FriendsGame(Random(seed), Store(stage)); friends.start()
             val mixedFriends = FriendsGame(Random(seed), Store(MathStage.MIXED_10)); mixedFriends.start()
-            val frame = FrameGame(Random(seed), Store(stage)); frame.start()
-            val mixedFrame = FrameGame(Random(seed), Store(MathStage.MIXED_10)); mixedFrame.start()
             repeat(6) { index ->
                 assertEquals(mixedFriends.state, friends.state)
-                assertEquals(mixedFrame.state, frame.state)
                 assertEquals(MathStage.MIXED_10, friends.state.session.stage)
-                assertEquals(MathStage.MIXED_10, frame.state.session.stage)
                 assertEquals(friendsPool(MathStage.MIXED_10, index, MathOperation.PLUS), friendsPool(stage, index, MathOperation.PLUS))
                 assertEquals(friendsPool(MathStage.MIXED_10, index, MathOperation.MINUS), friendsPool(stage, index, MathOperation.MINUS))
-                assertEquals(framePool(MathStage.MIXED_10, index), framePool(stage, index))
                 friends.question(); mixedFriends.question()
                 val wrongBirds = friends.state.choices.first { it != friends.state.round!!.result }
                 friends.onAnswer(wrongBirds); mixedFriends.onAnswer(wrongBirds)
-                val wrongCounters = frame.state.choices.first { it != frame.state.round!!.missing }
-                frame.onAnswer(wrongCounters); mixedFrame.onAnswer(wrongCounters)
-                friends.replay(); mixedFriends.replay(); frame.replay(); mixedFrame.replay()
+                friends.replay(); mixedFriends.replay()
                 assertEquals(mixedFriends.state, friends.state)
-                assertEquals(mixedFrame.state, frame.state)
                 friends.onAnswer(friends.state.round!!.result); mixedFriends.onAnswer(mixedFriends.state.round!!.result)
-                frame.onAnswer(frame.state.round!!.missing); mixedFrame.onAnswer(mixedFrame.state.round!!.missing)
                 assertEquals(mixedFriends.state.equation, friends.state.equation)
-                assertEquals(mixedFrame.state.equation, frame.state.equation)
-                friends.next(); mixedFriends.next(); frame.next(); mixedFrame.next()
+                friends.next(); mixedFriends.next()
             }
         }
     }
 
-    @Test fun friendsAndFrameStayAtMixedTenThenEaseInOneMajorityMissSession() = runBlocking {
+    @Test fun friendsStayAtMixedTenThenEaseInOneMajorityMissSession() = runBlocking {
         for (saved in listOf(MathStage.MIXED_10, MathStage.PART_5, MathStage.PART_10)) {
             val friendsStore = Store(saved)
-            val frameStore = Store(saved)
             repeat(3) { visit ->
                 val friends = FriendsGame(Random(visit), friendsStore); friends.start()
-                val frame = FrameGame(Random(visit), frameStore); frame.start()
                 assertEquals(MathStage.MIXED_10, friends.state.session.stage)
-                assertEquals(MathStage.MIXED_10, frame.state.session.stage)
                 repeat(6) { index ->
                     friends.question()
                     if (visit == 2 && index < 4) {
                         friends.onAnswer(friends.state.choices.first { it != friends.state.round!!.result })
-                        frame.onAnswer(frame.state.choices.first { it != frame.state.round!!.missing })
                     }
                     friends.onAnswer(friends.state.round!!.result); friends.next()
-                    frame.onAnswer(frame.state.round!!.missing); frame.next()
                 }
                 val expected = if (visit == 2) MathStage.ZERO_5 else MathStage.MIXED_10
                 assertEquals(expected, friendsStore.stage)
-                assertEquals(expected, frameStore.stage)
                 assertEquals(expected, friends.state.session.nextStage)
-                assertEquals(expected, frame.state.session.nextStage)
                 assertEquals(visit + 1, friendsStore.writes)
-                assertEquals(visit + 1, frameStore.writes)
             }
         }
     }
@@ -609,7 +591,7 @@ class MathGamesTest {
     @Test fun catalogsHaveTheMeasuredSizesPerStage() {
         assertEquals(listOf(10, 10, 20, 26, 111, 111, 111), counts(::friendsCatalog))
         assertEquals(listOf(9, 9, 13, 12, 21, 36, 66), counts(::picnicCatalog))
-        assertEquals(listOf(4, 4, 4, 6, 17, 17, 17), counts(::frameCatalog))
+        assertEquals(listOf(4, 4, 4, 6, 17, 6, 32), counts(::frameCatalog))
     }
 
     private fun friendsSession(stage: MathStage, seed: Int, history: MathHistoryStore = InMemoryMathHistoryStore()) = runBlocking {
@@ -705,6 +687,116 @@ class MathGamesTest {
             assertEquals(0, frames[3].filled)
             assertEquals(10, frames[4].filled)
         }
+    }
+
+    @Test fun makeNFramesKeepTheWholeFrameAndHaveTwoPositivePartsWithoutRepeats() {
+        for (stage in listOf(MathStage.PART_5, MathStage.PART_10)) for (seed in 0..99) {
+            val frames = frameSession(stage, seed)
+            assertEquals(6, frames.distinct().size)
+            assertTrue(frameCatalog(stage).containsAll(frames))
+            frames.forEachIndexed { index, round ->
+                val capacity = if (stage == MathStage.PART_10 && index >= 2) 10 else 5
+                assertEquals(capacity, round.capacity)
+                assertTrue(round.isMakeN)
+                assertTrue(round.target in if (capacity == 5) 2..4 else 6..9)
+                assertTrue(round.filled in 1 until round.target)
+                assertTrue(round.missing in 1 until round.target)
+                assertEquals(round.target, round.filled + round.missing)
+            }
+            if (stage == MathStage.PART_5) assertEquals(frameCatalog(stage), frames.toSet())
+        }
+        val small = (2..4).flatMap { n -> (1 until n).map { FrameRound(5, it, n) } }.toSet()
+        val big = (6..9).flatMap { n -> (1 until n).map { FrameRound(10, it, n) } }.toSet()
+        assertEquals(small, frameCatalog(MathStage.PART_5))
+        assertEquals(small + big, frameCatalog(MathStage.PART_10))
+    }
+
+    @Test fun makeNPromptsRetriesChoicesAndSolvedEquationsKeepTheSameTarget() = runBlocking {
+        for (stage in listOf(MathStage.PART_5, MathStage.PART_10)) for (seed in 0..39) {
+            val store = Store(stage)
+            val game = FrameGame(Random(seed), store); game.start()
+            assertEquals(stage, game.state.session.stage)
+            repeat(6) { index ->
+                val initial = game.state
+                val round = initial.round!!
+                val prompt = listOf("voice_big_math_frame_target_${round.target}",
+                    "voice_big_math_frame_${round.filled}", "voice_big_math_how_many_missing")
+                assertEquals(prompt, initial.prompt.map { it.key })
+                assertEquals(prompt, initial.voice.keys)
+                assertNull(initial.equation)
+                assertEquals(List(round.capacity) { it < round.filled }, initial.cells)
+                game.onAnswer(-1); game.next(); game.start()
+                assertEquals(initial, game.state)
+                game.replay()
+                assertEquals(initial.copy(voice = game.state.voice), game.state)
+                assertEquals(prompt, game.state.voice.keys)
+                assertTrue(game.state.voice.token > initial.voice.token)
+                game.onAnswer(initial.choices.first { it != round.missing })
+                assertEquals(listOf(MathContent.frameHint, MathContent.howManyMissing), game.state.voice.lines)
+                assertEquals(MathFeedbackKind.COUNT_EMPTY_SPACES, game.state.feedback!!.kind)
+                assertEquals(round, game.state.round)
+                assertEquals(initial.cells, game.state.cells)
+                assertEquals(initial.choices, game.state.choices)
+                assertEquals(initial.prompt, game.state.prompt)
+                game.replay()
+                assertEquals(prompt, game.state.voice.keys)
+                game.onAnswer(round.missing)
+                assertTrue(game.state.roundComplete)
+                assertNull(game.state.feedback)
+                assertEquals(Equation(round.filled, MathOperation.PLUS, round.missing, round.target), game.state.equation)
+                assertEquals(index + 1, game.state.session.totalStarsEarned)
+                assertEquals(initial.choices, game.state.choices)
+                val solved = game.state
+                game.onAnswer(round.missing)
+                assertEquals(solved, game.state)
+                game.next()
+            }
+            assertEquals(1, store.writes)
+        }
+    }
+
+    @Test fun frameSessionsPersistPartPromotionCeilingAndDemotion() = runBlocking {
+        val store = Store(MathStage.MIXED_10)
+        for ((visit, expected) in listOf(MathStage.PART_5, MathStage.PART_10, MathStage.PART_10, MathStage.PART_5, MathStage.MIXED_10).withIndex()) {
+            val game = FrameGame(Random(visit), store); game.start()
+            assertEquals(store.stage, game.state.session.stage)
+            repeat(6) { index ->
+                if (visit >= 3 && index < 4) game.onAnswer(game.state.choices.first { it != game.state.round!!.missing })
+                game.onAnswer(game.state.round!!.missing); game.next()
+            }
+            assertEquals(expected, store.stage)
+            assertEquals(expected, game.state.session.nextStage)
+            assertEquals(visit + 1, store.writes)
+        }
+    }
+
+    @Test fun makeNHistoryAvoidsRecentPairsAndRecordsAbandonedRoundsWithDistinctKeys() = runBlocking {
+        for (stage in listOf(MathStage.PART_5, MathStage.PART_10)) for (seed in 0..49) {
+            val history = InMemoryMathHistoryStore()
+            val before = frameSession(stage, seed, history)
+            assertEquals(before.map { "part:${it.capacity}:${it.target}:${it.filled}" }, history.load(MathGameId.FRAME))
+            val after = frameSession(stage, seed + 1000, history)
+            if (stage == MathStage.PART_5) {
+                // All six must recur, but the opening avoids the latest three when the pool allows it.
+                assertTrue(after.first() !in before.takeLast(3))
+            } else assertTrue(before.intersect(after.toSet()).isEmpty())
+            repeat(4) { visit -> assertEquals(6, frameSession(stage, seed + visit, history).distinct().size) }
+            val previous = history.load(MathGameId.FRAME)
+            val partial = FrameGame(Random(seed), Store(stage), history); partial.start()
+            val round = partial.state.round!!
+            assertEquals((previous + round.historyKey).takeLast(12), history.load(MathGameId.FRAME))
+            val next = FrameGame(Random(seed), Store(stage), history); next.start()
+            assertNotEquals(round, next.state.round)
+            assertTrue(history.load(MathGameId.FRIENDS).isEmpty())
+        }
+        // Full-frame history continues to load under its original keys and cannot hide a make-N pair.
+        val legacy = InMemoryMathHistoryStore()
+        legacy.save(MathGameId.FRAME, (0..5).map { "5:$it" })
+        val left = FrameGame(Random(17), Store(MathStage.PART_5), legacy); left.start()
+        val right = FrameGame(Random(17), Store(MathStage.PART_5)); right.start()
+        assertEquals(right.state, left.state)
+        assertEquals("5:2", FrameRound(5, 2).historyKey)
+        assertNotEquals(FrameRound(5, 1, 2).historyKey, FrameRound(5, 1, 3).historyKey)
     }
 
     @Test fun answerPositionVariesAndIsBalancedOverASessionForEveryGame() = runBlocking {
