@@ -5,7 +5,8 @@ import io.github.tomsadeh.puki.data.models.MathLevel
 /** Names are persisted; order defines the teaching progression. */
 enum class MathStage(val maximum: Int, val allowsZero: Boolean = false) {
     JOIN_5(5), TAKE_5(5), MIXED_5(5), ZERO_5(5, true), MIXED_10(10, true),
-    PART_5(5, allowsZero = true), PART_10(10, allowsZero = true)
+    PART_5(5, allowsZero = true), PART_10(10, allowsZero = true),
+    TEEN_COUNT(20), TEEN_CROSS(20), TEEN_MAKE(20), TEEN_PART(20)
 }
 
 /** The stage the parent's Sums level starts at; each game still stops at its own ceiling. */
@@ -13,13 +14,14 @@ val MathLevel.floor: MathStage get() = when (this) {
     MathLevel.FROM_START -> MathStage.JOIN_5
     MathLevel.WITHIN_TEN -> MathStage.MIXED_10
     MathLevel.MAKE_THE_TOTAL -> MathStage.PART_5
+    MathLevel.TEN_AND_MORE -> MathStage.TEEN_COUNT
 }
 
 /** Each game advances only as far as its own content supports. */
 enum class MathGameId(val island: String, val maxStage: MathStage) {
     FRIENDS("big_math_friends", MathStage.PART_10),
     PICNIC("big_math_picnic", MathStage.PART_10),
-    FRAME("big_math_frame", MathStage.PART_10);
+    FRAME("big_math_frame", MathStage.TEEN_PART);
 
     internal fun normalize(stage: MathStage): MathStage = minOf(stage, maxStage)
 

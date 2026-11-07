@@ -19,10 +19,10 @@ class MathLevelTest {
     private suspend fun FrameGame.play(missesIn: Int) {
         repeat(6) { index ->
             if (index < missesIn) {
-                val wrong = state.choices.first { it != state.round!!.missing }
+                val wrong = state.choices.first { it != state.round!!.answer }
                 repeat(5) { onAnswer(wrong) }
             }
-            onAnswer(state.round!!.missing); next()
+            onAnswer(state.round!!.answer); next()
         }
     }
 
@@ -30,6 +30,7 @@ class MathLevelTest {
         assertEquals(MathStage.JOIN_5, MathLevel.FROM_START.floor)
         assertEquals(MathStage.MIXED_10, MathLevel.WITHIN_TEN.floor)
         assertEquals(MathStage.PART_5, MathLevel.MAKE_THE_TOTAL.floor)
+        assertEquals(MathStage.TEEN_COUNT, MathLevel.TEN_AND_MORE.floor)
     }
 
     @Test fun theDefaultIsFromTheStartAndChangesNothing() = runBlocking {
@@ -44,7 +45,8 @@ class MathLevelTest {
     }
 
     @Test fun theFloorLiftsALowerSavedStageWhenASessionStarts() = runBlocking {
-        for ((level, expected) in listOf(MathLevel.WITHIN_TEN to MathStage.MIXED_10, MathLevel.MAKE_THE_TOTAL to MathStage.PART_5)) {
+        for ((level, expected) in listOf(MathLevel.WITHIN_TEN to MathStage.MIXED_10, MathLevel.MAKE_THE_TOTAL to MathStage.PART_5,
+            MathLevel.TEN_AND_MORE to MathStage.TEEN_COUNT)) {
             val store = Store(MathStage.TAKE_5)
             val game = FrameGame(Random(3), store, floor = floorOf(level))
             game.start()
@@ -98,5 +100,14 @@ class MathLevelTest {
         assertEquals(MathLevel.FROM_START, MathLevel.fromStored(null))
         assertEquals(MathLevel.FROM_START, MathLevel.fromStored(""))
         assertEquals(MathLevel.FROM_START, MathLevel.fromStored("EXPERT"))
+    }
+
+    @Test fun teenFloorIsHeldAtOtherGamesCeilingsAndCannotBeDemotedBelow() = runBlocking {
+        assertEquals(MathStage.PART_10, MathGameId.FRIENDS.startStage(MathStage.JOIN_5, MathLevel.TEN_AND_MORE.floor))
+        assertEquals(MathStage.PART_10, MathGameId.PICNIC.startStage(MathStage.TEEN_PART, MathLevel.TEN_AND_MORE.floor))
+        val store = Store()
+        val game = FrameGame(Random(12), store, floor = floorOf(MathLevel.TEN_AND_MORE))
+        game.start(); game.play(6)
+        assertEquals(MathStage.TEEN_COUNT, store.stage)
     }
 }

@@ -284,7 +284,7 @@ fun SettingsScreen(
                                 (if (chosen) "✓ " else "") + label.resolve(language),
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = if (chosen) CloudWhite else EarthBrown,
-                                // (three to a row: one line each, even with the ✓)
+                                // Equal chips, each kept on one line.
                                 maxLines = 1,
                                 softWrap = false,
                                 modifier = Modifier
@@ -315,7 +315,8 @@ fun SettingsScreen(
                         listOf(
                             MathLevel.FROM_START to BilingualText("מההתחלה", "From the start"),
                             MathLevel.WITHIN_TEN to BilingualText("עד עשר", "Within ten"),
-                            MathLevel.MAKE_THE_TOTAL to BilingualText("להשלים עד", "Make the total")
+                            MathLevel.MAKE_THE_TOTAL to BilingualText("להשלים עד", "Make the total"),
+                            MathLevel.TEN_AND_MORE to BilingualText("עשר ועוד", "Ten and more")
                         ).forEach { (level, label) ->
                             val chosen = settings.mathLevel == level
                             Text(

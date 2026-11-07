@@ -45,6 +45,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.Font
@@ -183,7 +184,7 @@ fun BigTopBar(onBack: () -> Unit, found: List<String?>, current: Int, stars: Int
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        BackButton(onBack)
+        BackButton(onBack, Modifier.testTag("round-back"))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
             found.forEachIndexed { i, glyph ->
                 val picture = pictures.getOrNull(i)
@@ -296,7 +297,8 @@ fun AnswerBoard(
     /** An exact size for the text, where the height fraction doesn't fit (a pointed word on a wide board). */
     fontSize: TextUnit? = null,
     /** False for boards holding pointed text being read: no squish, the dots stay still under the finger. */
-    squish: Boolean = true
+    squish: Boolean = true,
+    textContent: (@Composable () -> Unit)? = null
 ) {
     val press = remember { MutableInteractionSource() }
     val pressed by press.collectIsPressedAsState()
@@ -326,7 +328,9 @@ fun AnswerBoard(
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                if (picture != null) {
+                if (textContent != null) {
+                    textContent()
+                } else if (picture != null) {
                     Image(
                         painterResource(picture), contentDescription = null,
                         modifier = Modifier.size(minOf(width, height) * 0.62f).graphicsLayer { alpha = if (wrong) 0.5f else 1f }
@@ -430,7 +434,7 @@ fun BigRoundFrame(
             BigTopBar(onBack, found, current, stars, pictures = foundPictures)
             Row(Modifier.weight(1f).fillMaxWidth().padding(start = 12.dp, end = 12.dp, bottom = 8.dp)) {
                 // In Hebrew (RTL) the corner sits on the right, where Puki always is
-                ListeningCorner(onReplay, pulseReplay)
+                ListeningCorner(onReplay, pulseReplay, Modifier.testTag("listening-corner"))
                 Spacer(Modifier.width(12.dp))
                 Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.Center, content = content)
             }

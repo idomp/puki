@@ -247,7 +247,7 @@ class MathGamesTest {
     }
 
     @Test fun frameComplementsCellsChoicesAndEquationsAgree() = runBlocking {
-        for (stage in MathStage.entries) for (seed in 0..79) {
+        for (stage in MathStage.entries.takeWhile { it <= MathStage.PART_10 }) for (seed in 0..79) {
             val game = FrameGame(Random(seed), Store(stage))
             game.start()
             repeat(6) { index ->
@@ -307,7 +307,7 @@ class MathGamesTest {
 
     @Test fun promotionStopsAtEachGamesContentCeiling() {
         for (game in MathGameId.entries) for (misses in 0..1) {
-            val ceiling = MathStage.PART_10
+            val ceiling = game.maxStage
             var stage = MathStage.JOIN_5
             repeat(10) { stage = nextMathStage(game, stage, 6, misses, misses) }
             assertEquals(ceiling, stage)
@@ -320,7 +320,7 @@ class MathGamesTest {
 
     @Test fun partStagesAreAppendedAndOldSavedNamesStillResolve() {
         val oldNames = listOf("JOIN_5", "TAKE_5", "MIXED_5", "ZERO_5", "MIXED_10")
-        assertEquals(oldNames + listOf("PART_5", "PART_10"), MathStage.entries.map { it.name })
+        assertEquals(oldNames + listOf("PART_5", "PART_10", "TEEN_COUNT", "TEEN_CROSS", "TEEN_MAKE", "TEEN_PART"), MathStage.entries.map { it.name })
         oldNames.forEachIndexed { index, name -> assertEquals(index, MathStage.valueOf(name).ordinal) }
         assertEquals(5, MathStage.PART_5.maximum)
         assertEquals(10, MathStage.PART_10.maximum)
@@ -559,7 +559,7 @@ class MathGamesTest {
 
     // ---- Variety: catalogs, sessions without repeats, answer placement and history across visits.
 
-    private fun counts(catalog: (MathStage) -> Set<Any>) = MathStage.entries.map { catalog(it).size }
+    private fun counts(catalog: (MathStage) -> Set<Any>) = MathStage.entries.takeWhile { it <= MathStage.PART_10 }.map { catalog(it).size }
 
     @Test fun catalogsHaveTheMeasuredSizesPerStage() {
         assertEquals(listOf(10, 10, 20, 26, 111, 8, 51), counts(::friendsCatalog))
@@ -582,11 +582,11 @@ class MathGamesTest {
     private fun frameSession(stage: MathStage, seed: Int, history: MathHistoryStore = InMemoryMathHistoryStore()) = runBlocking {
         val game = FrameGame(Random(seed), Store(stage), history)
         game.start()
-        List(6) { game.state.round!!.also { game.onAnswer(it.missing); game.next() } }
+        List(6) { game.state.round!!.also { game.onAnswer(it.answer); game.next() } }
     }
 
     @Test fun everyStageOffersSixDifferentStoriesAndBasketsAndStaysInItsCatalog() {
-        for (stage in MathStage.entries) for (seed in 0..99) {
+        for (stage in MathStage.entries.takeWhile { it <= MathStage.PART_10 }) for (seed in 0..99) {
             val stories = friendsSession(stage, seed)
             assertEquals("$stage $seed", 6, stories.distinct().size)
             assertTrue(friendsCatalog(stage).containsAll(stories))
@@ -730,12 +730,12 @@ class MathGamesTest {
 
     @Test fun frameSessionsPersistPartPromotionCeilingAndDemotion() = runBlocking {
         val store = Store(MathStage.MIXED_10)
-        for ((visit, expected) in listOf(MathStage.PART_5, MathStage.PART_10, MathStage.PART_10, MathStage.PART_5, MathStage.MIXED_10).withIndex()) {
+        for ((visit, expected) in listOf(MathStage.PART_5, MathStage.PART_10, MathStage.TEEN_COUNT, MathStage.PART_10, MathStage.PART_5).withIndex()) {
             val game = FrameGame(Random(visit), store); game.start()
             assertEquals(store.stage, game.state.session.stage)
             repeat(6) { index ->
-                if (visit >= 3 && index < 4) game.onAnswer(game.state.choices.first { it != game.state.round!!.missing })
-                game.onAnswer(game.state.round!!.missing); game.next()
+                if (visit >= 3 && index < 4) game.onAnswer(game.state.choices.first { it != game.state.round!!.answer })
+                game.onAnswer(game.state.round!!.answer); game.next()
             }
             assertEquals(expected, store.stage)
             assertEquals(expected, game.state.session.nextStage)
@@ -780,9 +780,9 @@ class MathGamesTest {
             val frameSlots = mutableListOf<Int>()
             repeat(6) {
                 friendSlots += friends.state.choices.indexOf(friends.state.round!!.answer)
-                frameSlots += frame.state.choices.indexOf(frame.state.round!!.missing)
+                frameSlots += frame.state.choices.indexOf(frame.state.round!!.answer)
                 friends.solve(); friends.next()
-                frame.onAnswer(frame.state.round!!.missing); frame.next()
+                frame.onAnswer(frame.state.round!!.answer); frame.next()
             }
             for (slots in listOf(friendSlots, frameSlots)) {
                 assertEquals(setOf(0, 1, 2, 3), slots.take(4).toSet())

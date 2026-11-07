@@ -76,7 +76,7 @@ enum class ContentPace(
 
 /** Where the Sums games start. A floor only: saved progress above it is kept, and it never lowers a stage. */
 enum class MathLevel {
-    FROM_START, WITHIN_TEN, MAKE_THE_TOTAL;
+    FROM_START, WITHIN_TEN, MAKE_THE_TOTAL, TEN_AND_MORE;
 
     companion object {
         /** The stored name back to a level; missing or unknown (an older or newer build wrote it) is FROM_START. */

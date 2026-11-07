@@ -152,7 +152,27 @@ object MathContent {
     val oneMore = line("voice_big_math_one_more", "תשים בסל תפוח אחד יותר ממה שיש על המחצלת.", "Put one apple more than on the mat in the basket.", "תשימי בסל תפוח אחד יותר ממה שיש על המחצלת.")
     val oneLess = line("voice_big_math_one_less", "תשים בסל תפוח אחד פחות ממה שיש על המחצלת.", "Put one apple fewer than on the mat in the basket.", "תשימי בסל תפוח אחד פחות ממה שיש על המחצלת.")
 
-    val allLines = birdsNow.values + listOf(hideArrive, hideArriveCame, hideAsk, hideStart, hideAskStart, hideHint) +
+    val teenHowMany = line("voice_big_math_teen_how_many", "כמה עיגולים יש בשתי המסגרות?", "How many counters are in the two frames?")
+    val teenArrive = line("voice_big_math_teen_arrive", "עוד עיגולים מגיעים.", "More counters are arriving.")
+    val teenHowManyNow = line("voice_big_math_teen_how_many_now", "כמה עיגולים יש עכשיו?", "How many counters are there now?")
+    val teenTarget = line("voice_big_math_teen_target", "בשתי המסגרות צריכים להיות עיגולים כמו המספר בכרטיס.", "The two frames need as many counters as the number on the card.")
+    val teenPart = line("voice_big_math_teen_part", "עוד עיגולים הגיעו, ועכשיו יש כמו המספר בכרטיס. כמה עיגולים הגיעו?", "More counters arrived, and now there are as many as the number on the card. How many counters arrived?")
+    val teenHint = line("voice_big_math_teen_hint", "יש עשרה במסגרת המלאה. בוא נספור הלאה מעשר.", "There are ten in the full frame. Let's count on from ten.", "יש עשרה במסגרת המלאה. בואי נספור הלאה מעשר.")
+    val teenNumbers = mapOf(
+        11 to line("voice_big_math_teen_11", "אחת-עשרה", "Eleven"),
+        12 to line("voice_big_math_teen_12", "שתים-עשרה", "Twelve"),
+        13 to line("voice_big_math_teen_13", "שלוש-עשרה", "Thirteen"),
+        14 to line("voice_big_math_teen_14", "ארבע-עשרה", "Fourteen"),
+        15 to line("voice_big_math_teen_15", "חמש-עשרה", "Fifteen"),
+        16 to line("voice_big_math_teen_16", "שש-עשרה", "Sixteen"),
+        17 to line("voice_big_math_teen_17", "שבע-עשרה", "Seventeen"),
+        18 to line("voice_big_math_teen_18", "שמונה-עשרה", "Eighteen"),
+        19 to line("voice_big_math_teen_19", "תשע-עשרה", "Nineteen"),
+        20 to line("voice_big_math_teen_20", "עשרים", "Twenty")
+    )
+
+    val allLines = teenNumbers.values + listOf(teenHowMany, teenArrive, teenHowManyNow, teenTarget, teenPart, teenHint) +
+        birdsNow.values + listOf(hideArrive, hideArriveCame, hideAsk, hideStart, hideAskStart, hideHint) +
         birdStarts + birdArrivals + birdDepartures + picnicTargets + picnicTotals.drop(1) + picnicShown + frameFilled + frameTargets.values +
         listOf(picnicAlready, frameFive, frameTen, howMany, howManyLeft, howManyMissing, joinHint, leaveHint,
             frameHint, tooFew, tooMany, exact, pressReady, oneMore, oneLess)

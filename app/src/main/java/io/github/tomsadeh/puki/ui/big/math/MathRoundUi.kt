@@ -19,16 +19,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.tomsadeh.puki.audio.Sfx
 import io.github.tomsadeh.puki.data.content.numberWords
+import io.github.tomsadeh.puki.data.content.big.MathContent
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import io.github.tomsadeh.puki.data.models.BilingualText
+import io.github.tomsadeh.puki.data.models.Language
 import io.github.tomsadeh.puki.ui.big.kit.*
 import io.github.tomsadeh.puki.ui.common.LocalGamePaused
 import io.github.tomsadeh.puki.ui.common.LocalSfxPlayer
 import io.github.tomsadeh.puki.ui.common.LocalVoicePlayer
 import io.github.tomsadeh.puki.ui.components.*
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 
 private val zeroName = BilingualText("אפס", "Zero")
-private fun numberName(n: Int) = numberWords(n, false).getOrNull(1) ?: zeroName.he
+private fun numberName(n: Int) = MathContent.teenNumbers[n]?.text?.he ?: numberWords(n, false).getOrNull(1) ?: zeroName.he
 
 @Composable
 internal fun MathRoundUi(
@@ -37,6 +44,8 @@ internal fun MathRoundUi(
     questionActive: Boolean = true,
     backdrop: @Composable () -> Unit = { BeachBackdrop() },
     pictureHint: Boolean = false,
+    completionReady: Boolean = true,
+    successVoiceKeys: List<String> = emptyList(),
     content: @Composable BoxScope.(showHint: Boolean) -> Unit
 ) {
     val session = state.session
@@ -46,16 +55,42 @@ internal fun MathRoundUi(
     var found by rememberSaveable { mutableStateOf(List<String?>(session.totalRounds) { null }) }
     var celebrated by rememberSaveable(session.roundIndex) { mutableStateOf(false) }
     var heardMisses by rememberSaveable(session.roundIndex) { mutableIntStateOf(0) }
+    var completedVoiceToken by remember(session.roundIndex, state.voice.token, paused) { mutableLongStateOf(-1L) }
+    val awaitSuccessVoice = successVoiceKeys.isNotEmpty()
     val help = rememberHelp(session.roundIndex, active = questionActive && !state.roundComplete && !session.sessionComplete && !session.isLoading) {
         onReplay()
     }
-    DisposableEffect(paused) { if (paused) voice.stop(); onDispose {} }
-    if (!paused && !session.sessionComplete) PlayVoiceCue(state.voice.keys, state.voice.token)
+    if (awaitSuccessVoice) {
+        LaunchedEffect(state.voice.token, paused, session.sessionComplete) {
+            if (paused || session.sessionComplete || state.voice.token == 0L) return@LaunchedEffect
+            // A replay during success still asks the question, then finishes the success sentence before leaving.
+            val keys = if (state.roundComplete && state.voice.keys != successVoiceKeys)
+                state.voice.keys + successVoiceKeys else state.voice.keys
+            voice.stop()
+            suspendCancellableCoroutine<Unit> { continuation ->
+                continuation.invokeOnCancellation { voice.stop() }
+                voice.playSequence(keys, Language.HEBREW) {
+                    if (continuation.isActive) continuation.resume(Unit)
+                }
+            }
+            completedVoiceToken = state.voice.token
+        }
+    } else {
+        DisposableEffect(paused) { if (paused) voice.stop(); onDispose {} }
+        if (!paused && !session.sessionComplete) PlayVoiceCue(state.voice.keys, state.voice.token)
+    }
     LaunchedEffect(session.roundIndex, state.roundComplete, paused, session.sessionComplete) {
         if (!state.roundComplete || paused || session.sessionComplete) return@LaunchedEffect
         found = found.toMutableList().also { it[session.roundIndex] = answer.toString() }
         if (!celebrated) { celebrated = true; sfx.play(Sfx.SUCCESS) }
-        delay(1900)
+    }
+    LaunchedEffect(session.roundIndex, state.roundComplete, paused, session.sessionComplete,
+        completionReady, if (awaitSuccessVoice) completedVoiceToken else 0L,
+        if (awaitSuccessVoice) state.voice.token else 0L) {
+        if (!state.roundComplete || paused || session.sessionComplete || !completionReady) return@LaunchedEffect
+        if (awaitSuccessVoice && completedVoiceToken != state.voice.token) return@LaunchedEffect
+        // Leave a brief still view of the joined card after both the movement and the sentence finish.
+        delay(if (awaitSuccessVoice) 700 else 1900)
         onNext()
     }
     LaunchedEffect(session.roundIndex, session.roundMisses, paused) {
@@ -106,7 +141,8 @@ internal fun NumberBoards(choices: List<Int>, answer: Int, complete: Boolean, fe
                                 cornerRadius = androidx.compose.ui.geometry.CornerRadius(28.dp.toPx()))
                         }
                     }, width = 120.dp, height = 132.dp, textScale = 0.45f, nameTag = numberName(n),
-                    footer = if (showDots) { { NumberDots(n) } } else null)
+                    footer = if (showDots && n <= 10) { { NumberDots(n) } } else null,
+                    textContent = if (n > 10) { { TeenNumeral(n) } } else null)
             }
         }
     }
@@ -125,15 +161,21 @@ private fun NumberDots(number: Int) {
 
 @Composable
 internal fun EquationSign(a: Int?, op: MathOperation, b: String, result: String, modifier: Modifier = Modifier,
-                          unknownStart: Boolean = false) {
+                          unknownStart: Boolean = false, arrivingColor: Color = BigColors.Coral) {
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
         Row(modifier.background(Color(0xFFFFE3A6), RoundedCornerShape(12.dp)).drawWithCache {
             onDrawBehind { drawRoundRect(BigColors.Post, style = Stroke(3.dp.toPx()), cornerRadius = androidx.compose.ui.geometry.CornerRadius(12.dp.toPx())) }
         }.padding(horizontal = 16.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
             listOf(a?.toString() ?: "?", if (op == MathOperation.PLUS) "+" else "−", b, "=", result).forEachIndexed { i, text ->
-                Text(text, fontSize = 34.sp, fontWeight = FontWeight.ExtraBold,
+                val label = buildAnnotatedString {
+                    if (i == 4 && (result.toIntOrNull() ?: 0) in 11..20) {
+                        withStyle(SpanStyle(color = BigColors.GoldEdge)) { append(text.first()) }
+                        append(text.drop(1))
+                    } else append(text)
+                }
+                Text(label, fontSize = 34.sp, fontWeight = FontWeight.ExtraBold,
                     color = when (i) { 0 -> if (unknownStart) BigColors.Coral else BigColors.Blue
-                        2 -> if (unknownStart) BigColors.Blue else BigColors.Coral; else -> BigColors.Ink })
+                        2 -> if (unknownStart) BigColors.Blue else arrivingColor; else -> BigColors.Ink })
             }
         }
     }
