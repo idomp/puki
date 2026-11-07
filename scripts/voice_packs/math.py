@@ -112,3 +112,18 @@ PHONEMES = {
 # one of how_many swallowed its end, so they get other takes. Slowing the long picnic lines made them
 # worse (gaps, a doubled ת), so those were split into two short clips instead.
 SEEDS = {"voice_big_math_shown_3_he": 1, "voice_big_math_how_many_he": 1}
+
+# Takes the parent picked by ear (math listening round 9, 2026-11-07): stem -> (IPA, speed, seed)
+TAKES = {
+    "voice_big_math_picnic_already_he": ("basˈal kvˈaʁ jˈeʃ tapuχˈim.", 0.7, 1),
+    "voice_big_math_picnic_target_1_he": ("basˈal tsaʁˈiχ lihjˈot tapuˈaχ ʔeχˈad.", 0.7, 1),
+    "voice_big_math_picnic_target_2_he": ("basˈal tsʁiχˈim lihjˈot ʃnˈej tapuχˈim.", 0.7, 1),
+    "voice_big_math_picnic_target_3_he": ("basˈal tsʁiχˈim lihjˈot ʃloʃˈa tapuχˈim.", 0.7, 1),
+    "voice_big_math_picnic_target_4_he": ("basˈal tsʁiχˈim lihjˈot ʔaʁbaʔˈa tapuχˈim.", 0.7, 1),
+    "voice_big_math_picnic_target_5_he": ("basˈal tsʁiχˈim lihjˈot χamiʃˈa tapuχˈim.", 0.7, 2),
+    "voice_big_math_picnic_target_6_he": ("basˈal tsʁiχˈim lihjˈot ʃiʃˈa tapuχˈim.", 0.7, 0),
+    "voice_big_math_picnic_target_7_he": ("basˈal tsʁiχˈim lihjˈot ʃivʔˈa tapuχˈim.", 0.7, 1),
+    "voice_big_math_picnic_target_8_he": ("basˈal tsʁiχˈim lihjˈot ʃmonˈa tapuχˈim.", 0.7, 1),
+    "voice_big_math_picnic_target_9_he": ("basˈal tsʁiχˈim lihjˈot tiʃʔˈa tapuχˈim.", 0.7, 1),
+    "voice_big_math_picnic_target_10_he": ("basˈal tsʁiχˈim lihjˈot ʔasaʁˈa tapuχˈim.", 0.7, 1),
+}
