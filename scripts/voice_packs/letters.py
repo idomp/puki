@@ -83,6 +83,9 @@ PHONEMES = {
 
 # Takes the parent picked by ear in a listening round (nikud round 6): stem -> (IPA, speed, seed)
 TAKES = {
+    # the toddler game's ה said "he" and the letter was lost; the parent picked "hey" (round 13, 2026-11-07),
+    # which the Academy notes is established in the name הֵא
+    "voice_letter_he_he": ("zˈot haʔˈot hˈej.", 0.6, 0),
     "voice_big_letters_cmp_kaf_pe_he": ("lepˈe jˈeʃ laʃˈon ktanˈa bifnˈim, ulekˈaf ʔˈejn.", 0.7, 3),
     "voice_big_letters_cmp_het_tav_he": ("letˈav jˈeʃ ʁˈeɡel ʃeponˈa haχˈutsa, uleχˈet ʃtˈej ʁaɡlˈajim jeʃaʁˈot.", 0.7, 0),
 }
