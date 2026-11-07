@@ -1,7 +1,7 @@
 package io.github.tomsadeh.puki.data.content.big
 
 /**
- * The content of the Sounds and Words island: two sounds (/a/ and /i/), consonants, the
+ * The content of the Sounds and Words island: three sounds (/a/, /i/ and /u/), consonants, the
  * syllables they make, and words split into reading units. Available voice keys are written out in full
  * so scripts/check_voices.py finds them. Pictures are referenced by id (the screen maps id -> drawable).
  */
@@ -12,13 +12,23 @@ object Nikud {
     const val KAMATS = "ָ"
     const val HIRIQ = "ִ"
 
-    enum class Sound { A, I }
+    /** Kubutz: three diagonal dots under the consonant. */
+    const val KUBUTZ = "ֻ"
+    /** Shuruk: a vav with a dagesh after the consonant. The vav belongs to the reading unit, like hiriq's yod. */
+    const val SHURUK = "וּ"
 
-    /** A vowel mark. Kamatz and patach are two marks with one sound (and one clip). */
+    enum class Sound { A, I, U }
+
+    /** The sounds the island taught first. /u/ opens only after their material (see NikudEligibility). */
+    val aiSounds: List<Sound> = listOf(Sound.A, Sound.I)
+
+    /** A vowel mark. Kamatz and patach are two marks with one sound (and one clip); so are shuruk and kubutz. */
     enum class Mark(val vowel: String, val sound: Sound, val nameKey: String, val hebrewName: String) {
         PATAH(Nikud.PATAH, Sound.A, "voice_big_nikud_mark_patah", "פַּתָּח"),
         KAMATS(Nikud.KAMATS, Sound.A, "voice_big_nikud_mark_kamats", "קָמָץ"),
-        HIRIQ(Nikud.HIRIQ, Sound.I, "voice_big_nikud_mark_hiriq", "חִירִיק")
+        HIRIQ(Nikud.HIRIQ, Sound.I, "voice_big_nikud_mark_hiriq", "חִירִיק"),
+        SHURUK(Nikud.SHURUK, Sound.U, "voice_big_nikud_mark_shuruk", "שׁוּרוּק"),
+        KUBUTZ(Nikud.KUBUTZ, Sound.U, "voice_big_nikud_mark_kubutz", "קֻבּוּץ")
     }
 
     /** A consonant: [bare] keeps its dots, no vowel; homophones share [pronunciation]. */
@@ -45,6 +55,12 @@ object Nikud {
 
     fun consonant(id: String): Consonant = consonants.first { it.id == id }
 
+    /** /u/ syllables still in a listening round (their takes weren't right yet): the games don't ask them. */
+    val pendingUSyllables: Set<String> = setOf("mem", "gimel", "kaf")
+
+    /** The consonants whose /u/ syllable the games may ask. */
+    val uConsonants: List<Consonant> get() = consonants.filter { it.id !in pendingUSyllables }
+
     /** One consonant with one mark. Its [id] is "<consonant>_<mark>" (mem_patah); the clip is by sound. */
     data class Syllable(val consonant: Consonant, val mark: Mark) {
         val id: String get() = "${consonant.id}_${mark.name.lowercase()}"
@@ -63,23 +79,23 @@ object Nikud {
         return syllable(c, Mark.valueOf(m.uppercase()))
     }
 
-    /** The recording of a consonant with a sound; kamatz and patach share the /a/ one. */
+    /** The recording of a consonant with a sound; kamatz and patach share the /a/ one, shuruk and kubutz the /u/ one. */
     fun syllableClip(consonantId: String, sound: Sound): String = SYLLABLE_CLIPS.getValue("${consonantId}_${sound.name.lowercase()}")
 
     val SYLLABLE_CLIPS: Map<String, String> = mapOf(
-        "mem_a" to "voice_big_nikud_mem_a", "mem_i" to "voice_big_nikud_mem_i",
-        "lamed_a" to "voice_big_nikud_lamed_a", "lamed_i" to "voice_big_nikud_lamed_i",
-        "nun_a" to "voice_big_nikud_nun_a", "nun_i" to "voice_big_nikud_nun_i",
-        "shin_a" to "voice_big_nikud_shin_a", "shin_i" to "voice_big_nikud_shin_i",
-        "gimel_a" to "voice_big_nikud_gimel_a", "gimel_i" to "voice_big_nikud_gimel_i",
-        "dalet_a" to "voice_big_nikud_dalet_a", "dalet_i" to "voice_big_nikud_dalet_i",
-        "yod_a" to "voice_big_nikud_yod_a", "yod_i" to "voice_big_nikud_yod_i",
-        "pe_a" to "voice_big_nikud_pe_a", "pe_i" to "voice_big_nikud_pe_i",
-        "bet_a" to "voice_big_nikud_bet_a", "bet_i" to "voice_big_nikud_bet_i",
-        "resh_a" to "voice_big_nikud_resh_a", "resh_i" to "voice_big_nikud_resh_i",
-        "samekh_a" to "voice_big_nikud_samekh_a", "samekh_i" to "voice_big_nikud_samekh_i",
-        "kaf_a" to "voice_big_nikud_kaf_a", "kaf_i" to "voice_big_nikud_kaf_i",
-        "tav_a" to "voice_big_nikud_tav_a", "tav_i" to "voice_big_nikud_tav_i"
+        "mem_a" to "voice_big_nikud_mem_a", "mem_i" to "voice_big_nikud_mem_i", "mem_u" to "voice_big_nikud_mem_u",
+        "lamed_a" to "voice_big_nikud_lamed_a", "lamed_i" to "voice_big_nikud_lamed_i", "lamed_u" to "voice_big_nikud_lamed_u",
+        "nun_a" to "voice_big_nikud_nun_a", "nun_i" to "voice_big_nikud_nun_i", "nun_u" to "voice_big_nikud_nun_u",
+        "shin_a" to "voice_big_nikud_shin_a", "shin_i" to "voice_big_nikud_shin_i", "shin_u" to "voice_big_nikud_shin_u",
+        "gimel_a" to "voice_big_nikud_gimel_a", "gimel_i" to "voice_big_nikud_gimel_i", "gimel_u" to "voice_big_nikud_gimel_u",
+        "dalet_a" to "voice_big_nikud_dalet_a", "dalet_i" to "voice_big_nikud_dalet_i", "dalet_u" to "voice_big_nikud_dalet_u",
+        "yod_a" to "voice_big_nikud_yod_a", "yod_i" to "voice_big_nikud_yod_i", "yod_u" to "voice_big_nikud_yod_u",
+        "pe_a" to "voice_big_nikud_pe_a", "pe_i" to "voice_big_nikud_pe_i", "pe_u" to "voice_big_nikud_pe_u",
+        "bet_a" to "voice_big_nikud_bet_a", "bet_i" to "voice_big_nikud_bet_i", "bet_u" to "voice_big_nikud_bet_u",
+        "resh_a" to "voice_big_nikud_resh_a", "resh_i" to "voice_big_nikud_resh_i", "resh_u" to "voice_big_nikud_resh_u",
+        "samekh_a" to "voice_big_nikud_samekh_a", "samekh_i" to "voice_big_nikud_samekh_i", "samekh_u" to "voice_big_nikud_samekh_u",
+        "kaf_a" to "voice_big_nikud_kaf_a", "kaf_i" to "voice_big_nikud_kaf_i", "kaf_u" to "voice_big_nikud_kaf_u",
+        "tav_a" to "voice_big_nikud_tav_a", "tav_i" to "voice_big_nikud_tav_i", "tav_u" to "voice_big_nikud_tav_u"
     )
 
     enum class UnitKind {
@@ -90,12 +106,13 @@ object Nikud {
     }
 
     /** One board: a CV sound, or a silent closing letter with an optional prerequisite letter family. */
-    data class ReadingUnit(val text: String, val kind: UnitKind, val clipKey: String?, val consonant: String?, val sound: Sound?)
+    data class ReadingUnit(val text: String, val kind: UnitKind, val clipKey: String?, val consonant: String?, val sound: Sound?,
+                           val mark: Mark? = null)
 
     private fun cv(consonantId: String, mark: Mark, dagesh: Boolean = false, suffix: String = ""): ReadingUnit {
         val c = consonant(consonantId)
         return ReadingUnit(c.bare + (if (dagesh) DAGESH else "") + mark.vowel + suffix, UnitKind.CV,
-            syllableClip(consonantId, mark.sound), consonantId, mark.sound)
+            syllableClip(consonantId, mark.sound), consonantId, mark.sound, mark)
     }
 
     private fun closing(letter: String, consonantId: String? = null) = ReadingUnit(letter, UnitKind.CLOSING, null, consonantId, null)
@@ -114,6 +131,10 @@ object Nikud {
         val text: String get() = units.joinToString("") { it.text }
         val firstConsonant: String get() = units.first().consonant!!
         val firstClip: String get() = units.first().clipKey!!
+        /** A /u/ word: it opens only after the a/i material. */
+        val hasU: Boolean get() = units.any { it.sound == Sound.U }
+        /** Written with kubutz: it waits until the second /u/ mark has been introduced. */
+        val usesKubutz: Boolean get() = units.any { it.mark == Mark.KUBUTZ }
     }
 
     val introductoryWords: List<Word> = listOf(
@@ -134,7 +155,8 @@ object Nikud {
     /** Remove an id only after its whole-word recording has been approved and added to the pack. */
     val pendingAudio: Set<String> = emptySet()
 
-    val words: List<Word> = introductoryWords + listOf(
+    /** The /a/ and /i/ words: the material /u/ opens after. */
+    val aiWords: List<Word> = introductoryWords + listOf(
         Word("gamal", listOf(cv("gimel", Mark.KAMATS), cv("mem", Mark.KAMATS), closing("ל", "lamed")), "camel", Tier.CLEAR, "voice_big_nikud_word_gamal"),
         Word("kaf", listOf(cv("kaf", Mark.PATAH), closing("ף", "pe")), "spoon", Tier.CLEAR, "voice_big_nikud_word_kaf"),
         Word("sal", listOf(cv("samekh", Mark.PATAH), closing("ל", "lamed")), "basket", Tier.CLEAR, "voice_big_nikud_word_sal"),
@@ -145,6 +167,17 @@ object Nikud {
         Word("para", listOf(cv("pe", Mark.KAMATS), cv("resh", Mark.KAMATS, suffix = "ה")), "cow", Tier.CLEAR, "voice_big_nikud_word_para"),
         Word("tiras", listOf(cv("tav", Mark.HIRIQ, suffix = "י"), cv("resh", Mark.KAMATS), closing("ס", "samekh")), "corn", Tier.CLEAR, "voice_big_nikud_word_tiras")
     )
+
+    /** The /u/ words: shuruk first (its vav is inside the unit), then the two kubutz words. */
+    val uWords: List<Word> = listOf(
+        Word("sus", listOf(cv("samekh", Mark.SHURUK), closing("ס", "samekh")), "horse", Tier.CLEAR, "voice_big_nikud_word_sus"),
+        Word("kadur", listOf(cv("kaf", Mark.PATAH), cv("dalet", Mark.SHURUK), closing("ר", "resh")), "ball", Tier.CLEAR, "voice_big_nikud_word_kadur"),
+        Word("tut", listOf(cv("tav", Mark.SHURUK), closing("ת", "tav")), "strawberry", Tier.CLEAR, "voice_big_nikud_word_tut"),
+        Word("dubi", listOf(cv("dalet", Mark.KUBUTZ), cv("bet", Mark.HIRIQ, suffix = "י")), "teddy", Tier.CLEAR, "voice_big_nikud_word_dubi"),
+        Word("buba", listOf(cv("bet", Mark.KUBUTZ), cv("bet", Mark.KAMATS, suffix = "ה")), "doll", Tier.CLEAR, "voice_big_nikud_word_buba")
+    )
+
+    val words: List<Word> = aiWords + uWords
 
     private val wordsById = words.associateBy { it.id }
     fun word(id: String): Word = wordsById.getValue(id)
@@ -158,7 +191,9 @@ object Nikud {
         setOf("kindergarten", "garden"),
         setOf("spoon", "hand"), // kaf also means the palm of a hand
         setOf("sea", "boat"), // the sea picture includes a sailboat
-        setOf("roof", "kindergarten") // the kindergarten picture includes a prominent roof
+        setOf("roof", "kindergarten"), // the kindergarten picture includes a prominent roof
+        setOf("teddy", "doll"), // a child may call the teddy a doll (בובה), and the teddy is דֻּבִּי
+        setOf("ball", "corner") // the corner scene has a ball in it, and the ball is כַּדּוּר
     )
 
     fun areTwins(a: Word, b: Word): Boolean = a.pictureId != null && b.pictureId != null &&

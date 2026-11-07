@@ -44,17 +44,27 @@ enum class AgeGroup {
  * solid, new Join Word words [joinSolid] of the original 12 words, new Read Sign words [readSolid] of the
  * original 9 clear words. With [prerequisites] a word also waits for its sounds to be met in Sound Shells
  * (and Read Sign for a clean Join Word encounter); without them everything is open from the first session.
+ *
+ * The /u/ sound opens after all of the a/i material: Sound Shells needs [uShellsSolid] of the 26 a/i
+ * consonant-sound items solid, Join Word [uJoinSolid] of the 21 a/i words, Read Sign [uReadSolid] of the 18
+ * clear a/i words. GRADUAL asks for about three quarters of each and FASTER for about two thirds; every number
+ * is larger than the original set, so some of the added consonants and words must be solid too. The second
+ * /u/ mark (kubutz) needs [kubutzSyllables] /u/ syllables answered cleanly, after the /u/ card was seen.
  */
 enum class ContentPace(
     val shellsSolid: Int,
     val joinSolid: Int,
     val readSolid: Int,
     val sessions: Int,
-    val prerequisites: Boolean
+    val prerequisites: Boolean,
+    val uShellsSolid: Int,
+    val uJoinSolid: Int,
+    val uReadSolid: Int,
+    val kubutzSyllables: Int
 ) {
-    GRADUAL(12, 8, 6, 2, true),
-    FASTER(8, 6, 4, 1, true),
-    ALL_NOW(0, 0, 0, 1, false);
+    GRADUAL(12, 8, 6, 2, true, 20, 16, 13, 4),
+    FASTER(8, 6, 4, 1, true, 18, 14, 11, 3),
+    ALL_NOW(0, 0, 0, 1, false, 0, 0, 0, 0);
 
     companion object {
         /** The stored name back to a pace; missing or unknown (an older or newer build wrote it) is GRADUAL. */

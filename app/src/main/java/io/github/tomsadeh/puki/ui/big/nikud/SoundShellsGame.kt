@@ -15,9 +15,9 @@ data class SyllableFeedback(val tappedId: String, val tappedText: String)
 
 data class ShellsState(
     val phase: NikudPhase = NikudPhase.LOADING,
-    /** 1: different consonants, all /a/. 2: one consonant with /a/ and /i/, plus another consonant. */
+    /** 1: different consonants, all /a/. 2: one consonant with /a/ and /i/, plus another consonant. 3: as 2, and /u/ against /a/ and /i/. */
     val stage: Int = 1,
-    /** A "meet the mark" card (1 or 2) not seen yet, which the screen may offer before the first round. */
+    /** A "meet the mark" card (1, 2 or 3) not seen yet, which the screen may offer before the first round. */
     val offerCard: Int? = null,
     val roundIndex: Int = 0,
     val totalRounds: Int = 0,
@@ -41,11 +41,16 @@ data class ShellsState(
  * across rounds (never both in one round: every /a/ board of a round has the same mark).
  * Stage 2 (items: consonant + sound, 16): the target's consonant with /a/ and with /i/, plus another
  * consonant with the target's sound. Never two boards with the same sound of the same consonant.
+ * Stage 3 (once [NikudEligibility] opens /u/): a /u/ target has the same consonant with /a/ and /i/ as its
+ * other two boards (סוּ / סַ / סִ); a few rounds ([AI_REVIEW_ROUNDS] at most) keep asking /a/ and /i/ as in
+ * stage 2. Shuruk is the /u/ spelling; kubutz joins the rounds, mixed with it, when [NikudEligibility]
+ * allows. Never two spellings of one sound in a round (not מוּ with מֻ, not מַ with מָ).
  *
- * The stage comes from the scheduler's record: stage 2 once [STAGE2_SOLID] of the 8 stage-1 items are
+ * ALL_NOW starts at stage 3, with every consonant, from the first session. Otherwise the stage comes
+ * from the scheduler's record: stage 2 once [STAGE2_SOLID] of the 8 stage-1 items are
  * solid (asked in two sessions or more and not shaky now). [NikudEligibility] adds consonants only
  * after the original stage-2 sounds are comfortable (or at once, if the parent chose so); each addition
- * joins in both sounds.
+ * joins in /a/ and /i/ (and /u/ at stage 3).
  */
 class SoundShellsGame(
     private val scheduler: RoundScheduler,
@@ -58,11 +63,19 @@ class SoundShellsGame(
     companion object {
         const val ROUNDS = 8
         const val STAGE2_SOLID = 6
+        /** In a stage-3 session at most this many rounds are /a/ or /i/; the rest are /u/. */
+        const val AI_REVIEW_ROUNDS = 3
         fun stage1Item(consonant: String) = "s1_$consonant"
         fun stage2Item(consonant: String, sound: Nikud.Sound) = "s2_${consonant}_${sound.name.lowercase()}"
 
         val STAGE1_ITEMS = Nikud.introductoryConsonants.map { stage1Item(it.id) }
-        val STAGE2_ITEMS = Nikud.introductoryConsonants.flatMap { c -> Nikud.Sound.values().map { stage2Item(c.id, it) } }
+        /** The original 16 /a/ and /i/ items: they pace the extra consonants. */
+        val STAGE2_ITEMS = Nikud.introductoryConsonants.flatMap { c -> Nikud.aiSounds.map { stage2Item(c.id, it) } }
+        /** All 26 /a/ and /i/ items: they pace /u/. */
+        val AI_ITEMS = Nikud.consonants.flatMap { c -> Nikud.aiSounds.map { stage2Item(c.id, it) } }
+        val U_ITEMS = Nikud.uConsonants.map { stage2Item(it.id, Nikud.Sound.U) }
+
+        private fun isU(item: String) = item.endsWith("_u")
 
         /** One spelling per audible sound, even if two consonants use different recordings. */
         fun distinctSounds(answer: Nikud.Syllable, candidates: List<Nikud.Syllable>): List<Nikud.Syllable> =
@@ -75,6 +88,7 @@ class SoundShellsGame(
     private var tokens = 0
     private var stage = 1
     private var aMarks = emptyList<Nikud.Mark>()
+    private var uMarks = emptyList<Nikud.Mark>()
     private var target: Nikud.Syllable? = null
     private var correctId = ""
     private var replayKeys: List<String> = emptyList()
@@ -85,12 +99,25 @@ class SoundShellsGame(
 
     fun start() {
         val solid = STAGE1_ITEMS.count { id -> scheduler.memory.record(id).let { it.seen >= 2 && it.misses == 0 } }
-        stage = if (solid >= STAGE2_SOLID) 2 else 1
+        stage = when {
+            eligibility.opensAtOnce() -> 3  // ALL_NOW: the introductory stages are skipped
+            solid < STAGE2_SOLID -> 1
+            eligibility.uSyllables(scheduler.memory) -> 3
+            else -> 2
+        }
         consonants = if (stage == 1) eligibility.firstConsonants() else eligibility.consonants(scheduler.memory)
-        val pool = if (stage == 1) consonants.map { stage1Item(it.id) } else consonants.flatMap { c -> Nikud.Sound.values().map { stage2Item(c.id, it) } }
-        scheduler.begin(rounds, pool)
+        val pool = if (stage == 1) consonants.map { stage1Item(it.id) } else consonants.flatMap { c -> Nikud.aiSounds.map { stage2Item(c.id, it) } }
+        if (stage == 3) {
+            scheduler.begin(rounds, pool + consonants.filter { it in Nikud.uConsonants }.map { stage2Item(it.id, Nikud.Sound.U) },
+                groupOf = { if (isU(it)) "u" else "ai" }, groupCaps = mapOf("ai" to AI_REVIEW_ROUNDS))
+        } else scheduler.begin(rounds, pool)
         aMarks = List(rounds) { if (it % 2 == 0) Nikud.Mark.PATAH else Nikud.Mark.KAMATS }.shuffled(random)
-        state = ShellsState(stage = stage, offerCard = (stage.takeIf { it !in cardsSeen }))
+        uMarks = if (eligibility.kubutz(scheduler.memory)) {
+            List(rounds) { if (it % 2 == 0) Nikud.Mark.SHURUK else Nikud.Mark.KUBUTZ }.shuffled(random)
+        } else List(rounds) { Nikud.Mark.SHURUK }
+        // (a child who skipped an earlier card still gets it first, one card per session)
+        val offer = if (stage == 3) listOf(1, 2, 3).firstOrNull { it !in cardsSeen } else stage.takeIf { it !in cardsSeen }
+        state = ShellsState(stage = stage, offerCard = offer)
         show(first = true)
     }
 
@@ -98,6 +125,9 @@ class SoundShellsGame(
     private fun nextAMark(): Nikud.Mark {
         return aMarks[scheduler.roundIndex]
     }
+
+    /** Shuruk, mixed with kubutz once that is open. */
+    private fun nextUMark(): Nikud.Mark = uMarks[scheduler.roundIndex]
 
     private fun tile(s: Nikud.Syllable) = SyllableTile(s.id, s.text, s.clipKey, s.consonant.bare)
 
@@ -112,6 +142,12 @@ class SoundShellsGame(
             answer = Nikud.syllable(consonant, mark)
             choices = scheduler.choices(answer.id, distinctSounds(answer, others.map { Nikud.syllable(it.id, mark) }).map { it.id }, 3,
                 distanceTo = { 2 }, key = item)
+        } else if (isU(item)) {
+            // the same consonant in all three sounds: only the vowel tells the boards apart
+            val consonant = item.removePrefix("s2_").substringBeforeLast('_')
+            answer = Nikud.syllable(consonant, nextUMark())
+            choices = scheduler.choices(answer.id, emptyList(), 3, distanceTo = { 2 },
+                forced = listOf(Nikud.syllable(consonant, nextAMark()).id, Nikud.syllable(consonant, Nikud.Mark.HIRIQ).id), key = item)
         } else {
             val parts = item.removePrefix("s2_").split('_')
             val consonant = parts[0]

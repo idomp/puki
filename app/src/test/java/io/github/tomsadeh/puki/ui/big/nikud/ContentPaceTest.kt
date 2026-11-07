@@ -109,8 +109,8 @@ class ContentPaceTest {
         val everything = NikudEligibility(pace = ContentPace.ALL_NOW)
         for (seed in 0 until 20) {
             val game = SoundShellsGame(RoundScheduler(random = Random(seed)), Random(seed), Tally().events,
-                rounds = Nikud.consonants.size, eligibility = everything).also { it.start() }
-            assertEquals(1, game.state.stage)
+                rounds = Nikud.consonants.size * 3, eligibility = everything).also { it.start() }
+            assertEquals("ALL_NOW has no introductory stage", 3, game.state.stage)
             val asked = mutableSetOf<String>()
             while (game.state.phase == NikudPhase.ROUND) {
                 val clip = game.state.cue.keys.first { it in Nikud.SYLLABLE_CLIPS.values }

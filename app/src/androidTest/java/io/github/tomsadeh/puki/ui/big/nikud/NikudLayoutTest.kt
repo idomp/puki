@@ -85,7 +85,7 @@ class NikudLayoutTest {
                 }
             }
         }
-        for (id in listOf("gamal", "panas", "banana", "tiras", "sira", "mapa")) {
+        for (id in listOf("gamal", "panas", "banana", "tiras", "sira", "mapa", "kadur", "sus", "tut", "dubi", "buba")) {
             rule.runOnIdle { word = Nikud.word(id) }
             screenshot("boards-$id")
             word.units.forEach { assertReadable(it.text) }
@@ -110,7 +110,7 @@ class NikudLayoutTest {
                 }
             }
         }
-        for (isRead in listOf(false, true)) for (id in listOf("gamal", "panas", "banana", "tiras")) {
+        for (isRead in listOf(false, true)) for (id in listOf("gamal", "panas", "banana", "tiras", "kadur", "dubi", "buba")) {
             rule.runOnIdle { word = Nikud.word(id); read = isRead }
             screenshot("sign-$id-$isRead")
             assertReadable(word.text)

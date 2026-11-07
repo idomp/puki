@@ -72,6 +72,27 @@ VOICE_LINES = [
     ("voice_big_nikud_join", "", ("בּ֫וֹאִי נְֽחַבֵּר אֶת הַצְּלִילִים.", "בּוֹא נְֽחַבֵּר אֶת הַצְּלִילִים.")),
     ("voice_big_nikud_pick_picture", "", ("עַכְשָׁו תִּבְחֲרִי תְּמוּנָה.", "עַכְשָׁו תִּבְחַר תְּמוּנָה.")),
     ("voice_big_nikud_two_marks", "", "שְׁנֵי סִימָנִים, צְלִיל אֶחָד."),
+    # step 3 (the /u/ pack: shuruk and kubutz); these clips wait for the parent's listening round.
+    # מוּ is the existing voice_big_nikud_mem_u above; one /u/ clip serves both marks.
+    ("voice_big_nikud_lamed_u", "", "לוּ"),
+    ("voice_big_nikud_nun_u", "", "נוּ"),
+    ("voice_big_nikud_shin_u", "", "שׁוּ"),
+    ("voice_big_nikud_gimel_u", "", "גּוּ"),
+    ("voice_big_nikud_dalet_u", "", "דּוּ"),
+    ("voice_big_nikud_yod_u", "", "יוּ"),
+    ("voice_big_nikud_pe_u", "", "פּוּ"),
+    ("voice_big_nikud_bet_u", "", "בּוּ"),
+    ("voice_big_nikud_resh_u", "", "רוּ"),
+    ("voice_big_nikud_samekh_u", "", "סוּ"),
+    ("voice_big_nikud_kaf_u", "", "כּוּ"),
+    ("voice_big_nikud_tav_u", "", "תּוּ"),
+    ("voice_big_nikud_mark_shuruk", "", "שׁוּרוּק"),
+    ("voice_big_nikud_mark_kubutz", "", "קֻבּוּץ"),
+    ("voice_big_nikud_word_sus", "", "סוּס"),
+    ("voice_big_nikud_word_kadur", "", "כַּדּוּר"),
+    ("voice_big_nikud_word_tut", "", "תּוּת"),
+    ("voice_big_nikud_word_dubi", "", "דֻּבִּי"),
+    ("voice_big_nikud_word_buba", "", "בֻּבָּה"),
 ]
 
 TAKES = {
@@ -148,4 +169,23 @@ TAKES = {
     "voice_big_nikud_word_banana_he": ("bananˈa", 0.5, 1),
     "voice_big_nikud_word_para_he": ("paʁˈa!", 0.55, 11),
     "voice_big_nikud_word_tiras_he": ("tiʁˈas!", 0.55, 0),
+    # round 8 (/u/, 2026-11-07); גּוּ and כּוּ are in round 10, and מוּ keeps its old file until then
+    "voice_big_nikud_lamed_u_he": ("lˈu", 0.8, 1),
+    "voice_big_nikud_nun_u_he": ("nˈu", 0.8, 1),
+    "voice_big_nikud_shin_u_he": ("ʃˈu", 0.8, 3),
+    "voice_big_nikud_dalet_u_he": ("dˈu", 0.8, 2),
+    "voice_big_nikud_yod_u_he": ("jˈu", 0.8, 3),
+    "voice_big_nikud_pe_u_he": ("pˈu", 0.8, 3),
+    "voice_big_nikud_bet_u_he": ("bˈu", 0.8, 1),
+    "voice_big_nikud_resh_u_he": ("ʁˈu", 0.8, 3),
+    "voice_big_nikud_samekh_u_he": ("sˈu", 0.8, 0),
+    "voice_big_nikud_tav_u_he": ("tˈu", 0.8, 3),
+    "voice_big_nikud_word_sus_he": ("sˈus", 0.6, 2),
+    "voice_big_nikud_word_kadur_he": ("kadˈuʁ", 0.7, 1),
+    # דֻּבִּי as it is said, stress on the first syllable
+    "voice_big_nikud_word_dubi_he": ("dˈubi", 0.5, 2),
+    "voice_big_nikud_word_tut_he": ("tˈut", 0.5, 0),
+    "voice_big_nikud_word_buba_he": ("bubˈa", 0.7, 0),
+    "voice_big_nikud_mark_shuruk_he": ("ʃuʁˈuk", 0.7, 1),
+    "voice_big_nikud_mark_kubutz_he": ("kubˈuts", 0.7, 3),
 }

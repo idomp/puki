@@ -32,7 +32,7 @@ class NikudCardStoreTest {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
         try {
             val ordered = OrderedNikudCardStore(store, scope)
-            val card = MeetMarkCard(1, false, ordered::markSeen).also { it.start() }
+            val card = MeetMarkCard(1, false, onSeen = ordered::markSeen).also { it.start() }
             card.onDone()
             val reentry = async { ordered.seen() }
             yield()

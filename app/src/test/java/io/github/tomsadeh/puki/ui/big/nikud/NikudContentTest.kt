@@ -21,7 +21,7 @@ class NikudContentTest {
 
     @Test
     fun unitsRebuildEachWordExactlyAsTheVoicePackWritesIt() {
-        assertEquals(21, Nikud.words.size)
+        assertEquals(26, Nikud.words.size)
         for (w in Nikud.words) {
             assertEquals(w.id, w.units.joinToString("") { it.text }, w.text)
             if (w.id in Nikud.pendingAudio) continue
@@ -50,6 +50,55 @@ class NikudContentTest {
     }
 
     @Test
+    fun uWordsKeepTheirPointingReadingUnitsAndPictures() {
+        val expected = mapOf(
+            "sus" to listOf("סוּ", "ס"), "kadur" to listOf("כַּ", "דּוּ", "ר"), "tut" to listOf("תּוּ", "ת"),
+            "dubi" to listOf("דֻּ", "בִּי"), "buba" to listOf("בֻּ", "בָּה")
+        )
+        val pictures = mapOf("sus" to "horse", "kadur" to "ball", "tut" to "strawberry", "dubi" to "teddy", "buba" to "doll")
+        assertEquals(expected.keys, Nikud.uWords.map { it.id }.toSet())
+        for ((id, units) in expected) {
+            val word = Nikud.word(id)
+            assertEquals(id, units.map(::nfc), word.units.map { nfc(it.text) })
+            assertEquals(Nikud.Tier.CLEAR, word.tier)
+            assertEquals(pictures[id], word.pictureId)
+            assertEquals("voice_big_nikud_word_$id", word.wordKey)
+            assertTrue(id, word.hasU)
+        }
+        // the carrier vav stays inside its reading unit, and the closing tav is a silent board of its own
+        assertEquals(listOf("voice_big_nikud_samekh_u", null), Nikud.word("sus").units.map { it.clipKey })
+        assertEquals(listOf("voice_big_nikud_kaf_a", "voice_big_nikud_dalet_u", null), Nikud.word("kadur").units.map { it.clipKey })
+        assertEquals(listOf("voice_big_nikud_tav_u", null), Nikud.word("tut").units.map { it.clipKey })
+        assertEquals(Nikud.UnitKind.CLOSING, Nikud.word("tut").units.last().kind)
+        assertEquals("tav", Nikud.word("tut").units.last().consonant)
+        // both kubutz words, and only they, wait for the second mark
+        assertEquals(setOf("dubi", "buba"), Nikud.uWords.filter { it.usesKubutz }.map { it.id }.toSet())
+        assertTrue(Nikud.aiWords.none { it.hasU || it.usesKubutz })
+        assertEquals(Nikud.aiWords + Nikud.uWords, Nikud.words)
+    }
+
+    @Test
+    fun theUPackKeysAreTheExpectedStrings() {
+        val consonants = listOf("mem", "lamed", "nun", "shin", "gimel", "dalet", "yod", "pe", "bet", "resh", "samekh", "kaf", "tav")
+        assertEquals(consonants, Nikud.consonants.map { it.id })
+        for (c in consonants) assertEquals("voice_big_nikud_${c}_u", Nikud.syllableClip(c, Nikud.Sound.U))
+        assertEquals("voice_big_nikud_mark_shuruk", Nikud.Mark.SHURUK.nameKey)
+        assertEquals("voice_big_nikud_mark_kubutz", Nikud.Mark.KUBUTZ.nameKey)
+        assertEquals(nfc("שׁוּרוּק"), nfc(Nikud.Mark.SHURUK.hebrewName))
+        assertEquals(nfc("קֻבּוּץ"), nfc(Nikud.Mark.KUBUTZ.hebrewName))
+        assertTrue(Nikud.Mark.values().none { "_name" in it.nameKey })
+        assertEquals(listOf("sus", "kadur", "tut", "dubi", "buba").map { "voice_big_nikud_word_$it" }, Nikud.uWords.map { it.wordKey })
+        // shuruk is a vav with a dagesh after the consonant, kubutz is U+05BB under it
+        assertEquals("וּ", Nikud.SHURUK)
+        assertEquals("ֻ", Nikud.KUBUTZ)
+        assertEquals("סוּ", nfc(Nikud.syllable("samekh", Nikud.Mark.SHURUK).text))
+        assertEquals("מֻ", nfc(Nikud.syllable("mem", Nikud.Mark.KUBUTZ).text))
+        assertEquals("דּוּ", nfc(Nikud.syllable("dalet", Nikud.Mark.SHURUK).text))
+        assertEquals("דֻּ", nfc(Nikud.syllable("dalet", Nikud.Mark.KUBUTZ).text))
+        assertEquals(Nikud.Mark.KUBUTZ, Nikud.syllable("bet_kubutz").mark)
+    }
+
+    @Test
     fun unitsAreCvOrASilentClosingLetter() {
         for (w in Nikud.words) {
             assertEquals(Nikud.UnitKind.CV, w.units.first().kind)
@@ -75,7 +124,8 @@ class NikudContentTest {
     @Test
     fun tiersAndPictures() {
         assertEquals(setOf("dag", "pil", "yad", "mapa", "gina", "yam", "gal", "gan", "gag",
-            "gamal", "kaf", "sal", "sir", "sira", "panas", "banana", "para", "tiras") - Nikud.pendingAudio,
+            "gamal", "kaf", "sal", "sir", "sira", "panas", "banana", "para", "tiras",
+            "sus", "kadur", "dubi", "tut", "buba") - Nikud.pendingAudio,
             Nikud.clearWords.map { it.id }.toSet())
         assertEquals(setOf("mana", "pina"), Nikud.words.filter { it.tier == Nikud.Tier.SCENE }.map { it.id }.toSet())
         assertEquals(listOf("mila"), Nikud.words.filter { it.tier == Nikud.Tier.NONE }.map { it.id })
@@ -86,6 +136,11 @@ class NikudContentTest {
         assertTrue(Nikud.areTwins(Nikud.word("gan"), Nikud.word("gina")))
         assertFalse(Nikud.areTwins(Nikud.word("gal"), Nikud.word("gan")))
         assertTrue(Nikud.areTwins(Nikud.word("sal"), Nikud.word("sal").copy(id = "another_basket")))
+        // a teddy may be called a doll; the corner scene has the ball in it
+        assertTrue(Nikud.areTwins(Nikud.word("dubi"), Nikud.word("buba")))
+        assertTrue(Nikud.areTwins(Nikud.word("buba"), Nikud.word("dubi")))
+        assertTrue(Nikud.areTwins(Nikud.word("kadur"), Nikud.word("pina")))
+        assertFalse(Nikud.areTwins(Nikud.word("sus"), Nikud.word("sal")))
     }
 
     @Test
@@ -101,8 +156,13 @@ class NikudContentTest {
     }
 
     @Test
-    fun syllablesAreTwentySixClipsAndKamatzSharesPatah() {
-        assertEquals(26, Nikud.SYLLABLE_CLIPS.size)
+    fun syllablesAreThirtyNineClipsAndKamatzSharesPatahAsShurukSharesKubutz() {
+        assertEquals(39, Nikud.SYLLABLE_CLIPS.size)
+        assertEquals(Nikud.syllable("mem", Nikud.Mark.SHURUK).clipKey, Nikud.syllable("mem", Nikud.Mark.KUBUTZ).clipKey)
+        assertEquals("voice_big_nikud_mem_u", Nikud.syllable("mem", Nikud.Mark.KUBUTZ).clipKey)
+        assertEquals(Nikud.syllable("mem", Nikud.Mark.SHURUK).soundId, Nikud.syllable("mem", Nikud.Mark.KUBUTZ).soundId)
+        assertTrue(Nikud.syllable("mem", Nikud.Mark.SHURUK).clipKey != Nikud.syllable("mem", Nikud.Mark.PATAH).clipKey)
+        assertTrue(Nikud.syllable("mem", Nikud.Mark.SHURUK).clipKey != Nikud.syllable("mem", Nikud.Mark.HIRIQ).clipKey)
         for (c in Nikud.consonants) for (m in Nikud.Mark.values()) {
             val s = Nikud.syllable(c.id, m)
             assertEquals(Nikud.syllableClip(c.id, m.sound), s.clipKey)
@@ -122,6 +182,19 @@ class NikudContentTest {
         assertTrue(used.size > 30)
         val playable = used + Nikud.SYLLABLE_CLIPS.values + Nikud.words.filter { it.id !in Nikud.pendingAudio }.map { it.wordKey }
         assertEquals("missing pack lines", emptySet<String>(), playable - packLines.keys)
-        assertEquals("missing audio", emptySet<String>(), playable - rawKeys)
+        assertEquals("missing audio", emptySet<String>(), playable - rawKeys - awaitingRecording)
+        assertEquals("not a key the games play", emptySet<String>(), awaitingRecording - playable)
+    }
+
+    /** The /u/ syllables still in a listening round ([Nikud.pendingUSyllables]); this list goes when they are recorded. */
+    private val awaitingRecording: Set<String> = setOf("voice_big_nikud_gimel_u", "voice_big_nikud_kaf_u")
+
+    @Test
+    fun pendingUSyllablesAreNeverAsked() {
+        assertEquals(setOf("mem", "gimel", "kaf"), Nikud.pendingUSyllables)
+        assertTrue(Nikud.uConsonants.none { it.id in Nikud.pendingUSyllables })
+        assertEquals(10, Nikud.uConsonants.size)
+        assertEquals(emptySet<String>(), awaitingRecording - packLines.keys)
+        assertTrue("voice_big_nikud_mem_u" in rawKeys)
     }
 }

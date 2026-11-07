@@ -18,6 +18,11 @@ class DataStoreNikudCardStore(private val context: Context) : NikudCardStore {
     companion object {
         private var visits: OrderedNikudCardStore? = null
 
+        /** "1,2" to {1, 2}; anything unreadable is skipped. Old values (before the /u/ card) read the same. */
+        fun decode(text: String?): Set<Int> = text.orEmpty().split(',').mapNotNull { it.toIntOrNull() }.toSet()
+
+        fun encode(cards: Set<Int>): String = cards.sorted().joinToString(",")
+
         fun visits(context: Context): OrderedNikudCardStore = synchronized(this) {
             visits ?: OrderedNikudCardStore(
                 DataStoreNikudCardStore(context.applicationContext), CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -28,12 +33,12 @@ class DataStoreNikudCardStore(private val context: Context) : NikudCardStore {
     private val key = stringPreferencesKey("cards_seen")
 
     override suspend fun seen(): Set<Int> =
-        context.nikudDataStore.data.first()[key].orEmpty().split(',').mapNotNull { it.toIntOrNull() }.toSet()
+        decode(context.nikudDataStore.data.first()[key])
 
     override suspend fun markSeen(card: Int) {
         context.nikudDataStore.edit { prefs ->
-            val now = prefs[key].orEmpty().split(',').mapNotNull { it.toIntOrNull() }.toSet() + card
-            prefs[key] = now.sorted().joinToString(",")
+            val now = decode(prefs[key]) + card
+            prefs[key] = encode(now)
         }
     }
 }
