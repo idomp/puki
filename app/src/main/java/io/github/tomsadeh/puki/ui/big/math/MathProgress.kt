@@ -8,9 +8,6 @@ enum class MathStage(val maximum: Int, val allowsZero: Boolean = false) {
     PART_5(5, allowsZero = true), PART_10(10, allowsZero = true)
 }
 
-/** Friends keeps counting content when asked for a part-whole stage. */
-internal val MathStage.countingStage: MathStage get() = if (this >= MathStage.PART_5) MathStage.MIXED_10 else this
-
 /** The stage the parent's Sums level starts at; each game still stops at its own ceiling. */
 val MathLevel.floor: MathStage get() = when (this) {
     MathLevel.FROM_START -> MathStage.JOIN_5
@@ -20,7 +17,7 @@ val MathLevel.floor: MathStage get() = when (this) {
 
 /** Each game advances only as far as its own content supports. */
 enum class MathGameId(val island: String, val maxStage: MathStage) {
-    FRIENDS("big_math_friends", MathStage.MIXED_10),
+    FRIENDS("big_math_friends", MathStage.PART_10),
     PICNIC("big_math_picnic", MathStage.PART_10),
     FRAME("big_math_frame", MathStage.PART_10);
 

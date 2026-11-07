@@ -64,7 +64,7 @@ class MathGamesTest {
     }
 
     private fun FriendsGame.question() { advancePhase(); advancePhase() }
-    private fun FriendsGame.solve() { question(); onAnswer(state.round!!.result) }
+    private fun FriendsGame.solve() { question(); onAnswer(state.round!!.answer) }
     private fun PicnicGame.solve() {
         val target = state.round!!.target
         while (state.basketCount < target) addItem()
@@ -73,13 +73,13 @@ class MathGamesTest {
     }
 
     @Test fun storiesStayWithinStageAndChoicesAreUniqueAcrossSeeds() = runBlocking {
-        for (stage in MathStage.entries) for (seed in 0..79) {
+        for (stage in MathStage.entries.take(5)) for (seed in 0..79) {
             val game = FriendsGame(Random(seed), Store(stage))
             game.start()
             val operations = mutableListOf<MathOperation>()
             repeat(6) { index ->
                 val round = game.state.round!!
-                val maximum = if (stage.countingStage == MathStage.MIXED_10 && index < 2) 5 else stage.countingStage.maximum
+                val maximum = if (stage == MathStage.MIXED_10 && index < 2) 5 else stage.maximum
                 val minimum = if (stage.allowsZero) 0 else 1
                 assertTrue(round.startCount in minimum..maximum)
                 assertTrue(round.change in minimum..maximum)
@@ -93,7 +93,7 @@ class MathGamesTest {
                     else -> Unit
                 }
                 operations += round.direction
-                if (stage.countingStage == MathStage.MIXED_10 && index >= 2)
+                if (stage == MathStage.MIXED_10 && index >= 2)
                     assertTrue(maxOf(round.startCount, round.change, round.result) > 5)
                 game.solve()
                 assertEquals(round.equation, game.state.equation)
@@ -102,7 +102,7 @@ class MathGamesTest {
             }
             assertTrue(game.state.session.sessionComplete)
             // Both operations stay covered; the later two joins and two leaves come in a shuffled order.
-            if (stage == MathStage.MIXED_5 || stage.countingStage == MathStage.MIXED_10)
+            if (stage == MathStage.MIXED_5 || stage == MathStage.MIXED_10)
                 assertEquals(listOf(2, 2), listOf(MathOperation.PLUS, MathOperation.MINUS).map { op -> operations.drop(2).count { it == op } })
         }
     }
@@ -307,13 +307,12 @@ class MathGamesTest {
 
     @Test fun promotionStopsAtEachGamesContentCeiling() {
         for (game in MathGameId.entries) for (misses in 0..1) {
-            val ceiling = if (game == MathGameId.FRIENDS) MathStage.MIXED_10 else MathStage.PART_10
+            val ceiling = MathStage.PART_10
             var stage = MathStage.JOIN_5
             repeat(10) { stage = nextMathStage(game, stage, 6, misses, misses) }
             assertEquals(ceiling, stage)
             for (saved in listOf(MathStage.MIXED_10, MathStage.PART_5, MathStage.PART_10)) {
-                val expected = if (game != MathGameId.FRIENDS)
-                    MathStage.entries[minOf(saved.ordinal + 1, ceiling.ordinal)] else ceiling
+                val expected = MathStage.entries[minOf(saved.ordinal + 1, ceiling.ordinal)]
                 assertEquals(expected, nextMathStage(game, saved, 6, misses, misses))
             }
         }
@@ -468,45 +467,19 @@ class MathGamesTest {
         }
     }
 
-    @Test fun savedPartFriendsLoadAsMixedTenIncludingChoicesVoicesAndEquations() = runBlocking {
-        for (stage in listOf(MathStage.PART_5, MathStage.PART_10)) for (seed in 0..19) {
-            val friends = FriendsGame(Random(seed), Store(stage)); friends.start()
-            val mixedFriends = FriendsGame(Random(seed), Store(MathStage.MIXED_10)); mixedFriends.start()
+    @Test fun friendsProgressesThroughPartStagesAndEasesOneStageAfterAMajorityOfMissedRounds() = runBlocking {
+        val store = Store(MathStage.MIXED_10)
+        for ((visit, expected) in listOf(MathStage.PART_5, MathStage.PART_10, MathStage.PART_10,
+            MathStage.PART_5, MathStage.MIXED_10).withIndex()) {
+            val game = FriendsGame(Random(visit), store); game.start()
             repeat(6) { index ->
-                assertEquals(mixedFriends.state, friends.state)
-                assertEquals(MathStage.MIXED_10, friends.state.session.stage)
-                assertEquals(friendsPool(MathStage.MIXED_10, index, MathOperation.PLUS), friendsPool(stage, index, MathOperation.PLUS))
-                assertEquals(friendsPool(MathStage.MIXED_10, index, MathOperation.MINUS), friendsPool(stage, index, MathOperation.MINUS))
-                friends.question(); mixedFriends.question()
-                val wrongBirds = friends.state.choices.first { it != friends.state.round!!.result }
-                friends.onAnswer(wrongBirds); mixedFriends.onAnswer(wrongBirds)
-                friends.replay(); mixedFriends.replay()
-                assertEquals(mixedFriends.state, friends.state)
-                friends.onAnswer(friends.state.round!!.result); mixedFriends.onAnswer(mixedFriends.state.round!!.result)
-                assertEquals(mixedFriends.state.equation, friends.state.equation)
-                friends.next(); mixedFriends.next()
+                game.question()
+                if (visit >= 3 && index < 4) game.onAnswer(game.state.choices.first { it != game.state.round!!.answer })
+                game.onAnswer(game.state.round!!.answer); game.next()
             }
-        }
-    }
-
-    @Test fun friendsStayAtMixedTenThenEaseInOneMajorityMissSession() = runBlocking {
-        for (saved in listOf(MathStage.MIXED_10, MathStage.PART_5, MathStage.PART_10)) {
-            val friendsStore = Store(saved)
-            repeat(3) { visit ->
-                val friends = FriendsGame(Random(visit), friendsStore); friends.start()
-                assertEquals(MathStage.MIXED_10, friends.state.session.stage)
-                repeat(6) { index ->
-                    friends.question()
-                    if (visit == 2 && index < 4) {
-                        friends.onAnswer(friends.state.choices.first { it != friends.state.round!!.result })
-                    }
-                    friends.onAnswer(friends.state.round!!.result); friends.next()
-                }
-                val expected = if (visit == 2) MathStage.ZERO_5 else MathStage.MIXED_10
-                assertEquals(expected, friendsStore.stage)
-                assertEquals(expected, friends.state.session.nextStage)
-                assertEquals(visit + 1, friendsStore.writes)
-            }
+            assertEquals(expected, store.stage)
+            assertEquals(expected, game.state.session.nextStage)
+            assertEquals(visit + 1, store.writes)
         }
     }
 
@@ -589,7 +562,7 @@ class MathGamesTest {
     private fun counts(catalog: (MathStage) -> Set<Any>) = MathStage.entries.map { catalog(it).size }
 
     @Test fun catalogsHaveTheMeasuredSizesPerStage() {
-        assertEquals(listOf(10, 10, 20, 26, 111, 111, 111), counts(::friendsCatalog))
+        assertEquals(listOf(10, 10, 20, 26, 111, 8, 51), counts(::friendsCatalog))
         assertEquals(listOf(9, 9, 13, 12, 21, 36, 66), counts(::picnicCatalog))
         assertEquals(listOf(4, 4, 4, 6, 17, 6, 32), counts(::frameCatalog))
     }
@@ -806,7 +779,7 @@ class MathGamesTest {
             val friendSlots = mutableListOf<Int>()
             val frameSlots = mutableListOf<Int>()
             repeat(6) {
-                friendSlots += friends.state.choices.indexOf(friends.state.round!!.result)
+                friendSlots += friends.state.choices.indexOf(friends.state.round!!.answer)
                 frameSlots += frame.state.choices.indexOf(frame.state.round!!.missing)
                 friends.solve(); friends.next()
                 frame.onAnswer(frame.state.round!!.missing); frame.next()

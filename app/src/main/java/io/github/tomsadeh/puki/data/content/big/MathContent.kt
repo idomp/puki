@@ -16,6 +16,25 @@ private fun line(key: String, he: String, en: String, girl: String? = null) =
 
 /** Every key is literal so check_voices.py can discover it. Numbers and nouns are never spliced. */
 object MathContent {
+    val hideArrive = line("voice_big_math_hide_arrive", "עוד ציפורים הגיעו והתחבאו בין העלים.", "More birds arrived and hid among the leaves.")
+    val hideArriveCame = line("voice_big_math_hide_arrive_came", "עוד ציפורים באו והתחבאו בין העלים.", "More birds came and hid among the leaves.")
+    /** The two wordings take turns, so the story doesn't repeat itself word for word. */
+    val hideArrivals = listOf(hideArrive, hideArriveCame)
+    val hideAsk = line("voice_big_math_hide_ask", "כמה ציפורים התחבאו?", "How many birds hid?")
+    val hideStart = line("voice_big_math_hide_start", "על הענף ישבו ציפורים, והן מתחבאות בין העלים.", "Birds were sitting on the branch, hiding among the leaves.")
+    val hideAskStart = line("voice_big_math_hide_ask_start", "כמה ציפורים היו על הענף בהתחלה?", "How many birds were on the branch at the start?")
+    val hideHint = line("voice_big_math_hide_hint", "בוא נתחיל מהציפורים שרואים ונספור הלאה.", "Let's start with the birds we can see and count on.", "בואי נתחיל מהציפורים שרואים ונספור הלאה.")
+    val birdsNow = mapOf(
+        2 to line("voice_big_math_birds_now_2", "על הענף יש עכשיו שתי ציפורים.", "Now there are two birds on the branch."),
+        3 to line("voice_big_math_birds_now_3", "על הענף יש עכשיו שלוש ציפורים.", "Now there are three birds on the branch."),
+        4 to line("voice_big_math_birds_now_4", "על הענף יש עכשיו ארבע ציפורים.", "Now there are four birds on the branch."),
+        5 to line("voice_big_math_birds_now_5", "על הענף יש עכשיו חמש ציפורים.", "Now there are five birds on the branch."),
+        6 to line("voice_big_math_birds_now_6", "על הענף יש עכשיו שש ציפורים.", "Now there are six birds on the branch."),
+        7 to line("voice_big_math_birds_now_7", "על הענף יש עכשיו שבע ציפורים.", "Now there are seven birds on the branch."),
+        8 to line("voice_big_math_birds_now_8", "על הענף יש עכשיו שמונה ציפורים.", "Now there are eight birds on the branch."),
+        9 to line("voice_big_math_birds_now_9", "על הענף יש עכשיו תשע ציפורים.", "Now there are nine birds on the branch."),
+        10 to line("voice_big_math_birds_now_10", "על הענף יש עכשיו עשר ציפורים.", "Now there are ten birds on the branch.")
+    )
     val birdStarts = listOf(
         line("voice_big_math_birds_start_0", "על הענף אין ציפורים.", "There are no birds on the branch."),
         line("voice_big_math_birds_start_1", "על הענף יש ציפור אחת.", "There is one bird on the branch."),
@@ -133,7 +152,8 @@ object MathContent {
     val oneMore = line("voice_big_math_one_more", "תשים בסל תפוח אחד יותר ממה שיש על המחצלת.", "Put one apple more than on the mat in the basket.", "תשימי בסל תפוח אחד יותר ממה שיש על המחצלת.")
     val oneLess = line("voice_big_math_one_less", "תשים בסל תפוח אחד פחות ממה שיש על המחצלת.", "Put one apple fewer than on the mat in the basket.", "תשימי בסל תפוח אחד פחות ממה שיש על המחצלת.")
 
-    val allLines = birdStarts + birdArrivals + birdDepartures + picnicTargets + picnicTotals.drop(1) + picnicShown + frameFilled + frameTargets.values +
+    val allLines = birdsNow.values + listOf(hideArrive, hideArriveCame, hideAsk, hideStart, hideAskStart, hideHint) +
+        birdStarts + birdArrivals + birdDepartures + picnicTargets + picnicTotals.drop(1) + picnicShown + frameFilled + frameTargets.values +
         listOf(picnicAlready, frameFive, frameTen, howMany, howManyLeft, howManyMissing, joinHint, leaveHint,
             frameHint, tooFew, tooMany, exact, pressReady, oneMore, oneLess)
 }

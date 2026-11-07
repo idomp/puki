@@ -5,8 +5,8 @@ import kotlin.random.Random
 
 enum class MathOperation { PLUS, MINUS }
 
-/** Render operands in this order, left to right, even in Hebrew. Null b means a visible ?. */
-data class Equation(val a: Int, val op: MathOperation, val b: Int?, val result: Int)
+/** Render operands in this order, left to right, even in Hebrew. A null operand means a visible ?. */
+data class Equation(val a: Int?, val op: MathOperation, val b: Int?, val result: Int)
 
 data class MathVoiceCue(val lines: List<MathLine> = emptyList(), val token: Long = 0) {
     val keys: List<String> get() = lines.map { it.key }

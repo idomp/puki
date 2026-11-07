@@ -59,14 +59,14 @@ class MathLevelTest {
         assertEquals(MathStage.PART_10, game.state.session.stage)
     }
 
-    @Test fun theGameCeilingStillWinsForFriends() = runBlocking {
+    @Test fun friendsNowSupportsTheParentsPartFloor() = runBlocking {
         val friends = FriendsGame(Random(5), Store(), floor = floorOf(MathLevel.MAKE_THE_TOTAL))
         friends.start()
-        assertEquals(MathStage.MIXED_10, friends.state.session.stage)
+        assertEquals(MathStage.PART_5, friends.state.session.stage)
         val picnic = PicnicGame(Random(5), Store(), floor = floorOf(MathLevel.MAKE_THE_TOTAL))
         picnic.start()
         assertEquals(MathStage.PART_5, picnic.state.session.stage)
-        assertEquals(MathStage.MIXED_10, nextMathStage(MathGameId.FRIENDS, MathStage.MIXED_10, 6, 6, 6, MathStage.PART_5))
+        assertEquals(MathStage.PART_5, nextMathStage(MathGameId.FRIENDS, MathStage.PART_5, 6, 6, 6, MathStage.PART_5))
     }
 
     @Test fun demotionStopsAtTheFloor() = runBlocking {

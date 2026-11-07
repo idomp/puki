@@ -23,7 +23,7 @@ class MathVoiceContentTest {
         val existing = (1..10).map { "voice_number_$it" }.toSet()
         assertTrue("Keys absent from pack: ${keys - packKeys.toSet() - existing}", (keys - packKeys.toSet() - existing).isEmpty())
         assertEquals(MathContent.allLines.map { it.key }.toSet(), keys)
-        assertEquals(99, keys.size)
+        assertEquals(114, keys.size)
     }
 
     @Test fun completeSentencesAndGenderedVariantsMatchBilingualContentAndEnglishIsAvailable() {
@@ -44,6 +44,18 @@ class MathVoiceContentTest {
         assertEquals(MathContent.picnicTargets[0], MathContent.picnicTotals[0])
         for (target in 1..10) assertEquals("voice_big_math_picnic_target_$target", MathContent.picnicTotals[target].key)
         assertEquals(MathContent.allLines.size, MathContent.allLines.map { it.key }.distinct().size)
+    }
+
+    @Test fun hiddenTotalsUseFeminineNumbersAndTheHintAddressesBothChildren() {
+        val words = listOf("שתי", "שלוש", "ארבע", "חמש", "שש", "שבע", "שמונה", "תשע", "עשר")
+        assertEquals((2..10).toSet(), MathContent.birdsNow.keys)
+        for (total in 2..10) {
+            val line = MathContent.birdsNow.getValue(total)
+            assertEquals("voice_big_math_birds_now_$total", line.key)
+            assertEquals("על הענף יש עכשיו ${words[total - 2]} ציפורים.", line.text.he)
+        }
+        assertEquals("בואי נתחיל מהציפורים שרואים ונספור הלאה.", MathContent.hideHint.text.heGirl)
+        assertEquals("בוא נתחיל מהציפורים שרואים ונספור הלאה.", MathContent.hideHint.text.he)
     }
 
     @Test fun ambiguousEightUsesGenderAppropriatePhonemeStems() {
