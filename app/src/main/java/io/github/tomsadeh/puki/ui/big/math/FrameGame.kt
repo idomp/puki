@@ -32,8 +32,11 @@ data class FrameState(
     override val voice: MathVoiceCue = MathVoiceCue()
 ) : MathState
 
-class FrameGame(random: Random, progress: MathProgressStore, history: MathHistoryStore = InMemoryMathHistoryStore()) :
-    MathGame<FrameState>(MathGameId.FRAME, random, progress, history) {
+class FrameGame(
+    random: Random, progress: MathProgressStore, history: MathHistoryStore = InMemoryMathHistoryStore(),
+    floor: suspend () -> MathStage = { MathStage.JOIN_5 }
+) :
+    MathGame<FrameState>(MathGameId.FRAME, random, progress, history, floor) {
     override var state = FrameState()
         private set
 

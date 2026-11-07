@@ -71,6 +71,7 @@ import io.github.tomsadeh.puki.theme.CloudWhite
 import io.github.tomsadeh.puki.ui.hub.islandsFor
 import io.github.tomsadeh.puki.data.models.AgeGroup
 import io.github.tomsadeh.puki.data.models.ContentPace
+import io.github.tomsadeh.puki.data.models.MathLevel
 import androidx.compose.ui.graphics.Color
 import io.github.tomsadeh.puki.theme.EarthBrown
 import io.github.tomsadeh.puki.theme.GrassGreen
@@ -299,6 +300,44 @@ fun SettingsScreen(
                         BilingualText(
                             "באי צלילים ומילים: מתי לפתוח את המילים והאותיות החדשות. בהדרגה, אחרי שהקיימות יציבות; מהר יותר, אחרי פחות תרגול; הכול עכשיו, מהכניסה הבאה.",
                             "On the Sounds and Words island: when the new words and letters open. Gradually, once the current ones are steady; Faster, after less practice; All now, from the next visit."
+                        ).resolve(language),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = EarthBrown
+                    )
+
+                    // Where the Sums island starts a child: a floor under the stage each game has saved
+                    Text(
+                        BilingualText("רמה בחשבון", "Sums level").resolve(language),
+                        style = MaterialTheme.typography.titleLarge,
+                        color = EarthBrown
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                        listOf(
+                            MathLevel.FROM_START to BilingualText("מההתחלה", "From the start"),
+                            MathLevel.WITHIN_TEN to BilingualText("עד עשר", "Within ten"),
+                            MathLevel.MAKE_THE_TOTAL to BilingualText("להשלים עד", "Make the total")
+                        ).forEach { (level, label) ->
+                            val chosen = settings.mathLevel == level
+                            Text(
+                                (if (chosen) "✓ " else "") + label.resolve(language),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = if (chosen) CloudWhite else EarthBrown,
+                                // (three to a row: one line each, even with the ✓)
+                                maxLines = 1,
+                                softWrap = false,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(14.dp))
+                                    .background(if (chosen) GrassGreen else Color(0xFFEFEBE9))
+                                    .clickable { settingsViewModel.setMathLevel(level) }
+                                    .padding(horizontal = 6.dp, vertical = 8.dp)
+                            )
+                        }
+                    }
+                    Text(
+                        BilingualText(
+                            "באי החשבון: מאיזה שלב להתחיל. המשחקים ממשיכים לעלות מכאן לפי ההצלחה.",
+                            "On the Sums island: which stage to start from. The games keep climbing from there as it goes well."
                         ).resolve(language),
                         style = MaterialTheme.typography.bodyMedium,
                         color = EarthBrown

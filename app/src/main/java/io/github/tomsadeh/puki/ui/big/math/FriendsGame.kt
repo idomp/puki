@@ -30,8 +30,11 @@ data class FriendsState(
     override val roundComplete: Boolean get() = phase == StoryPhase.ANSWERED
 }
 
-class FriendsGame(random: Random, progress: MathProgressStore, history: MathHistoryStore = InMemoryMathHistoryStore()) :
-    MathGame<FriendsState>(MathGameId.FRIENDS, random, progress, history) {
+class FriendsGame(
+    random: Random, progress: MathProgressStore, history: MathHistoryStore = InMemoryMathHistoryStore(),
+    floor: suspend () -> MathStage = { MathStage.JOIN_5 }
+) :
+    MathGame<FriendsState>(MathGameId.FRIENDS, random, progress, history, floor) {
     override var state = FriendsState()
         private set
     /** Rounds 3-6 of a mixed stage: two joins and two leaves in a shuffled order. */

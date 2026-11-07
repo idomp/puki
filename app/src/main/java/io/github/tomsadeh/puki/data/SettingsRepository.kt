@@ -17,6 +17,7 @@ import io.github.tomsadeh.puki.data.models.BrainLanguages
 import io.github.tomsadeh.puki.data.models.ContentPace
 import io.github.tomsadeh.puki.data.models.Gender
 import io.github.tomsadeh.puki.data.models.Language
+import io.github.tomsadeh.puki.data.models.MathLevel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -47,6 +48,7 @@ class SettingsRepository(private val context: Context) {
         val HIDDEN_ISLANDS = stringSetPreferencesKey("hidden_islands")
         val AGE_GROUP = stringPreferencesKey("age_group")
         val CONTENT_PACE = stringPreferencesKey("content_pace")
+        val MATH_LEVEL = stringPreferencesKey("math_level")
     }
 
     val settings: Flow<AppSettings> = context.settingsDataStore.data.map { prefs ->
@@ -69,7 +71,8 @@ class SettingsRepository(private val context: Context) {
             rememberBetween = prefs[Keys.REMEMBER_BETWEEN] ?: false,
             hiddenIslands = prefs[Keys.HIDDEN_ISLANDS] ?: emptySet(),
             ageGroup = prefs[Keys.AGE_GROUP]?.let { runCatching { AgeGroup.valueOf(it) }.getOrNull() } ?: AgeGroup.BIG,
-            contentPace = ContentPace.fromStored(prefs[Keys.CONTENT_PACE])
+            contentPace = ContentPace.fromStored(prefs[Keys.CONTENT_PACE]),
+            mathLevel = MathLevel.fromStored(prefs[Keys.MATH_LEVEL])
         )
     }
 
@@ -79,6 +82,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun updateContentPace(pace: ContentPace) {
         context.settingsDataStore.edit { it[Keys.CONTENT_PACE] = pace.name }
+    }
+
+    suspend fun updateMathLevel(level: MathLevel) {
+        context.settingsDataStore.edit { it[Keys.MATH_LEVEL] = level.name }
     }
 
     suspend fun updateLanguage(language: Language) {
