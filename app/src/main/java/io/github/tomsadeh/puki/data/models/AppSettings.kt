@@ -30,7 +30,9 @@ data class AppSettings(
     /** Whose map the hub shows: the toddler islands, or the games for the last year of kindergarten. */
     val ageGroup: AgeGroup = AgeGroup.BIG,
     /** How fast Sounds and Words opens its newer letters and words (the BIG map only). */
-    val contentPace: ContentPace = ContentPace.GRADUAL
+    val contentPace: ContentPace = ContentPace.GRADUAL,
+    /** Where the Sums island starts a child: a floor under the stage each math game has saved (the BIG map only). */
+    val mathLevel: MathLevel = MathLevel.FROM_START
 )
 
 /** The fork's two maps. LITTLE is the original game (ages 2-4); BIG is letters, reading and sums (5-6). */
@@ -69,6 +71,16 @@ enum class ContentPace(
     companion object {
         /** The stored name back to a pace; missing or unknown (an older or newer build wrote it) is GRADUAL. */
         fun fromStored(name: String?): ContentPace = name?.let { runCatching { valueOf(it) }.getOrNull() } ?: GRADUAL
+    }
+}
+
+/** Where the Sums games start. A floor only: saved progress above it is kept, and it never lowers a stage. */
+enum class MathLevel {
+    FROM_START, WITHIN_TEN, MAKE_THE_TOTAL;
+
+    companion object {
+        /** The stored name back to a level; missing or unknown (an older or newer build wrote it) is FROM_START. */
+        fun fromStored(name: String?): MathLevel = name?.let { runCatching { valueOf(it) }.getOrNull() } ?: FROM_START
     }
 }
 

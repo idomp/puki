@@ -42,8 +42,11 @@ data class PicnicState(
     override val voice: MathVoiceCue = MathVoiceCue()
 ) : MathState
 
-class PicnicGame(random: Random, progress: MathProgressStore, history: MathHistoryStore = InMemoryMathHistoryStore()) :
-    MathGame<PicnicState>(MathGameId.PICNIC, random, progress, history) {
+class PicnicGame(
+    random: Random, progress: MathProgressStore, history: MathHistoryStore = InMemoryMathHistoryStore(),
+    floor: suspend () -> MathStage = { MathStage.JOIN_5 }
+) :
+    MathGame<PicnicState>(MathGameId.PICNIC, random, progress, history, floor) {
     override var state = PicnicState()
         private set
     /** Later requests are shuffled once and kept for the rest of the session. */

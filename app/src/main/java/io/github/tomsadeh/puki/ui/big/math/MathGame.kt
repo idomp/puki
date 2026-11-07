@@ -48,7 +48,9 @@ abstract class MathGame<S : MathState>(
     val gameId: MathGameId,
     protected val random: Random,
     private val progress: MathProgressStore,
-    private val history: MathHistoryStore
+    private val history: MathHistoryStore,
+    /** The parent's starting level, read once when a session starts. */
+    private val floorLevel: suspend () -> MathStage = { MathStage.JOIN_5 }
 ) {
     abstract val state: S
     protected var session = MathSessionState()
@@ -58,11 +60,13 @@ abstract class MathGame<S : MathState>(
     private var earlier = emptyList<String>()
     private val played = mutableListOf<String>()
     private var answerSlots = emptyList<Int>()
+    private var floor = MathStage.JOIN_5
 
     suspend fun start() {
         if (!session.isLoading) return
         earlier = history.load(gameId)
-        session = session.copy(stage = gameId.normalize(progress.load(gameId)), isLoading = false)
+        floor = floorLevel()
+        session = session.copy(stage = gameId.startStage(progress.load(gameId), floor), isLoading = false)
         startRound()
     }
 
@@ -114,7 +118,7 @@ abstract class MathGame<S : MathState>(
     suspend fun next() {
         if (session.isLoading || session.sessionComplete || !state.roundComplete) return
         if (session.roundIndex + 1 == session.totalRounds) {
-            val stage = nextMathStage(gameId, session.stage, session.totalRounds, session.misses, session.missedRounds)
+            val stage = nextMathStage(gameId, session.stage, session.totalRounds, session.misses, session.missedRounds, floor)
             progress.save(gameId, stage)
             session = session.copy(sessionComplete = true, nextStage = stage)
             refreshSession()

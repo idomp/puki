@@ -7,11 +7,18 @@ import io.github.tomsadeh.puki.PukiApplication
 import io.github.tomsadeh.puki.ui.common.GameSession
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.random.Random
+
+/** The parent's Sums level as a stage; an unreadable setting means from the start. */
+private fun mathFloor(application: Application): suspend () -> MathStage = {
+    runCatching { (application as PukiApplication).settingsRepository.settings.first().mathLevel.floor }
+        .getOrDefault(MathStage.JOIN_5)
+}
 
 /** Serializes events with loading/saving; stars and shared session records are awarded once. */
 abstract class MathGameViewModel<S : MathState>(
@@ -53,14 +60,14 @@ abstract class MathGameViewModel<S : MathState>(
 }
 
 class FriendsViewModel(application: Application) : MathGameViewModel<FriendsState>(
-    application, FriendsGame(Random.Default, DataStoreMathProgressStore(application), DataStoreMathHistoryStore(application))
+    application, FriendsGame(Random.Default, DataStoreMathProgressStore(application), DataStoreMathHistoryStore(application), mathFloor(application))
 ) {
     fun advancePhase() = event { (game as FriendsGame).advancePhase() }
     fun onAnswer(number: Int) = event { (game as FriendsGame).onAnswer(number) }
 }
 
 class PicnicViewModel(application: Application) : MathGameViewModel<PicnicState>(
-    application, PicnicGame(Random.Default, DataStoreMathProgressStore(application), DataStoreMathHistoryStore(application))
+    application, PicnicGame(Random.Default, DataStoreMathProgressStore(application), DataStoreMathHistoryStore(application), mathFloor(application))
 ) {
     fun addItem() = event { (game as PicnicGame).addItem() }
     fun removeItem() = event { (game as PicnicGame).removeItem() }
@@ -68,7 +75,7 @@ class PicnicViewModel(application: Application) : MathGameViewModel<PicnicState>
 }
 
 class FrameViewModel(application: Application) : MathGameViewModel<FrameState>(
-    application, FrameGame(Random.Default, DataStoreMathProgressStore(application), DataStoreMathHistoryStore(application))
+    application, FrameGame(Random.Default, DataStoreMathProgressStore(application), DataStoreMathHistoryStore(application), mathFloor(application))
 ) {
     fun onAnswer(number: Int) = event { (game as FrameGame).onAnswer(number) }
 }
