@@ -55,6 +55,12 @@ object Nikud {
 
     fun consonant(id: String): Consonant = consonants.first { it.id == id }
 
+    /** /u/ syllables still in a listening round (their takes weren't right yet): the games don't ask them. */
+    val pendingUSyllables: Set<String> = setOf("mem", "gimel", "kaf")
+
+    /** The consonants whose /u/ syllable the games may ask. */
+    val uConsonants: List<Consonant> get() = consonants.filter { it.id !in pendingUSyllables }
+
     /** One consonant with one mark. Its [id] is "<consonant>_<mark>" (mem_patah); the clip is by sound. */
     data class Syllable(val consonant: Consonant, val mark: Mark) {
         val id: String get() = "${consonant.id}_${mark.name.lowercase()}"

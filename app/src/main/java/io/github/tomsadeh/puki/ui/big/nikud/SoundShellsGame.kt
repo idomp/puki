@@ -73,7 +73,7 @@ class SoundShellsGame(
         val STAGE2_ITEMS = Nikud.introductoryConsonants.flatMap { c -> Nikud.aiSounds.map { stage2Item(c.id, it) } }
         /** All 26 /a/ and /i/ items: they pace /u/. */
         val AI_ITEMS = Nikud.consonants.flatMap { c -> Nikud.aiSounds.map { stage2Item(c.id, it) } }
-        val U_ITEMS = Nikud.consonants.map { stage2Item(it.id, Nikud.Sound.U) }
+        val U_ITEMS = Nikud.uConsonants.map { stage2Item(it.id, Nikud.Sound.U) }
 
         private fun isU(item: String) = item.endsWith("_u")
 
@@ -108,7 +108,7 @@ class SoundShellsGame(
         consonants = if (stage == 1) eligibility.firstConsonants() else eligibility.consonants(scheduler.memory)
         val pool = if (stage == 1) consonants.map { stage1Item(it.id) } else consonants.flatMap { c -> Nikud.aiSounds.map { stage2Item(c.id, it) } }
         if (stage == 3) {
-            scheduler.begin(rounds, pool + consonants.map { stage2Item(it.id, Nikud.Sound.U) },
+            scheduler.begin(rounds, pool + consonants.filter { it in Nikud.uConsonants }.map { stage2Item(it.id, Nikud.Sound.U) },
                 groupOf = { if (isU(it)) "u" else "ai" }, groupCaps = mapOf("ai" to AI_REVIEW_ROUNDS))
         } else scheduler.begin(rounds, pool)
         aMarks = List(rounds) { if (it % 2 == 0) Nikud.Mark.PATAH else Nikud.Mark.KAMATS }.shuffled(random)

@@ -186,21 +186,15 @@ class NikudContentTest {
         assertEquals("not a key the games play", emptySet<String>(), awaitingRecording - playable)
     }
 
-    /**
-     * The /u/ pack's clips, which the parent has not yet chosen by ear (voice_big_nikud_mem_u exists). The
-     * pack lines are written; scripts/check_voices.py reports these keys until the audio is added, and this
-     * list goes when it is.
-     */
-    private val awaitingRecording: Set<String> =
-        listOf("lamed", "nun", "shin", "gimel", "dalet", "yod", "pe", "bet", "resh", "samekh", "kaf", "tav").map { "voice_big_nikud_${it}_u" }.toSet() +
-            setOf("voice_big_nikud_mark_shuruk", "voice_big_nikud_mark_kubutz") +
-            setOf("sus", "kadur", "dubi", "tut", "buba").map { "voice_big_nikud_word_$it" }.toSet()
+    /** The /u/ syllables still in a listening round ([Nikud.pendingUSyllables]); this list goes when they are recorded. */
+    private val awaitingRecording: Set<String> = setOf("voice_big_nikud_gimel_u", "voice_big_nikud_kaf_u")
 
     @Test
-    fun theWaitingListIsTheWholeUPackExceptTheClipThatExists() {
-        assertEquals(19, awaitingRecording.size)
+    fun pendingUSyllablesAreNeverAsked() {
+        assertEquals(setOf("mem", "gimel", "kaf"), Nikud.pendingUSyllables)
+        assertTrue(Nikud.uConsonants.none { it.id in Nikud.pendingUSyllables })
+        assertEquals(10, Nikud.uConsonants.size)
         assertEquals(emptySet<String>(), awaitingRecording - packLines.keys)
         assertTrue("voice_big_nikud_mem_u" in rawKeys)
-        assertFalse("voice_big_nikud_mem_u" in awaitingRecording)
     }
 }

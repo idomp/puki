@@ -47,18 +47,21 @@ class MeetMarkCard(
     fun start() = open(startCard, intro = true)
 
     private fun open(card: Int, intro: Boolean) {
-        val mem = Nikud.consonant("mem")
+        val letter = Nikud.consonant(cardLetter(card))
         val faces = when (card) {
             1 -> listOf(Nikud.Mark.KAMATS, Nikud.Mark.PATAH)
             CARD_I -> listOf(Nikud.Mark.HIRIQ)
             else -> listOf(Nikud.Mark.SHURUK, Nikud.Mark.KUBUTZ)
-        }.map { MarkFace(mem.bare + it.vowel, it.hebrewName, it.nameKey) }
+        }.map { MarkFace(letter.bare + it.vowel, it.hebrewName, it.nameKey) }
         // the two-marks cards say their line when they start, and card 3 also when it follows card 2
         val saysTwoMarks = card == CARD_U || card == 1 && intro
         state = MeetMarkState(card = card, faces = faces, cue = cue(if (saysTwoMarks) listOf(Nikud.Voice.TWO_MARKS) else emptyList()))
     }
 
-    private val soundKey get() = Nikud.syllableClip("mem", when (state.card) {
+    // (the /u/ card shows סוּ / סֻ: its sound has an approved recording)
+    private fun cardLetter(card: Int) = if (card == CARD_U) "samekh" else "mem"
+
+    private val soundKey get() = Nikud.syllableClip(cardLetter(state.card), when (state.card) {
         1 -> Nikud.Sound.A
         CARD_I -> Nikud.Sound.I
         else -> Nikud.Sound.U
