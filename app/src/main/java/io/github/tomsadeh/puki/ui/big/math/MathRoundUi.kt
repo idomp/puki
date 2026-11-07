@@ -124,14 +124,16 @@ private fun NumberDots(number: Int) {
 }
 
 @Composable
-internal fun EquationSign(a: Int, op: MathOperation, b: String, result: String, modifier: Modifier = Modifier) {
+internal fun EquationSign(a: Int?, op: MathOperation, b: String, result: String, modifier: Modifier = Modifier,
+                          unknownStart: Boolean = false) {
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
         Row(modifier.background(Color(0xFFFFE3A6), RoundedCornerShape(12.dp)).drawWithCache {
             onDrawBehind { drawRoundRect(BigColors.Post, style = Stroke(3.dp.toPx()), cornerRadius = androidx.compose.ui.geometry.CornerRadius(12.dp.toPx())) }
         }.padding(horizontal = 16.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-            listOf(a.toString(), if (op == MathOperation.PLUS) "+" else "−", b, "=", result).forEachIndexed { i, text ->
+            listOf(a?.toString() ?: "?", if (op == MathOperation.PLUS) "+" else "−", b, "=", result).forEachIndexed { i, text ->
                 Text(text, fontSize = 34.sp, fontWeight = FontWeight.ExtraBold,
-                    color = when (i) { 0 -> BigColors.Blue; 2 -> BigColors.Coral; else -> BigColors.Ink })
+                    color = when (i) { 0 -> if (unknownStart) BigColors.Coral else BigColors.Blue
+                        2 -> if (unknownStart) BigColors.Blue else BigColors.Coral; else -> BigColors.Ink })
             }
         }
     }

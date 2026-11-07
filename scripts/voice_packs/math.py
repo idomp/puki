@@ -1,6 +1,20 @@
 """Complete math sentences. Gendered Hebrew is (girl, boy); no number/noun splicing."""
 
 VOICE_LINES = [
+    ("voice_big_math_hide_arrive", "More birds arrived and hid among the leaves.", "עוד ציפורים הגיעו והתחבאו בין העלים."),
+    ("voice_big_math_hide_ask", "How many birds hid?", "כמה ציפורים התחבאו?"),
+    ("voice_big_math_hide_start", "Birds were sitting on the branch, hiding among the leaves.", "על הענף ישבו ציפורים, והן מתחבאות בין העלים."),
+    ("voice_big_math_hide_ask_start", "How many birds were on the branch at the start?", "כמה ציפורים היו על הענף בהתחלה?"),
+    ("voice_big_math_hide_hint", "Let's start with the birds we can see and count on.", ("בואי נתחיל מהציפורים שרואים ונספור הלאה.", "בוא נתחיל מהציפורים שרואים ונספור הלאה.")),
+    ("voice_big_math_birds_now_2", "Now there are two birds on the branch.", "עכשיו יש על הענף שתי ציפורים."),
+    ("voice_big_math_birds_now_3", "Now there are three birds on the branch.", "עכשיו יש על הענף שלוש ציפורים."),
+    ("voice_big_math_birds_now_4", "Now there are four birds on the branch.", "עכשיו יש על הענף ארבע ציפורים."),
+    ("voice_big_math_birds_now_5", "Now there are five birds on the branch.", "עכשיו יש על הענף חמש ציפורים."),
+    ("voice_big_math_birds_now_6", "Now there are six birds on the branch.", "עכשיו יש על הענף שש ציפורים."),
+    ("voice_big_math_birds_now_7", "Now there are seven birds on the branch.", "עכשיו יש על הענף שבע ציפורים."),
+    ("voice_big_math_birds_now_8", "Now there are eight birds on the branch.", "עכשיו יש על הענף שמונה ציפורים."),
+    ("voice_big_math_birds_now_9", "Now there are nine birds on the branch.", "עכשיו יש על הענף תשע ציפורים."),
+    ("voice_big_math_birds_now_10", "Now there are ten birds on the branch.", "עכשיו יש על הענף עשר ציפורים."),
     ("voice_island_math", "Sums", "חשבון."),
     ("voice_big_math_birds_start_0", "There are no birds on the branch.", "על הענף אין ציפורים."),
     ("voice_big_math_birds_start_1", "There is one bird on the branch.", "על הענף יש ציפור אחת."),

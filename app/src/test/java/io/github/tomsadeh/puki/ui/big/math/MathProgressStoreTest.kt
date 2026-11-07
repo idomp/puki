@@ -19,8 +19,7 @@ class MathProgressStoreTest {
             for (stage in MathStage.entries) {
                 // Seed the exact stored name so legacy PART saves exercise the load path.
                 val store = storeWith(preferencesOf(key to stage.name))
-                val expected = if (game == MathGameId.FRIENDS && stage >= MathStage.PART_5)
-                    MathStage.MIXED_10 else stage
+                val expected = stage
                 assertEquals(expected, store.load(game))
                 for (other in MathGameId.entries.filter { it != game })
                     assertEquals(MathStage.JOIN_5, store.load(other))
@@ -38,8 +37,7 @@ class MathProgressStoreTest {
         val store = InMemoryMathProgressStore()
         for (game in MathGameId.entries) for (stage in MathStage.entries) {
             store.save(game, stage)
-            val expected = if (game == MathGameId.FRIENDS && stage >= MathStage.PART_5)
-                MathStage.MIXED_10 else stage
+            val expected = stage
             assertEquals(expected, store.load(game))
         }
     }
