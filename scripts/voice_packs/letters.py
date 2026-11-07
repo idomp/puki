@@ -86,6 +86,8 @@ TAKES = {
     # the toddler game's ה said "he" and the letter was lost; the parent picked "hey" (round 13, 2026-11-07),
     # which the Academy notes is established in the name הֵא
     "voice_letter_he_he": ("zˈot haʔˈot hˈej.", 0.6, 0),
+    # the toddler game's ש sounded like "she" (the final ן was lost); the pause before the name keeps it (round 14)
+    "voice_letter_shin_he": ("zˈot haʔˈot, ʃˈin.", 0.7, 1),
     "voice_big_letters_cmp_kaf_pe_he": ("lepˈe jˈeʃ laʃˈon ktanˈa bifnˈim, ulekˈaf ʔˈejn.", 0.7, 3),
     "voice_big_letters_cmp_het_tav_he": ("letˈav jˈeʃ ʁˈeɡel ʃeponˈa haχˈutsa, uleχˈet ʃtˈej ʁaɡlˈajim jeʃaʁˈot.", 0.7, 0),
 }
